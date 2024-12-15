@@ -24,7 +24,11 @@ namespace _Main._Stickman
 
         public void Initialize()
         {
-            GetComponentInChildren<Renderer>().material.color = ColorTypeToColor(_colorType);
+            Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
+            if (childRenderer != null)
+            {
+                childRenderer.material.color = ColorTypeToColor(_colorType);
+            }
         }
 
         public IEnumerator Move(Transform moveTransform)
