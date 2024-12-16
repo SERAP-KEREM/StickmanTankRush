@@ -44,6 +44,9 @@ namespace _Main._Stickman.StickmanGrid
                     Stickman stickman = Instantiate(_stickmanPrefab, position, Quaternion.identity, transform);
                     stickman.UnitColorType = colorType;
 
+                    // Stickman'a grid pozisyonunu ayarl?yoruz
+                    stickman.SetGridPosition(x, y);
+
                     stickman.Initialize();
 
                     _stickmanGrid[x, y] = stickman;

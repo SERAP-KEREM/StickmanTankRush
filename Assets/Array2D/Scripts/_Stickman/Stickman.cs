@@ -22,6 +22,10 @@ namespace _Main._Stickman
         private bool _isSelectable = false;
         public bool IsSelectable { get => _isSelectable; set => _isSelectable = value; }
 
+        // Yeni eklenen grid koordinatlar?
+        public int GridX { get; private set; }
+        public int GridY { get; private set; }
+
         public void Initialize()
         {
             Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
@@ -29,6 +33,14 @@ namespace _Main._Stickman
             {
                 childRenderer.material.color = ColorTypeToColor(_colorType);
             }
+        }
+
+        // Grid pozisyonunu ayarlamak için bir metod
+        public void SetGridPosition(int x, int y)
+        {
+            GridX = x;
+            GridY = y;
+          //  Debug.Log($"Stickman at position [{x}, {y}]");
         }
 
         public IEnumerator Move(Transform moveTransform)
