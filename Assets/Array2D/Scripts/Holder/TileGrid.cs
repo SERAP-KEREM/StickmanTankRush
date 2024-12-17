@@ -29,8 +29,9 @@ namespace _Main._Stickman.StickmanGrid
             {
                 for (int x = 0; x < _gridSize.x; x++)
                 {
-                    // Grid hücresine kar??l?k gelen pozisyon
-                    Vector3 position = new Vector3(x, -1, y);
+                    // Y ekseninde gridSize.y - 1 - y ile pozisyon belirleme
+                    int transformedY = _gridSize.y - 1 - y;
+                    Vector3 position = new Vector3(x, -1, transformedY);
 
                     // Tile'? instantiate et ve griddeki uygun hücreye yerle?tir
                     GameObject tileObj = Instantiate(_tilePrefab, position, Quaternion.identity, transform);
@@ -38,6 +39,7 @@ namespace _Main._Stickman.StickmanGrid
                     tile.Initialize(position);
 
                     _tileGrid[x, y] = tile;
+                    tile.name = $"Tile [{x},{y}]";
                 }
             }
         }

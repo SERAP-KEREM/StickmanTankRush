@@ -26,7 +26,7 @@ namespace _Main._Stickman.StickmanGrid
         }
 
         // Tile'da stickman var m??
-        public bool HasStickman()
+        public bool HasStickman() 
         {
             return CurrentStickman != null;
         }
