@@ -5,9 +5,9 @@ namespace _Main._Stickman.StickmanGrid
 {
     public class TileGrid : MonoBehaviour
     {
-        [SerializeField] private GameObject _tilePrefab; // Tile prefab'?
+        [SerializeField] private GameObject _tilePrefab; // Tile prefab reference
         [SerializeField] private LevelDataSO _levelDataSO;
-        private Tile[,] _tileGrid;  // Tüm gridin tile'lar?
+        private Tile[,] _tileGrid;  // 2D array of tiles in the grid
         private Vector2Int _gridSize;
 
         void Start()
@@ -15,11 +15,17 @@ namespace _Main._Stickman.StickmanGrid
             Initialize();
         }
 
+        /// <summary>
+        /// Initializes the grid setup.
+        /// </summary>
         public void Initialize()
         {
             Setup(_levelDataSO.Array2DGrid);
         }
 
+        /// <summary>
+        /// Sets up the tile grid based on the provided 2D grid data.
+        /// </summary>
         public void Setup(Array2DGrid grid)
         {
             _gridSize = grid.GridSize;
@@ -29,11 +35,9 @@ namespace _Main._Stickman.StickmanGrid
             {
                 for (int x = 0; x < _gridSize.x; x++)
                 {
-                    // Y ekseninde gridSize.y - 1 - y ile pozisyon belirleme
-                    int transformedY = _gridSize.y - 1 - y;
-                    Vector3 position = new Vector3(x, -1, transformedY);
+                    Vector3 position = new Vector3(x, -1, y);
 
-                    // Tile'? instantiate et ve griddeki uygun hücreye yerle?tir
+                    // Instantiate the tile and place it at the correct grid cell
                     GameObject tileObj = Instantiate(_tilePrefab, position, Quaternion.identity, transform);
                     Tile tile = tileObj.GetComponent<Tile>();
                     tile.Initialize(position);
@@ -44,7 +48,9 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        // Belirli bir tile'? al
+        /// <summary>
+        /// Gets a specific tile at position (x, y).
+        /// </summary>
         public Tile GetTile(int x, int y)
         {
             if (x >= 0 && x < _gridSize.x && y >= 0 && y < _gridSize.y)
@@ -54,7 +60,9 @@ namespace _Main._Stickman.StickmanGrid
             return null;
         }
 
-        // Belirli bir tile'?n pozisyonunu al
+        /// <summary>
+        /// Gets the world position of a specific tile.
+        /// </summary>
         public Vector3 GetPosition(int x, int y)
         {
             Tile tile = GetTile(x, y);

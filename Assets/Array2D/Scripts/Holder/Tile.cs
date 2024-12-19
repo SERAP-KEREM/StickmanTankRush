@@ -4,29 +4,38 @@ namespace _Main._Stickman.StickmanGrid
 {
     public class Tile : MonoBehaviour
     {
-        public Stickman CurrentStickman { get; private set; }  // Bu tile'daki stickman
-        public Vector3 Position { get; private set; }  // Tile'?n dünya pozisyonu
+        public Stickman CurrentStickman { get; private set; }  // The stickman currently on this tile
+        public Vector3 Position { get; private set; }  // The world position of the tile
 
+        /// <summary>
+        /// Initializes the tile with a given position.
+        /// </summary>
         public void Initialize(Vector3 position)
         {
             Position = position;
-            CurrentStickman = null;  // Ba?lang?çta bo?
+            CurrentStickman = null;  // Initially, no stickman
         }
 
-        // Tile'a bir stickman yerle?tir
+        /// <summary>
+        /// Places a stickman on this tile.
+        /// </summary>
         public void PlaceStickman(Stickman stickman)
         {
             CurrentStickman = stickman;
         }
 
-        // Tile'dan stickman'? kald?r
+        /// <summary>
+        /// Removes the stickman from this tile.
+        /// </summary>
         public void RemoveStickman()
         {
             CurrentStickman = null;
         }
 
-        // Tile'da stickman var m??
-        public bool HasStickman() 
+        /// <summary>
+        /// Checks if there is a stickman on this tile.
+        /// </summary>
+        public bool HasStickman()
         {
             return CurrentStickman != null;
         }

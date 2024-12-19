@@ -1,3 +1,4 @@
+using _Main._Enums;
 using _Main._Tank;
 using LevelEditor;
 using System.Collections.Generic;
@@ -6,59 +7,163 @@ using UnityEngine;
 
 public class TankManager : MonoBehaviour
 {
+    // Variables and fields necessary for managing tanks
+
     [Title("Grid Configuration")]
-    [SerializeField] private LevelDataSO _levelDataSO; // Tank verilerini tutan LevelDataSO
-    [SerializeField] private Tank _tankPrefab; // Tank prefab referans?
+    [SerializeField, Tooltip("SO that contains tank data like color types and other configurations.")]
+    private LevelDataSO _levelDataSO; // The LevelDataSO that holds tank data
 
-    [SerializeField] private List<Transform> stopPoints; // StopPoint'lerin listesi
+    [SerializeField, Tooltip("Prefab reference for the tank.")]
+    private Tank _tankPrefab; // Tank prefab reference
 
-    // Tanklar aras?ndaki bo?luk miktar?
-    private const float TankSpacing = 10f;
+    [SerializeField, Tooltip("List of stop points for the tanks to stop at.")]
+    private List<Transform> stopPoints; // List of stop points
 
-    // Ba?lang?ç konumu (tanklar?n s?ralanaca?? yer)
-    [SerializeField] private Vector3 startPosition = new Vector3(10, -3, -40);
-
-    // Ba?lang?ç rotas?
-    [SerializeField] private float startRotationY = 90f; // Tanklar?n Y ekseninde ba?layaca?? rotas?
-
+    // Tank queues and currently controlled tank
     private Queue<Tank> tankQueue = new Queue<Tank>();
-    // Start is called before the first frame update
+    private Tank currentTank; // Currently controlled tank
+
+    // Public variable to store the first tank in the queue
+    public Tank firstTank;
+
+    // Constants and initial positions
+    private const float TankSpacing = 10f;
+    [SerializeField, Tooltip("Initial start position for tanks.")]
+    private Vector3 startPosition = new Vector3(10, -3, -40);
+
+    [SerializeField, Tooltip("Initial rotation on the Y axis for the tanks.")]
+    private float startRotationY = 90f;
+
+    /// <summary>
+    /// The Start method is called at the beginning of the game to initialize tanks.
+    /// </summary>
     void Start()
     {
         Setup();
-        MoveNextTankToStopPoint();
+        MoveNextTankToStopPoint();  // Move the first tank to the stop point
     }
 
+    /// <summary>
+    /// Sets up the tanks based on data from LevelDataSO and prepares them for the game.
+    /// </summary>
     public void Setup()
     {
-        List<TankData> tankDataList = _levelDataSO.TankDataList; // Tank verilerini içeren liste
+        // Creates tanks from tank data
+        List<TankData> tankDataList = _levelDataSO.TankDataList;
 
         for (int i = 0; i < tankDataList.Count; i++)
         {
-            // Z koordinat?n? hesaplama (her tank aras?nda 2 birim bo?luk olacak)
-            float z = startPosition.z + (i * TankSpacing); // Ba?lang?ç noktas?na ekleyerek s?ral?yoruz
+            // Calculate the Z coordinate inversely
+            float z = startPosition.z - (i * TankSpacing);
 
-            // Tanklar? s?ras?yla konumland?r?yoruz, X ve Y sabit kalacak
+            // Tank position and rotation
             Vector3 position = new Vector3(startPosition.x, startPosition.y, z);
-
-            // Rotasyon ayar? (Tanklar Y ekseninde dönecek)
             Quaternion rotation = Quaternion.Euler(0, startRotationY, 0);
 
-            // Tank prefab'?n? olu?turma
+            // Instantiate the tank
             Tank tank = Instantiate(_tankPrefab, position, rotation, transform);
-            tank.UnitColorType = tankDataList[i].TankColorType; // Tank?n rengini ayarlama
-            tankQueue.Enqueue(tank); // Tanklar? s?raya ekle
-            tank.Initialize(stopPoints[0].position);  // Tank? ba?latma
+            tank.UnitColorType = tankDataList[i].TankColorType;
+            tankQueue.Enqueue(tank);
+            tank.Initialize(stopPoints[0].position);
 
-            // Tank ismini ayarlama
+            // Update tank's name
             tank.name = $"{tankDataList[i].TankColorType} Tank [{i}]";
+
+            // If this is the first tank, assign it to the firstTank variable
+            if (i == 0)
+            {
+                firstTank = tank;
+            }
         }
     }
+
+    /// <summary>
+    /// Called every frame to handle user input and perform actions like printing the current tank info.
+    /// </summary>
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P)) // Press "P" to print the current tank's info
+        {
+            PrintCurrentTankInfo();
+        }
+    }
+
+    /// <summary>
+    /// Moves the next tank from the queue to the stop point.
+    /// </summary>
     void MoveNextTankToStopPoint()
     {
         if (tankQueue.Count == 0) return;
 
-        Tank nextTank = tankQueue.Dequeue();
-        nextTank.Initialize(stopPoints[0].position); // ?lk StopPoint hedef olarak ayarlan?r
+        currentTank = tankQueue.Dequeue();
+        currentTank.Initialize(stopPoints[0].position);
+    }
+
+    /// <summary>
+    /// Checks if the stickman can be added to the current tank based on color compatibility.
+    /// </summary>
+    public void CheckPathAndFill(ColorType stickmanColor)
+    {
+        if (currentTank == null || currentTank.currentState != TankState.Waiting)
+            return;
+
+        // Color compatibility check
+        if (currentTank.UnitColorType != stickmanColor)
+        {
+            Debug.Log("Color mismatch!");
+            return;
+        }
+
+        // When the tank is full, move to the next tank
+        if (currentTank.currentState == TankState.Moving)
+        {
+            MoveNextTankToStopPoint();
+        }
+    }
+
+    /// <summary>
+    /// Prints information about the current tank, such as its name and color.
+    /// </summary>
+    public void PrintCurrentTankInfo()
+    {
+        if (tankQueue.Count == 0 && currentTank == null)
+        {
+            Debug.Log("Tank list is empty!");
+            return;
+        }
+
+        if (currentTank != null)
+        {
+            Debug.Log($"Current Tank: {currentTank.name}, Color: {currentTank.UnitColorType}");
+        }
+        else
+        {
+            Debug.Log("No active tank at the moment!");
+        }
+    }
+
+    /// <summary>
+    /// Checks and adds a stickman to the current tank if the colors match.
+    /// </summary>
+    public void CheckAndAddStickmanToTank(ColorType stickmanColor)
+    {
+        if (currentTank == null)
+        {
+            Debug.Log("No active tank at the moment!");
+            return;
+        }
+
+        // Check if the tank's color matches the stickman's color
+        if (currentTank.UnitColorType == stickmanColor)
+        {
+            Debug.Log($"Stickman color ({stickmanColor}) matches the Tank color. Stickman is boarding the tank.");
+
+            // Add the stickman to the tank
+            currentTank.AddStickman();
+        }
+        else
+        {
+            Debug.Log($"Color mismatch! Stickman color ({stickmanColor}) does not match Tank color ({currentTank.UnitColorType}).");
+        }
     }
 }
