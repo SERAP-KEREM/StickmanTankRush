@@ -1,5 +1,6 @@
 using _Main._Enums;
 using UnityEngine;
+using System.Collections;
 
 namespace _Main._Stickman.StickmanGrid
 {
@@ -29,6 +30,23 @@ namespace _Main._Stickman.StickmanGrid
         // Grid position properties
         public int GridX { get; private set; }
         public int GridY { get; private set; }
+
+        // Move speed (set to a low value for slower movement)
+        [SerializeField, Tooltip("Move speed of the Stickman.")]
+        private float moveSpeed = 1f;
+
+        // Cache reference to the StickmanGrid for performance improvement
+        private StickmanGrid stickmanGrid;
+
+        private void Awake()
+        {
+            // Cache the StickmanGrid reference once during initialization
+            stickmanGrid = FindObjectOfType<StickmanGrid>();
+            if (stickmanGrid == null)
+            {
+                Debug.LogError("No StickmanGrid instance found in the scene.");
+            }
+        }
 
         /// <summary>
         /// Sets the grid position of the Stickman.
@@ -62,15 +80,47 @@ namespace _Main._Stickman.StickmanGrid
         /// </summary>
         private void OnMouseDown()
         {
-            StickmanGrid stickmanGrid = FindObjectOfType<StickmanGrid>(); // Find the StickmanGrid instance in the scene
             if (stickmanGrid != null)
             {
                 stickmanGrid.OnStickmanClicked(this);
             }
-            else
+        }
+
+        /// <summary>
+        /// Moves the Stickman to the given target position (tank position).
+        /// </summary>
+        public void MoveToTank(Vector3 targetPosition)
+        {
+            if (stickmanGrid != null)
             {
-                Debug.LogError("No StickmanGrid instance found in the scene.");
+                StartCoroutine(MoveTowardsTank(targetPosition));
             }
+        }
+
+        private IEnumerator MoveTowardsTank(Vector3 targetPosition)
+        {
+            // Smooth movement towards the tank position
+            while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+                yield return null;
+            }
+
+            // Once the stickman reaches the tank, destroy it
+            Destroy(gameObject);
+        }
+
+        /// <summary>
+        /// Removes the Stickman from the grid and destroys it from the scene.
+        /// </summary>
+        public void RemoveStickmanFromGrid()
+        {
+            if (stickmanGrid != null)
+            {
+                stickmanGrid.RemoveStickmanFromGrid(GridX, GridY); // Remove from grid
+            }
+
+            Destroy(gameObject); // Destroy from scene
         }
     }
 }

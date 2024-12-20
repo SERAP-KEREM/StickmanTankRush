@@ -2,46 +2,58 @@ using _Main._Enums;
 using UnityEngine;
 using LevelEditor;
 
-/// <summary>
-/// Manages the grid of Stickman units. Responsible for initializing the grid and handling interactions with Stickman objects.
-/// </summary>
 namespace _Main._Stickman.StickmanGrid
 {
+    /// <summary>
+    /// Manages Stickman units on a grid, including interactions with tanks.
+    /// </summary>
     public class StickmanGrid : MonoBehaviour
     {
         [Header("Grid Configuration")]
         [SerializeField]
         private LevelDataSO _levelDataSO; // Data for grid initialization
         [SerializeField]
-        private Stickman[,] _stickmanGrid; // 2D array of Stickman units
-        [SerializeField]
         private Stickman _stickmanPrefab; // Prefab for instantiating Stickman units
+        [SerializeField, Tooltip("Grid size and stickman layout.")]
+        private Stickman[,] _stickmanGrid; // 2D array of Stickman units
 
         private Vector2Int _gridSize; // Grid dimensions
+        private TankManager _tankManager; // Reference to TankManager
 
-        // Public property to expose grid size
-        public Vector2Int GridSize => _gridSize;
-
-        // Stores the color of the clicked Stickman
-        public ColorType clickedStickmanColor;
+        public ColorType clickedStickmanColor; // Color of the clicked Stickman
 
         private void Start()
         {
+            // Find and validate the TankManager instance
+            _tankManager = FindObjectOfType<TankManager>();
+            if (_tankManager == null)
+            {
+                Debug.LogError("TankManager instance not found in the scene.");
+                return;
+            }
+
+            // Initialize the grid with the given level data
             Initialize();
         }
 
         /// <summary>
-        /// Initializes the grid with data from LevelDataSO.
+        /// Initializes the Stickman grid using LevelDataSO.
         /// </summary>
         public void Initialize()
         {
-            Setup(_levelDataSO.Array2DGrid);
+            if (_levelDataSO != null)
+            {
+                Setup(_levelDataSO.Array2DGrid);
+            }
+            else
+            {
+                Debug.LogError("LevelDataSO is not assigned!");
+            }
         }
 
         /// <summary>
-        /// Sets up the grid with the provided Array2DGrid data.
+        /// Sets up the grid by instantiating Stickman units based on LevelDataSO grid information.
         /// </summary>
-        /// <param name="grid">The grid data to use for setup.</param>
         public void Setup(Array2DGrid grid)
         {
             _gridSize = grid.GridSize;
@@ -54,6 +66,7 @@ namespace _Main._Stickman.StickmanGrid
                     ColorType colorType = grid.GetCell(x, y);
                     if (colorType == ColorType._0None) continue; // Skip empty cells
 
+                    // Instantiate Stickman and initialize its properties
                     Vector3 position = new Vector3(x, 0, y);
                     Stickman stickman = Instantiate(_stickmanPrefab, position, Quaternion.identity, transform);
                     stickman.UnitColorType = colorType;
@@ -67,75 +80,103 @@ namespace _Main._Stickman.StickmanGrid
         }
 
         /// <summary>
-        /// Handles the event when a Stickman is clicked.
+        /// Called when a stickman is clicked. Determines if the Stickman can board a tank.
         /// </summary>
-        /// <param name="clickedStickman">The Stickman that was clicked.</param>
         public void OnStickmanClicked(Stickman clickedStickman)
         {
             int gridX = clickedStickman.GridX;
             int gridY = clickedStickman.GridY;
-            clickedStickmanColor = clickedStickman.UnitColorType;
-            Debug.Log($"Clicked Stickman at position: [{gridX}, {gridY}], Color: {clickedStickmanColor}");
 
-            // Check the neighbors of the clicked Stickman
-            CheckNeighbors(gridX, gridY);
-        }
-
-        /// <summary>
-        /// Checks the neighboring cells of the clicked Stickman.
-        /// </summary>
-        private void CheckNeighbors(int x, int y)
-        {
-            CheckGridNeighbor(x, y - 1, "Left");
-            CheckGridNeighbor(x, y + 1, "Right");
-            CheckGridNeighbor(x - 1, y, "Front");
-            CheckGridNeighbor(x + 1, y, "Back");
-        }
-
-        /// <summary>
-        /// Checks a specific neighboring cell and logs its status (empty or filled).
-        /// </summary>
-        /// <param name="x">The x-coordinate of the neighbor.</param>
-        /// <param name="y">The y-coordinate of the neighbor.</param>
-        /// <param name="direction">The direction (e.g., Left, Right) for logging.</param>
-        private void CheckGridNeighbor(int x, int y, string direction)
-        {
-            // Avoid checking out-of-bounds cells
-            if (x < 0 || x >= _gridSize.x || y < 0 || y >= _gridSize.y)
+            // Ignore click if Stickman has already boarded a tank
+            if (_stickmanGrid[gridX, gridY] == null)
             {
-                Debug.Log($"{direction} neighbor [{x}, {y}] is out of bounds.");
+                Debug.Log("This stickman has already boarded a tank and is no longer available.");
                 return;
             }
 
-            // Get the neighbor Stickman
-            Stickman neighbor = _stickmanGrid[x, y];
-            if (neighbor != null)
+            clickedStickmanColor = clickedStickman.UnitColorType;
+            Debug.Log($"Clicked Stickman at position: [{gridX}, {gridY}], Color: {clickedStickmanColor}");
+
+            // Try adding the Stickman to a tank
+            TryAddStickmanToTank(clickedStickman);
+        }
+
+        /// <summary>
+        /// Checks if the clicked Stickman can board a tank and moves it accordingly.
+        /// </summary>
+        private void TryAddStickmanToTank(Stickman clickedStickman)
+        {
+            if (_tankManager != null && _tankManager.GetCurrentTank() != null)
             {
-                Debug.Log($"{direction} neighbor [{x}, {y}] is filled with Stickman. Color: {neighbor.UnitColorType}");
+                // Ensure the Stickman color matches the tank color
+                if (_tankManager.GetCurrentTank().UnitColorType == clickedStickman.UnitColorType)
+                {
+                    // Check for empty neighboring grid cells where the Stickman can fit
+                    if (AreNeighborsEmpty(clickedStickman.GridX, clickedStickman.GridY))
+                    {
+                        // Add Stickman to the tank
+                        _tankManager.CheckAndAddStickmanToTank(clickedStickman.UnitColorType);
+
+                        // Move Stickman towards the tank
+                        clickedStickman.MoveToTank(_tankManager.GetCurrentTank().transform.position);
+                    }
+                    else
+                    {
+                        Debug.Log("No empty space for the stickman to board the tank.");
+                    }
+                }
+                else
+                {
+                    Debug.Log("Stickman color does not match the tank color!");
+                }
             }
             else
             {
-                Debug.Log($"{direction} neighbor [{x}, {y}] is empty.");
+                Debug.LogError("No active tank available to board.");
             }
         }
 
         /// <summary>
-        /// Retrieves the Stickman at the specified position.
+        /// Checks if any neighboring grid cells are empty.
         /// </summary>
-        /// <param name="x">X position on the grid</param>
-        /// <param name="y">Y position on the grid</param>
-        /// <returns>The Stickman at the specified position or null if empty.</returns>
-        public Stickman GetStickmanAtPosition(int x, int y)
+        public bool AreNeighborsEmpty(int x, int y)
         {
-            if (x >= 0 && x < _gridSize.x && y >= 0 && y < _gridSize.y)
-            {
-                return _stickmanGrid[x, y];
-            }
-            return null;
+            bool leftEmpty = IsGridEmpty(x, y - 1);
+            bool rightEmpty = IsGridEmpty(x, y + 1);
+            bool frontEmpty = IsGridEmpty(x - 1, y);
+            bool backEmpty = IsGridEmpty(x + 1, y);
+
+            return leftEmpty || rightEmpty || frontEmpty || backEmpty;
         }
 
         /// <summary>
-        /// Draws Gizmos for debugging in the Unity Editor.
+        /// Checks if a specific grid cell is empty or out-of-bounds.
+        /// </summary>
+        private bool IsGridEmpty(int x, int y)
+        {
+            // Out-of-bounds cells are considered empty
+            if (x < 0 || x >= _gridSize.x || y < 0 || y >= _gridSize.y)
+            {
+                return true;
+            }
+
+            Stickman neighbor = _stickmanGrid[x, y];
+            return neighbor == null; // If there's no Stickman, the cell is empty
+        }
+
+        /// <summary>
+        /// Removes the Stickman from the grid at the specified position.
+        /// </summary>
+        public void RemoveStickmanFromGrid(int x, int y)
+        {
+            if (_stickmanGrid[x, y] != null)
+            {
+                _stickmanGrid[x, y] = null; // Set grid position to null when Stickman is removed
+            }
+        }
+
+        /// <summary>
+        /// Visualizes the Stickman units in the Editor using Gizmos.
         /// </summary>
         private void OnDrawGizmosSelected()
         {
@@ -146,7 +187,7 @@ namespace _Main._Stickman.StickmanGrid
                     if (stickman != null)
                     {
                         Gizmos.color = ColorManager.ColorTypeToColor(stickman.UnitColorType);
-                        Gizmos.DrawSphere(stickman.transform.position, 0.1f); // Draw a sphere for each Stickman
+                        Gizmos.DrawSphere(stickman.transform.position, 0.1f);
                     }
                 }
             }

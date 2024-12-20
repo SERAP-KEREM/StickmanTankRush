@@ -1,10 +1,7 @@
 using System.Collections;
-using _Main._Enums;
 using UnityEngine;
+using _Main._Enums;
 
-/// <summary>
-/// The Tank class handles the state, color, movement, and stickman addition for a tank.
-/// </summary>
 namespace _Main._Tank
 {
     /// <summary>
@@ -12,9 +9,9 @@ namespace _Main._Tank
     /// </summary>
     public enum TankState
     {
-        Waiting,  // Waiting at the stop point
-        Filling,  // Stickman is filling the tank
-        Moving    // The tank is moving forward
+        Waiting,  // Tank is waiting at the stop point.
+        Filling,  // Tank is being filled with stickmen.
+        Moving    // Tank is moving towards its target.
     }
 
     /// <summary>
@@ -46,7 +43,7 @@ namespace _Main._Tank
             set
             {
                 _colorType = value;
-                UpdateColor();
+                UpdateColor(); // Update color whenever the color type is changed.
             }
         }
 
@@ -56,9 +53,9 @@ namespace _Main._Tank
         /// <param name="target">The target position where the tank will move.</param>
         public void Initialize(Vector3 target)
         {
-            UpdateColor();  // Update the tank's color
-            targetPosition = target;  // Set the target position
-            currentState = TankState.Waiting;  // Set the initial state to waiting
+            UpdateColor();  // Set the color based on the color type.
+            targetPosition = target;  // Set the target position where the tank will move.
+            currentState = TankState.Waiting;  // Set the tank's initial state to waiting.
         }
 
         /// <summary>
@@ -66,30 +63,43 @@ namespace _Main._Tank
         /// </summary>
         private void UpdateColor()
         {
-            Color newColor = ColorManager.ColorTypeToColor(_colorType);  // Convert the color type to Unity color
-            Renderer[] renderers = GetComponentsInChildren<Renderer>();  // Get all renderers of the tank's children
+            Color newColor = ColorManager.ColorTypeToColor(_colorType);  // Convert ColorType to Unity Color.
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();  // Get all child renderers (for tank model).
             foreach (Renderer renderer in renderers)
             {
-                renderer.material.color = newColor;  // Apply the color to each renderer
+                renderer.material.color = newColor;  // Apply the color to the renderer.
             }
         }
 
         /// <summary>
         /// Adds a stickman to the tank. If the tank is full, it starts moving.
         /// </summary>
-        public void AddStickman()
+        public void AddStickman(ColorType stickmanColor)
         {
-            if (currentState != TankState.Waiting) return;  // If the tank is not in the waiting state, do nothing
+            // Ensure the tank is in a state where stickmen can be added (waiting state).
+            if (currentState != TankState.Waiting)
+            {
+                Debug.Log("Tank is not in waiting state. Cannot add stickman.");
+                return;
+            }
 
-            stickmanCount++;  // Increase the stickman count
+            // Ensure that the stickman's color matches the tank's color.
+            if (stickmanColor != _colorType)
+            {
+                Debug.Log("Stickman color does not match the tank's color.");
+                return;
+            }
+
+            // Increase the stickman count.
+            stickmanCount++;
             Debug.Log($"Stickman added: {stickmanCount}");
 
-            // If the tank is full, start the moving process
+            // Check if the tank is full (3 stickmen) and if so, start moving.
             if (stickmanCount >= 3)
             {
-                currentState = TankState.Filling;
+                currentState = TankState.Filling;  // Change tank state to filling.
                 Debug.Log("Tank is full, moving...");
-                StartMoving();
+                StartMoving();  // Start the tank's movement.
             }
         }
 
@@ -98,41 +108,31 @@ namespace _Main._Tank
         /// </summary>
         public void StartMoving()
         {
-            if (currentState != TankState.Filling) return;  // If the tank is not full, do nothing
+            // Only allow movement if the tank is in the filling state.
+            if (currentState != TankState.Filling)
+            {
+                Debug.Log("Tank is not in filling state. Cannot start moving.");
+                return;
+            }
 
-            currentState = TankState.Moving;
-            StartCoroutine(MoveToTarget());  // Start the movement towards the target
+            currentState = TankState.Moving;  // Change the state to moving.
+            StartCoroutine(MoveToTarget());  // Move the tank using a coroutine.
         }
 
         /// <summary>
-        /// Moves the tank towards the target position.
+        /// Moves the tank towards its target position using a coroutine.
         /// </summary>
-        /// <returns></returns>
         private IEnumerator MoveToTarget()
         {
-            // Move towards the target position until it's close enough
+            // Move the tank towards the target position until it is close enough.
             while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, 5f * Time.deltaTime);
-                yield return null;
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, 5f * Time.deltaTime);  // Move the tank.
+                yield return null;  // Wait for the next frame.
             }
 
             Debug.Log("Arrived at the target!");
-            Destroy(gameObject);  // Destroy the tank when it reaches the target
-        }
-
-        /// <summary>
-        /// Draws a Gizmo in the scene view to visualize the tank's target position.
-        /// </summary>
-        private void OnDrawGizmos()
-        {
-            // If the target position is set, draw a line and sphere to visualize it in the editor
-            if (targetPosition != Vector3.zero)
-            {
-                Gizmos.color = Color.green;  // Use green color for the target visualization
-                Gizmos.DrawLine(transform.position, targetPosition);  // Draw a line to the target
-                Gizmos.DrawSphere(targetPosition, 0.5f);  // Draw a sphere at the target position
-            }
+            Destroy(gameObject);  // Destroy the tank when it reaches the target.
         }
     }
 }

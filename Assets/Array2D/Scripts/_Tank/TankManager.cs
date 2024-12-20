@@ -7,8 +7,6 @@ using UnityEngine;
 
 public class TankManager : MonoBehaviour
 {
-    // Variables and fields necessary for managing tanks
-
     [Title("Grid Configuration")]
     [SerializeField, Tooltip("SO that contains tank data like color types and other configurations.")]
     private LevelDataSO _levelDataSO; // The LevelDataSO that holds tank data
@@ -33,6 +31,9 @@ public class TankManager : MonoBehaviour
 
     [SerializeField, Tooltip("Initial rotation on the Y axis for the tanks.")]
     private float startRotationY = 90f;
+
+    // New addition: Max stickman count per tank
+    private const int MaxStickmanCount = 3;
 
     /// <summary>
     /// The Start method is called at the beginning of the game to initialize tanks.
@@ -91,34 +92,19 @@ public class TankManager : MonoBehaviour
     /// <summary>
     /// Moves the next tank from the queue to the stop point.
     /// </summary>
-    void MoveNextTankToStopPoint()
+    public void MoveNextTankToStopPoint()
     {
         if (tankQueue.Count == 0) return;
 
+        // If the current tank is full, start moving and move to the next tank.
+        if (currentTank != null && currentTank.stickmanCount >= MaxStickmanCount)
+        {
+            currentTank.StartMoving();  // Start moving the current tank
+        }
+
+        // Get the next tank in the queue
         currentTank = tankQueue.Dequeue();
-        currentTank.Initialize(stopPoints[0].position);
-    }
-
-    /// <summary>
-    /// Checks if the stickman can be added to the current tank based on color compatibility.
-    /// </summary>
-    public void CheckPathAndFill(ColorType stickmanColor)
-    {
-        if (currentTank == null || currentTank.currentState != TankState.Waiting)
-            return;
-
-        // Color compatibility check
-        if (currentTank.UnitColorType != stickmanColor)
-        {
-            Debug.Log("Color mismatch!");
-            return;
-        }
-
-        // When the tank is full, move to the next tank
-        if (currentTank.currentState == TankState.Moving)
-        {
-            MoveNextTankToStopPoint();
-        }
+        currentTank.Initialize(stopPoints[0].position);  // Place the new tank at the stop point
     }
 
     /// <summary>
@@ -134,7 +120,7 @@ public class TankManager : MonoBehaviour
 
         if (currentTank != null)
         {
-            Debug.Log($"Current Tank: {currentTank.name}, Color: {currentTank.UnitColorType}");
+            Debug.Log($"Current Tank: {currentTank.name}, Color: {currentTank.UnitColorType}, Stickman Count: {currentTank.stickmanCount}");
         }
         else
         {
@@ -143,7 +129,16 @@ public class TankManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Checks and adds a stickman to the current tank if the colors match.
+    /// Returns the currently active tank that is under control.
+    /// </summary>
+    /// <returns>The current tank being controlled.</returns>
+    public Tank GetCurrentTank()
+    {
+        return currentTank;
+    }
+
+    /// <summary>
+    /// Checks and adds a stickman to the current tank if the colors match and the tank isn't full.
     /// </summary>
     public void CheckAndAddStickmanToTank(ColorType stickmanColor)
     {
@@ -153,17 +148,23 @@ public class TankManager : MonoBehaviour
             return;
         }
 
-        // Check if the tank's color matches the stickman's color
+        // If the current tank is full, move to the next one.
+        if (currentTank.stickmanCount >= MaxStickmanCount)
+        {
+            Debug.Log($"{currentTank.UnitColorType} tank is full. Moving to the next tank.");
+            MoveNextTankToStopPoint();
+            return;
+        }
+
+        // Check if the tank's color matches the stickman color.
         if (currentTank.UnitColorType == stickmanColor)
         {
-            Debug.Log($"Stickman color ({stickmanColor}) matches the Tank color. Stickman is boarding the tank.");
-
-            // Add the stickman to the tank
-            currentTank.AddStickman();
+            Debug.Log($"Stickman color matches the Tank color. Stickman is boarding the tank.");
+            currentTank.AddStickman(stickmanColor);  // Add the stickman to the tank
         }
         else
         {
-            Debug.Log($"Color mismatch! Stickman color ({stickmanColor}) does not match Tank color ({currentTank.UnitColorType}).");
+            Debug.Log($"Color mismatch! Stickman color does not match Tank color.");
         }
     }
 }
