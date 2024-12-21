@@ -1,13 +1,10 @@
 using _Main._Enums;
+using _Main._Stickman.StickmanGrid;
 using UnityEngine;
 using System.Collections;
 
 namespace _Main._Stickman.StickmanGrid
 {
-    /// <summary>
-    /// Represents a Stickman unit on the grid.
-    /// Responsible for initializing the Stickman, setting its position, and detecting mouse clicks.
-    /// </summary>
     public class Stickman : MonoBehaviour
     {
         [Header("Stickman Configuration")]
@@ -48,20 +45,14 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        /// <summary>
-        /// Sets the grid position of the Stickman.
-        /// </summary>
-        /// <param name="x">X position on the grid</param>
-        /// <param name="y">Y position on the grid</param>
+        // Sets the grid position of the Stickman.
         public void SetGridPosition(int x, int y)
         {
             GridX = x;
             GridY = y;
         }
 
-        /// <summary>
-        /// Initializes the Stickman by setting its color based on the assigned color type.
-        /// </summary>
+        // Initializes the Stickman by setting its color based on the assigned color type.
         public void Initialize()
         {
             Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
@@ -75,9 +66,7 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        /// <summary>
-        /// Detects mouse clicks and informs the StickmanGrid about the clicked Stickman.
-        /// </summary>
+        // Detects mouse clicks and informs the StickmanGrid about the clicked Stickman.
         private void OnMouseDown()
         {
             if (stickmanGrid != null)
@@ -86,9 +75,7 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        /// <summary>
-        /// Moves the Stickman to the given target position (tank position).
-        /// </summary>
+        // Moves the Stickman to the given target position (tank position).
         public void MoveToTank(Vector3 targetPosition)
         {
             if (stickmanGrid != null)
@@ -102,7 +89,7 @@ namespace _Main._Stickman.StickmanGrid
             // Smooth movement towards the tank position
             while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+                transform.position = Vector3.MoveTowards(transform.position, -targetPosition, moveSpeed * Time.deltaTime);
                 yield return null;
             }
 
@@ -110,9 +97,7 @@ namespace _Main._Stickman.StickmanGrid
             Destroy(gameObject);
         }
 
-        /// <summary>
-        /// Removes the Stickman from the grid and destroys it from the scene.
-        /// </summary>
+        // Removes the Stickman from the grid and destroys it from the scene.
         public void RemoveStickmanFromGrid()
         {
             if (stickmanGrid != null)

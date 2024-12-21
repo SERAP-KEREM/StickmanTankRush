@@ -26,6 +26,9 @@ namespace _Main._Tank
         [Tooltip("Number of stickmen inside the tank.")]
         public int stickmanCount = 0;
 
+        [Tooltip("Maximum number of stickmen the tank can hold.")]
+        [SerializeField] private int maxStickmanCount = 3;
+
         [Tooltip("Target position where the tank is moving.")]
         private Vector3 targetPosition;
 
@@ -95,7 +98,7 @@ namespace _Main._Tank
             Debug.Log($"Stickman added: {stickmanCount}");
 
             // Check if the tank is full (3 stickmen) and if so, start moving.
-            if (stickmanCount >= 3)
+            if (IsFull())
             {
                 currentState = TankState.Filling;  // Change tank state to filling.
                 Debug.Log("Tank is full, moving...");
@@ -120,19 +123,39 @@ namespace _Main._Tank
         }
 
         /// <summary>
-        /// Moves the tank towards its target position using a coroutine.
+        /// Moves the tank to its target position along the -X direction.
         /// </summary>
         private IEnumerator MoveToTarget()
         {
-            // Move the tank towards the target position until it is close enough.
+            // Ensure the target position is along the -X direction.
+            targetPosition = new Vector3(transform.position.x - Mathf.Abs(targetPosition.x - transform.position.x),
+                                         transform.position.y,
+                                         transform.position.z);
+
+            Debug.Log($"Moving from {transform.position} to {targetPosition}");
+
+            // Move the tank towards the target position.
             while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, 5f * Time.deltaTime);  // Move the tank.
+                transform.position = Vector3.MoveTowards(
+                    transform.position,
+                    targetPosition,
+                    5f * Time.deltaTime
+                );
                 yield return null;  // Wait for the next frame.
             }
 
             Debug.Log("Arrived at the target!");
-            Destroy(gameObject);  // Destroy the tank when it reaches the target.
+            Destroy(gameObject);  // Destroy the tank once it reaches its target.
+        }
+
+        /// <summary>
+        /// Checks if the tank is full.
+        /// </summary>
+        /// <returns>True if the tank is full, otherwise false.</returns>
+        public bool IsFull()
+        {
+            return stickmanCount >= maxStickmanCount;
         }
     }
 }

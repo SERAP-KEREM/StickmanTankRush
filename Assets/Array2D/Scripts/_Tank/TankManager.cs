@@ -27,10 +27,7 @@ public class TankManager : MonoBehaviour
     // Constants and initial positions
     private const float TankSpacing = 10f;
     [SerializeField, Tooltip("Initial start position for tanks.")]
-    private Vector3 startPosition = new Vector3(10, -3, -40);
-
-    [SerializeField, Tooltip("Initial rotation on the Y axis for the tanks.")]
-    private float startRotationY = 90f;
+    private Vector3 startPosition = new Vector3(0, 0, 0);
 
     // New addition: Max stickman count per tank
     private const int MaxStickmanCount = 3;
@@ -55,11 +52,11 @@ public class TankManager : MonoBehaviour
         for (int i = 0; i < tankDataList.Count; i++)
         {
             // Calculate the Z coordinate inversely
-            float z = startPosition.z - (i * TankSpacing);
+            float x = startPosition.x + (i * TankSpacing);
 
             // Tank position and rotation
-            Vector3 position = new Vector3(startPosition.x, startPosition.y, z);
-            Quaternion rotation = Quaternion.Euler(0, startRotationY, 0);
+            Vector3 position = new Vector3(x, startPosition.y, startPosition.z);
+            Quaternion rotation = Quaternion.Euler(0, 0, 0);
 
             // Instantiate the tank
             Tank tank = Instantiate(_tankPrefab, position, rotation, transform);

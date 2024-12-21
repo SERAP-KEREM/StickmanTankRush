@@ -97,8 +97,41 @@ namespace _Main._Stickman.StickmanGrid
             clickedStickmanColor = clickedStickman.UnitColorType;
             Debug.Log($"Clicked Stickman at position: [{gridX}, {gridY}], Color: {clickedStickmanColor}");
 
+            // Yazd?rma: Kom?ular? kontrol et ve adlar?n? consola yazd?r
+            PrintNeighborStickmen(gridX, gridY);
+
             // Try adding the Stickman to a tank
             TryAddStickmanToTank(clickedStickman);
+        }
+
+        /// <summary>
+        /// Prints the names of the neighboring Stickmen (if any) to the console.
+        /// </summary>
+        private void PrintNeighborStickmen(int x, int y)
+        {
+            Stickman left = GetStickmanAt(x - 1, y);   // Corrected left-right coordinates
+            Stickman right = GetStickmanAt(x + 1, y);  // Corrected left-right coordinates
+            Stickman front = GetStickmanAt(x, y - 1);  // Corrected front-back coordinates
+            Stickman back = GetStickmanAt(x, y + 1);   // Corrected front-back coordinates
+
+            Debug.Log($"Neighbors of Stickman at [{x}, {y}]:");
+            Debug.Log($"- Left: {(left != null ? left.name : "None")}");
+            Debug.Log($"- Right: {(right != null ? right.name : "None")}");
+            Debug.Log($"- Front: {(front != null ? front.name : "None")}");
+            Debug.Log($"- Back: {(back != null ? back.name : "None")}");
+        }
+
+        /// <summary>
+        /// Returns the Stickman at the specified grid position, or null if the position is empty or out of bounds.
+        /// </summary>
+        private Stickman GetStickmanAt(int x, int y)
+        {
+            if (x < 0 || x >= _gridSize.x || y < 0 || y >= _gridSize.y)
+            {
+                return null; // Out-of-bounds positions are considered empty
+            }
+
+            return _stickmanGrid[x, y];
         }
 
         /// <summary>
@@ -141,10 +174,10 @@ namespace _Main._Stickman.StickmanGrid
         /// </summary>
         public bool AreNeighborsEmpty(int x, int y)
         {
-            bool leftEmpty = IsGridEmpty(x, y - 1);
-            bool rightEmpty = IsGridEmpty(x, y + 1);
-            bool frontEmpty = IsGridEmpty(x - 1, y);
-            bool backEmpty = IsGridEmpty(x + 1, y);
+            bool leftEmpty = IsGridEmpty(x - 1, y);   // Corrected coordinates
+            bool rightEmpty = IsGridEmpty(x + 1, y);  // Corrected coordinates
+            bool frontEmpty = IsGridEmpty(x, y - 1);  // Corrected coordinates
+            bool backEmpty = IsGridEmpty(x, y + 1);   // Corrected coordinates
 
             return leftEmpty || rightEmpty || frontEmpty || backEmpty;
         }

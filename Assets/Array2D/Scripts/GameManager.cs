@@ -3,94 +3,110 @@ using _Main._Stickman.StickmanGrid;
 using _Main._Tank;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+namespace _Main
 {
-    [Header("Tank Manager")]
-    [SerializeField, Tooltip("Reference to the Tank Manager responsible for managing tanks.")]
-    private TankManager tankManager; // Tank manager reference
-
-    [Header("Stickman Click Event")]
-    [SerializeField, Tooltip("Reference to the currently selected Stickman.")]
-    private Stickman selectedStickman; // Referans seçilen Stickman'a
-
-    [SerializeField, Tooltip("Reference to the StickmanGrid for checking neighboring grid spaces.")]
-    private StickmanGrid stickmanGrid; // StickmanGrid referans? (kom?u bo?luklar? kontrol etmek için)
-
-    private void Start()
+    public class GameManager : MonoBehaviour
     {
-        // Ba?lang?çta yap?lacak i?lemler
-        if (tankManager == null)
+        [Header("References")]
+        [SerializeField, Tooltip("Reference to the Tank Manager.")]
+        private TankManager tankManager;
+
+        [SerializeField, Tooltip("Reference to the Stickman Grid.")]
+        private StickmanGrid stickmanGrid;
+
+        private Stickman selectedStickman;
+
+        private void Start()
         {
-            Debug.LogError("TankManager is not assigned!");
-            return;
+            // Referanslar?n atan?p atanmad???n? kontrol et
+            if (tankManager == null)
+            {
+                Debug.LogError("TankManager is not assigned in the GameManager!");
+                return;
+            }
+
+            if (stickmanGrid == null)
+            {
+                Debug.LogError("StickmanGrid is not assigned in the GameManager!");
+                return;
+            }
         }
 
-        if (stickmanGrid == null)
+        private void Update()
         {
-            Debug.LogError("StickmanGrid is not assigned!");
-            return;
-        }
-    }
-
-    private void Update()
-    {
-        // Stickman'a t?klan?p t?klanmad???n? kontrol ediyoruz
-        if (selectedStickman != null)
-        {
-            // E?er seçilen stickman ve tank?n rengi uyuyorsa
-            CheckAndAddStickmanToTank(selectedStickman);
-        }
-    }
-
-    /// <summary>
-    /// Stickman'?n tanka binebilmesi için renk uyumunu kontrol eder ve ekler.
-    /// </summary>
-    /// <param name="stickman">Seçilen Stickman</param>
-    public void CheckAndAddStickmanToTank(Stickman stickman)
-    {
-        // TankManager'dan o anki aktif tank? al?yoruz
-        Tank currentTank = tankManager.GetCurrentTank();
-
-        // E?er aktif bir tank yoksa veya tank doluyorsa, i?lem yap?lmaz
-        if (currentTank == null)
-        {
-            Debug.Log("No active tank at the moment!");
-            return;
+            // Fare t?klamalar?n? kontrol et ve Stickman'? seç
+            HandleMouseClick();
         }
 
-        // Stickman'?n kom?u gridlerinde bo?luk var m? kontrol et
-        if (!stickmanGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+        /// <summary>
+        /// Fare t?klamalar?n? alg?lar ve Stickman seçim i?lemini yapar.
+        /// </summary>
+        private void HandleMouseClick()
         {
-            Debug.Log("No empty space for the Stickman.");
-            return;
+            if (Input.GetMouseButtonDown(0)) // Sol t?klama
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out RaycastHit hit))
+                {
+                    Stickman clickedStickman = hit.collider.GetComponent<Stickman>();
+
+                    if (clickedStickman != null && clickedStickman.IsSelectable)
+                    {
+                        selectedStickman = clickedStickman;
+                        CheckAndAddStickmanToTank(selectedStickman);
+                    }
+                }
+            }
         }
 
-        // Tank?n rengi ile Stickman'?n rengini kontrol ediyoruz
-        if (currentTank.UnitColorType == stickman.UnitColorType)
+        /// <summary>
+        /// Stickman'?n tanka binebilmesi için gerekli kontrolleri yapar.
+        /// </summary>
+        /// <param name="stickman">Seçilen Stickman</param>
+        private void CheckAndAddStickmanToTank(Stickman stickman)
         {
-            Debug.Log($"Stickman color ({stickman.UnitColorType}) matches the Tank color. Stickman is boarding the tank.");
+            // Aktif tank? al
+            Tank currentTank = tankManager.GetCurrentTank();
 
-            // Stickman'? tanka ekliyoruz
+            // Tank veya Stickman seçimi geçerli mi?
+            if (currentTank == null)
+            {
+                Debug.Log("No active tank available.");
+                return;
+            }
+
+            // Renk uyumunu kontrol et
+            if (currentTank.UnitColorType != stickman.UnitColorType)
+            {
+                Debug.Log($"Color mismatch! Stickman color: {stickman.UnitColorType}, Tank color: {currentTank.UnitColorType}");
+                return;
+            }
+
+            // Kom?u hücrelerin bo?lu?unu kontrol et
+            if (!stickmanGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+            {
+                Debug.Log("No empty neighboring grid spaces for the Stickman.");
+                return;
+            }
+
+            // E?er tüm kontroller geçilirse, Stickman'? tanka ekle
+            stickman.MoveToTank(currentTank.transform.position);
             currentTank.AddStickman(stickman.UnitColorType);
 
-            // Tank dolarsa bir sonraki tanka geç
-            if (currentTank.stickmanCount >= 3)
+            // Tank dolmu?sa s?radaki tank? durak noktas?na götür
+            if (currentTank.IsFull())
             {
                 MoveNextTankToStopPoint();
             }
         }
-        else
-        {
-            Debug.Log($"Color mismatch! Stickman color ({stickman.UnitColorType}) does not match Tank color ({currentTank.UnitColorType}).");
-        }
-    }
 
-    /// <summary>
-    /// Tank? bir sonraki durak noktas?na ta??r.
-    /// </summary>
-    public void MoveNextTankToStopPoint()
-    {
-        // TankManager'dan bir sonraki tank? durak noktas?na ta??yoruz
-        tankManager.MoveNextTankToStopPoint();
+        /// <summary>
+        /// Bir sonraki tank? durak noktas?na ta??r.
+        /// </summary>
+        private void MoveNextTankToStopPoint()
+        {
+            tankManager.MoveNextTankToStopPoint();
+            Debug.Log("Moving to the next tank.");
+        }
     }
 }
