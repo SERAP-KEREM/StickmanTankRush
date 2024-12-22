@@ -60,10 +60,19 @@ namespace _Main._Stickman.StickmanGrid
         /// <summary>
         /// Gets the world position of a specific tile.
         /// </summary>
-        public Vector3 GetPosition(int x, int y)
+        //public Vector3 GetPosition(int x, int y)
+        //{
+        //    Tile tile = GetTile(x, y);
+        //    return tile != null ? tile.Position : Vector3.zero;
+        //}
+        public bool AreNeighborsEmpty(int x, int y)
         {
-            Tile tile = GetTile(x, y);
-            return tile != null ? tile.Position : Vector3.zero;
+            bool up = y + 1 < _gridSize.y && !_tileGrid[x, y + 1].HasStickman();
+            bool down = y - 1 >= 0 && !_tileGrid[x, y - 1].HasStickman();
+            bool left = x - 1 >= 0 && !_tileGrid[x - 1, y].HasStickman();
+            bool right = x + 1 < _gridSize.x && !_tileGrid[x + 1, y].HasStickman();
+            return up || down || left || right;
         }
+
     }
 }

@@ -418,6 +418,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
   _stickmanPrefab: {fileID: 1186582172335759965, guid: d07f5b4bbb41cd34398c59a5578060f6, type: 3}
+  _tileGrid: {fileID: 1455282691}
   clickedStickmanColor: 0
 --- !u!4 &1012899816
 Transform:

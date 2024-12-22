@@ -56,6 +56,7 @@ namespace _Main._Stickman.StickmanGrid
         // Initializes the Stickman by setting its color based on the assigned color type.
         public void Initialize()
         {
+            IsSelectable = true;
             Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
             if (childRenderer != null)
             {
@@ -67,14 +68,14 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        // Detects mouse clicks and informs the StickmanGrid about the clicked Stickman.
-        private void OnMouseDown()
-        {
-            if (stickmanGrid != null)
-            {
-                stickmanGrid.OnStickmanClicked(this);
-            }
-        }
+        //// Detects mouse clicks and informs the StickmanGrid about the clicked Stickman.
+        //private void OnMouseDown()
+        //{
+        //    if (stickmanGrid != null)
+        //    {
+        //        stickmanGrid.OnStickmanClicked(this);
+        //    }
+        //}
 
         // Moves the Stickman to the given target position (tank position) using DOTween.
         public void MoveToTank(Vector3 targetPosition)
@@ -92,15 +93,17 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        // Removes the Stickman from the grid and destroys it from the scene.
-        public void RemoveStickmanFromGrid()
-        {
-            if (stickmanGrid != null)
-            {
-                stickmanGrid.RemoveStickmanFromGrid(GridX, GridY); // Remove from grid
-            }
+        //// Removes the Stickman from the grid and destroys it from the scene.
+        //public void RemoveStickmanFromGrid()
+        //{
+        //    if (stickmanGrid != null)
+        //    {
+        //        stickmanGrid.RemoveStickmanFromGrid(GridX, GridY); // Remove from grid
+        //    }
 
-            Destroy(gameObject); // Destroy from scene
-        }
+        //    Destroy(gameObject); // Destroy from scene
+        //}
+
+
     }
 }

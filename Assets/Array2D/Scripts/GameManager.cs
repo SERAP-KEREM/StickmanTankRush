@@ -28,16 +28,20 @@ namespace _Main
                 Debug.LogError("TankManager is not assigned in the GameManager!");
                 return;
             }
+            Debug.Log("TankManager is assigned.");
 
             if (stickmanGrid == null)
             {
                 Debug.LogError("StickmanGrid is not assigned in the GameManager!");
                 return;
             }
+            Debug.Log("StickmanGrid is assigned.");
+
             stickmanGrid.Initialize();
+            Debug.Log("StickmanGrid initialized.");
+
             tileGrid.Initialize();
-
-
+            Debug.Log("TileGrid initialized.");
         }
 
         private void Update()
@@ -53,16 +57,28 @@ namespace _Main
         {
             if (Input.GetMouseButtonDown(0)) // Sol t?klama
             {
+                Debug.Log("Mouse click detected.");
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
+                    Debug.Log("Raycast hit something.");
+
                     Stickman clickedStickman = hit.collider.GetComponent<Stickman>();
 
                     if (clickedStickman != null && clickedStickman.IsSelectable)
                     {
+                        Debug.Log($"Clicked on a selectable Stickman: {clickedStickman.name}");
                         selectedStickman = clickedStickman;
                         CheckAndAddStickmanToTank(selectedStickman);
                     }
+                    else
+                    {
+                        Debug.Log("Clicked object is not a selectable Stickman.");
+                    }
+                }
+                else
+                {
+                    Debug.Log("Raycast did not hit anything.");
                 }
             }
         }
@@ -73,38 +89,42 @@ namespace _Main
         /// <param name="stickman">Seçilen Stickman</param>
         private void CheckAndAddStickmanToTank(Stickman stickman)
         {
-            // Aktif tank? al
+            Debug.Log($"Checking if Stickman {stickman.name} can be added to the tank.");
+
             Tank currentTank = tankManager.GetCurrentTank();
 
-            // Tank veya Stickman seçimi geçerli mi?
             if (currentTank == null)
             {
                 Debug.Log("No active tank available.");
                 return;
             }
 
-            // Renk uyumunu kontrol et
+            Debug.Log($"Current tank color: {currentTank.UnitColorType}, Stickman color: {stickman.UnitColorType}");
+
             if (currentTank.UnitColorType != stickman.UnitColorType)
             {
                 Debug.Log($"Color mismatch! Stickman color: {stickman.UnitColorType}, Tank color: {currentTank.UnitColorType}");
                 return;
             }
 
-            // Kom?u hücrelerin bo?lu?unu kontrol et
-            if (!stickmanGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+            if (!tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
             {
                 Debug.Log("No empty neighboring grid spaces for the Stickman.");
                 return;
             }
 
-            // E?er tüm kontroller geçilirse, Stickman'? tanka ekle
+            Debug.Log($"Stickman {stickman.name} is moving to the tank.");
             stickman.MoveToTank(currentTank.transform.position);
             currentTank.AddStickman(stickman.UnitColorType);
 
-            // Tank dolmu?sa s?radaki tank? durak noktas?na götür
             if (currentTank.IsFull())
             {
+                Debug.Log("Tank is full.");
                 MoveNextTankToStopPoint();
+            }
+            else
+            {
+                Debug.Log("Tank is not full yet.");
             }
         }
 
@@ -113,8 +133,8 @@ namespace _Main
         /// </summary>
         private void MoveNextTankToStopPoint()
         {
-            tankManager.MoveNextTankToStopPoint();
             Debug.Log("Moving to the next tank.");
+            tankManager.MoveNextTankToStopPoint();
         }
     }
 }
