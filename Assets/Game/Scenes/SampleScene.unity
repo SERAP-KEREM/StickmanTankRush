@@ -278,6 +278,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tankManager: {fileID: 1265246948}
   stickmanGrid: {fileID: 1012899815}
+  tileGrid: {fileID: 1455282691}
 --- !u!4 &727036124
 Transform:
   m_ObjectHideFlags: 0
@@ -526,6 +527,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _tilePrefab: {fileID: 320167537857610431, guid: 1ccadef738aa3e54892e95eff0dec873, type: 3}
   _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
+  stickmanGrid: {fileID: 1012899815}
 --- !u!4 &1455282692
 Transform:
   m_ObjectHideFlags: 0

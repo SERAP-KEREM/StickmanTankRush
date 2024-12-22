@@ -2,6 +2,7 @@ using _Main._Enums;
 using _Main._Stickman.StickmanGrid;
 using UnityEngine;
 using System.Collections;
+using DG.Tweening;  // DOTween kullan?m? için ekledik
 
 namespace _Main._Stickman.StickmanGrid
 {
@@ -75,26 +76,20 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        // Moves the Stickman to the given target position (tank position).
+        // Moves the Stickman to the given target position (tank position) using DOTween.
         public void MoveToTank(Vector3 targetPosition)
         {
             if (stickmanGrid != null)
             {
-                StartCoroutine(MoveTowardsTank(targetPosition));
+                // DOTween kullanarak hareketi ba?lat?yoruz
+                // targetPosition.z'yi negatif yap?yoruz
+                targetPosition.z = -targetPosition.z; // Z de?erini tersine çeviriyoruz
+                transform.DOMove(targetPosition, moveSpeed).SetEase(Ease.Linear).OnKill(() =>
+                {
+                    // Hareket tamamland???nda Stickman'? yok ediyoruz
+                    Destroy(gameObject);
+                });
             }
-        }
-
-        private IEnumerator MoveTowardsTank(Vector3 targetPosition)
-        {
-            // Smooth movement towards the tank position
-            while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
-            {
-                transform.position = Vector3.MoveTowards(transform.position, -targetPosition, moveSpeed * Time.deltaTime);
-                yield return null;
-            }
-
-            // Once the stickman reaches the tank, destroy it
-            Destroy(gameObject);
         }
 
         // Removes the Stickman from the grid and destroys it from the scene.

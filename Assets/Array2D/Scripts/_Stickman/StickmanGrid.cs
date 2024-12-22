@@ -32,8 +32,6 @@ namespace _Main._Stickman.StickmanGrid
                 return;
             }
 
-            // Initialize the grid with the given level data
-            Initialize();
         }
 
         /// <summary>
@@ -124,7 +122,7 @@ namespace _Main._Stickman.StickmanGrid
         /// <summary>
         /// Returns the Stickman at the specified grid position, or null if the position is empty or out of bounds.
         /// </summary>
-        private Stickman GetStickmanAt(int x, int y)
+        public Stickman GetStickmanAt(int x, int y)
         {
             if (x < 0 || x >= _gridSize.x || y < 0 || y >= _gridSize.y)
             {

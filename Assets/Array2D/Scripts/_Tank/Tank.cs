@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using _Main._Enums;
+using DG.Tweening;  // DOTween'i dahil ettik
 
 namespace _Main._Tank
 {
@@ -107,7 +108,7 @@ namespace _Main._Tank
         }
 
         /// <summary>
-        /// Starts moving the tank towards the target position.
+        /// Starts moving the tank towards the target position using DOTween.
         /// </summary>
         public void StartMoving()
         {
@@ -119,34 +120,32 @@ namespace _Main._Tank
             }
 
             currentState = TankState.Moving;  // Change the state to moving.
-            StartCoroutine(MoveToTarget());  // Move the tank using a coroutine.
+
+            // We use DOTween for movement.
+            MoveToTarget();  // Move the tank using DOTween.
         }
 
         /// <summary>
-        /// Moves the tank to its target position along the -X direction.
+        /// Moves the tank to its target position along the -X direction using DOTween.
         /// </summary>
-        private IEnumerator MoveToTarget()
+        private void MoveToTarget()
         {
+            float distanceFactor = 15f;
             // Ensure the target position is along the -X direction.
-            targetPosition = new Vector3(transform.position.x - Mathf.Abs(targetPosition.x - transform.position.x),
+            targetPosition = new Vector3(transform.position.x - distanceFactor,
                                          transform.position.y,
                                          transform.position.z);
 
             Debug.Log($"Moving from {transform.position} to {targetPosition}");
 
-            // Move the tank towards the target position.
-            while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
-            {
-                transform.position = Vector3.MoveTowards(
-                    transform.position,
-                    targetPosition,
-                    5f * Time.deltaTime
-                );
-                yield return null;  // Wait for the next frame.
-            }
-
-            Debug.Log("Arrived at the target!");
-            Destroy(gameObject);  // Destroy the tank once it reaches its target.
+            // DOTween kullanarak tank'? hedefe do?ru hareket ettiriyoruz.
+            transform.DOMove(targetPosition, 5f)  // 5f hareket süresi
+                .SetEase(Ease.Linear)  // Do?al bir h?zlanma/azalma olmadan düz bir h?zla hareket eder
+                .OnKill(() =>  // Hareket tamamland???nda yap?lacak i?lemler
+                {
+                    Debug.Log("Arrived at the target!");
+                    Destroy(gameObject);  // Tank hedefe ula?t???nda yok edilir.
+                });
         }
 
         /// <summary>

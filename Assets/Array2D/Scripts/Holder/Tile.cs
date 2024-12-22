@@ -4,16 +4,18 @@ namespace _Main._Stickman.StickmanGrid
 {
     public class Tile : MonoBehaviour
     {
-        public Stickman CurrentStickman { get; private set; }  // The stickman currently on this tile
+        public Stickman CurrentStickman { get => _currentStickman; }  // The stickman currently on this tile
         public Vector3 Position { get; private set; }  // The world position of the tile
 
+        [SerializeField]
+        private Stickman _currentStickman; 
         /// <summary>
         /// Initializes the tile with a given position.
         /// </summary>
         public void Initialize(Vector3 position)
         {
             Position = position;
-            CurrentStickman = null;  // Initially, no stickman
+            _currentStickman = null;  // Initially, no stickman
         }
 
         /// <summary>
@@ -21,7 +23,7 @@ namespace _Main._Stickman.StickmanGrid
         /// </summary>
         public void PlaceStickman(Stickman stickman)
         {
-            CurrentStickman = stickman;
+            _currentStickman = stickman;
         }
 
         /// <summary>
@@ -29,7 +31,7 @@ namespace _Main._Stickman.StickmanGrid
         /// </summary>
         public void RemoveStickman()
         {
-            CurrentStickman = null;
+            _currentStickman = null;
         }
 
         /// <summary>
@@ -37,7 +39,7 @@ namespace _Main._Stickman.StickmanGrid
         /// </summary>
         public bool HasStickman()
         {
-            return CurrentStickman != null;
+            return _currentStickman != null;
         }
     }
 }

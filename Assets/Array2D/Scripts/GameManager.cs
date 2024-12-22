@@ -1,4 +1,5 @@
 using _Main._Enums;
+using _Main._Stickman;
 using _Main._Stickman.StickmanGrid;
 using _Main._Tank;
 using UnityEngine;
@@ -16,6 +17,9 @@ namespace _Main
 
         private Stickman selectedStickman;
 
+        [SerializeField]
+        private TileGrid tileGrid;
+
         private void Start()
         {
             // Referanslar?n atan?p atanmad???n? kontrol et
@@ -30,6 +34,10 @@ namespace _Main
                 Debug.LogError("StickmanGrid is not assigned in the GameManager!");
                 return;
             }
+            stickmanGrid.Initialize();
+            tileGrid.Initialize();
+
+
         }
 
         private void Update()

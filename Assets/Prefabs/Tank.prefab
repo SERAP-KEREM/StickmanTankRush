@@ -1400,6 +1400,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7e9772ff783fb248abf1ad2717c6f53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentState: 0
+  stickmanCount: 0
+  maxStickmanCount: 3
+  targetPosition: {x: -15, y: -3, z: 10}
   _colorType: 0
 --- !u!1 &4886253798495819888
 GameObject:

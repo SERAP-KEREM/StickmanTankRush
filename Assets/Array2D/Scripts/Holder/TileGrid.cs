@@ -10,11 +10,7 @@ namespace _Main._Stickman.StickmanGrid
         private Tile[,] _tileGrid;  // 2D array of tiles in the grid
         private Vector2Int _gridSize;
 
-        void Start()
-        {
-            Initialize();
-        }
-
+        [SerializeField] private StickmanGrid stickmanGrid;
         /// <summary>
         /// Initializes the grid setup.
         /// </summary>
@@ -41,6 +37,7 @@ namespace _Main._Stickman.StickmanGrid
                     GameObject tileObj = Instantiate(_tilePrefab, position, Quaternion.identity, transform);
                     Tile tile = tileObj.GetComponent<Tile>();
                     tile.Initialize(position);
+                    tile.PlaceStickman(stickmanGrid.GetStickmanAt(x, y));
 
                     _tileGrid[x, y] = tile;
                     tile.name = $"Tile [{x},{y}]";
