@@ -17,11 +17,9 @@ MonoBehaviour:
     cellSize: {x: 64, y: 16}
     cells:
     - row: 060000000200000001000000
-    - row: 020000000200000000000000
-    - row: 010000000400000001000000
+    - row: 020000000200000006000000
+    - row: 010000000600000001000000
   _tankDataList:
-  - TankColorType: 1
   - TankColorType: 2
+  - TankColorType: 1
   - TankColorType: 6
-  - TankColorType: 7
-  - TankColorType: 5
