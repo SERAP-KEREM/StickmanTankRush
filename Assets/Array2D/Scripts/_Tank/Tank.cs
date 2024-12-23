@@ -156,5 +156,13 @@ namespace _Main._Tank
         {
             return stickmanCount >= maxStickmanCount;
         }
+
+        /// <summary>
+        /// Returns the current state of the tank.
+        /// </summary>
+        public TankState GetCurrentState()
+        {
+            return currentState;
+        }
     }
 }

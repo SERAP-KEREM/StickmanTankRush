@@ -67,12 +67,20 @@ namespace _Main._Stickman.StickmanGrid
         //}
         public bool AreNeighborsEmpty(int x, int y)
         {
+            // E?er Stickman en ön s?radaysa (y == 0), do?rudan true döndür.
+            if (y == 0)
+            {
+                return true;
+            }
+
+            // Kom?uluk kontrolü yap
             bool up = y + 1 < _gridSize.y && !_tileGrid[x, y + 1].HasStickman();
             bool down = y - 1 >= 0 && !_tileGrid[x, y - 1].HasStickman();
             bool left = x - 1 >= 0 && !_tileGrid[x - 1, y].HasStickman();
             bool right = x + 1 < _gridSize.x && !_tileGrid[x + 1, y].HasStickman();
             return up || down || left || right;
         }
+
 
     }
 }
