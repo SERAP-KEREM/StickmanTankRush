@@ -42,9 +42,6 @@ namespace _Main
 
             tileGrid.Initialize();
             Debug.Log("TileGrid initialized.");
-
-            // ?lk tank?n durumu kontrol edilir
-            CheckAndInitializeCurrentTank();
         }
 
         private void Update()
@@ -104,14 +101,12 @@ namespace _Main
 
             Debug.Log($"Current tank color: {currentTank.UnitColorType}, Stickman color: {stickman.UnitColorType}");
 
-            // Stickman ve tank renklerini kontrol et
             if (currentTank.UnitColorType != stickman.UnitColorType)
             {
                 Debug.Log($"Color mismatch! Stickman color: {stickman.UnitColorType}, Tank color: {currentTank.UnitColorType}");
                 return;
             }
 
-            // Stickman yerle?ebilecek bo? bir alana sahip mi kontrol et
             if (!tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
             {
                 Debug.Log("No empty neighboring grid spaces for the Stickman.");
@@ -125,6 +120,7 @@ namespace _Main
             if (currentTank.IsFull())
             {
                 Debug.Log("Tank is full.");
+                // E?er tank full ise, filling durumuna geçmeden önce hareket ettir
                 MoveNextTankToStopPoint();
             }
             else
@@ -139,36 +135,13 @@ namespace _Main
         private void MoveNextTankToStopPoint()
         {
             Debug.Log("Moving to the next tank.");
-            tankManager.MoveNextTankToStopPoint();
-        }
-
-        /// <summary>
-        /// Tank?n do?ru ?ekilde ba?lat?ld???ndan emin ol.
-        /// </summary>
-        private void CheckAndInitializeCurrentTank()
-        {
-            // ?lk tank? kontrol et ve durumu ayarla
-            Tank currentTank = tankManager.GetCurrentTank();
-
-            if (currentTank == null)
+            // Tank dolumda ise hareket etme
+            if (tankManager.GetCurrentTank().currentState == TankState.Filling)
             {
-                Debug.LogError("No tanks available.");
+                Debug.Log("Current tank is filling. Cannot move to the next tank.");
                 return;
             }
-
-            // E?er tank "Filling" durumundaysa, di?er tanklar beklemelidir
-            if (currentTank.GetCurrentState() == TankState.Waiting)
-            {
-                Debug.Log("Tank is in Waiting state.");
-            }
-            else if (currentTank.GetCurrentState() == TankState.Filling)
-            {
-                Debug.Log("Tank is in Filling state.");
-            }
-            else if (currentTank.GetCurrentState() == TankState.Moving)
-            {
-                Debug.Log("Tank is in Moving state.");
-            }
+            tankManager.MoveNextTankToStopPoint();
         }
     }
 }
