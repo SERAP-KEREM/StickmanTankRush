@@ -15,14 +15,32 @@ namespace _Main
         [SerializeField, Tooltip("Reference to the Stickman Grid.")]
         private StickmanGrid stickmanGrid;
 
-        private Stickman selectedStickman;
-
-        [SerializeField]
+        [SerializeField, Tooltip("Reference to the Tile Grid.")]
         private TileGrid tileGrid;
+
+        private Stickman selectedStickman;
 
         private void Start()
         {
-            // Referanslar?n atan?p atanmad???n? kontrol et
+            ValidateReferences();
+
+            stickmanGrid.Initialize();
+            Debug.Log("StickmanGrid initialized.");
+
+            tileGrid.Initialize();
+            Debug.Log("TileGrid initialized.");
+        }
+
+        private void Update()
+        {
+            HandleMouseClick();
+        }
+
+        /// <summary>
+        /// Validates required references and logs errors if any are missing.
+        /// </summary>
+        private void ValidateReferences()
+        {
             if (tankManager == null)
             {
                 Debug.LogError("TankManager is not assigned in the GameManager!");
@@ -37,37 +55,33 @@ namespace _Main
             }
             Debug.Log("StickmanGrid is assigned.");
 
-            stickmanGrid.Initialize();
-            Debug.Log("StickmanGrid initialized.");
-
-            tileGrid.Initialize();
-            Debug.Log("TileGrid initialized.");
-        }
-
-        private void Update()
-        {
-            // Fare t?klamalar?n? kontrol et ve Stickman'? seç
-            HandleMouseClick();
+            if (tileGrid == null)
+            {
+                Debug.LogError("TileGrid is not assigned in the GameManager!");
+                return;
+            }
+            Debug.Log("TileGrid is assigned.");
         }
 
         /// <summary>
-        /// Fare t?klamalar?n? alg?lar ve Stickman seçim i?lemini yapar.
+        /// Detects mouse clicks and selects a Stickman if clicked.
         /// </summary>
         private void HandleMouseClick()
         {
-            if (Input.GetMouseButtonDown(0)) // Sol t?klama
+            if (Input.GetMouseButtonDown(0))
             {
                 Debug.Log("Mouse click detected.");
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
                 if (Physics.Raycast(ray, out RaycastHit hit))
                 {
-                    Debug.Log("Raycast hit something.");
+                    Debug.Log("Raycast hit detected.");
 
                     Stickman clickedStickman = hit.collider.GetComponent<Stickman>();
 
                     if (clickedStickman != null && clickedStickman.IsSelectable)
                     {
-                        Debug.Log($"Clicked on a selectable Stickman: {clickedStickman.name}");
+                        Debug.Log($"Selectable Stickman clicked: {clickedStickman.name}");
                         selectedStickman = clickedStickman;
                         CheckAndAddStickmanToTank(selectedStickman);
                     }
@@ -78,21 +92,20 @@ namespace _Main
                 }
                 else
                 {
-                    Debug.Log("Raycast did not hit anything.");
+                    Debug.Log("Raycast did not hit any object.");
                 }
             }
         }
 
         /// <summary>
-        /// Stickman'?n tanka binebilmesi için gerekli kontrolleri yapar.
+        /// Checks if the selected Stickman can be added to the tank and handles the addition.
         /// </summary>
-        /// <param name="stickman">Seçilen Stickman</param>
+        /// <param name="stickman">The selected Stickman.</param>
         private void CheckAndAddStickmanToTank(Stickman stickman)
         {
             Debug.Log($"Checking if Stickman {stickman.name} can be added to the tank.");
 
             Tank currentTank = tankManager.GetCurrentTank();
-
             if (currentTank == null)
             {
                 Debug.Log("No active tank available.");
@@ -120,7 +133,6 @@ namespace _Main
             if (currentTank.IsFull())
             {
                 Debug.Log("Tank is full.");
-                // E?er tank full ise, filling durumuna geçmeden önce hareket ettir
                 MoveNextTankToStopPoint();
             }
             else
@@ -130,17 +142,11 @@ namespace _Main
         }
 
         /// <summary>
-        /// Bir sonraki tank? durak noktas?na ta??r.
+        /// Moves the next tank to the stop point.
         /// </summary>
         private void MoveNextTankToStopPoint()
         {
             Debug.Log("Moving to the next tank.");
-            // Tank dolumda ise hareket etme
-            if (tankManager.GetCurrentTank().currentState == TankState.Filling)
-            {
-                Debug.Log("Current tank is filling. Cannot move to the next tank.");
-                return;
-            }
             tankManager.MoveNextTankToStopPoint();
         }
     }

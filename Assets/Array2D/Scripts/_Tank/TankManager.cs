@@ -2,135 +2,118 @@ using _Main._Enums;
 using _Main._Tank;
 using LevelEditor;
 using System.Collections.Generic;
-using TriInspector;
 using UnityEngine;
 
+/// <summary>
+/// Manages the initialization, configuration, and behavior of tanks in the game.
+/// </summary>
 public class TankManager : MonoBehaviour
 {
-    [Title("Grid Configuration")]
-    [SerializeField, Tooltip("Tank verilerini içeren ve renk türleri gibi yap?land?rmalar? bar?nd?ran SO.")]
-    private LevelDataSO _levelDataSO; // Tank verilerini tutan LevelDataSO
+    [Header("Grid Configuration")]
+    [SerializeField, Tooltip("ScriptableObject containing tank data and configurations.")]
+    private LevelDataSO _levelDataSO;
 
-    [SerializeField, Tooltip("Tank prefab'? referans?.")]
-    private Tank _tankPrefab; // Tank prefab'? referans?
+    [SerializeField, Tooltip("Prefab reference for the tank.")]
+    private Tank _tankPrefab;
 
-    [SerializeField, Tooltip("Tanklar?n duraca?? durak noktalar? listesi.")]
-    private List<Transform> stopPoints; // Durak noktalar?n?n listesi
+    [SerializeField, Tooltip("List of stop points where tanks will move to.")]
+    private List<Transform> stopPoints;
 
-    // Tank kuyruklar? ve ?u an kontrol edilen tank
     private Queue<Tank> tankQueue = new Queue<Tank>();
-    [SerializeField] private Tank currentTank; // ?u anki kontrol edilen tank
+    private Tank currentTank;
 
-    // Sabitler ve ilk pozisyonlar
     private const float TankSpacing = 10f;
-    [SerializeField, Tooltip("Tanklar için ba?lang?ç pozisyonu.")]
-    private Vector3 startPosition = new Vector3(0, 0, 0);
 
-    // Yeni eklenen: Tank ba??na maksimum stickman say?s?
+    [SerializeField, Tooltip("Initial spawn position for tanks.")]
+    private Vector3 startPosition = Vector3.zero;
+
     private const int MaxStickmanCount = 3;
 
     /// <summary>
-    /// Start metodu, oyun ba??nda tanklar? ba?latmak için ça?r?l?r.
+    /// Sets up the tanks and moves the first one to the stop point.
     /// </summary>
-    void Start()
+    private void Start()
     {
-        Setup();
-        MoveNextTankToStopPoint();  // ?lk tank? durak noktas?na hareket ettir
+        SetupTanks();
+        MoveNextTankToStopPoint();
     }
 
     /// <summary>
-    /// LevelDataSO'dan al?nan verilere göre tanklar? kurar ve oyuna haz?rlar.
+    /// Initializes tanks based on the data from LevelDataSO.
     /// </summary>
-    public void Setup()
+    private void SetupTanks()
     {
-        // Tank verilerini olu?tur
-        List<TankData> tankDataList = _levelDataSO.TankDataList;
-
-        for (int i = 0; i < tankDataList.Count; i++)
+        if (_levelDataSO == null || _tankPrefab == null || stopPoints.Count == 0)
         {
-            // Z koordinat?n? ters yönde hesapla
-            float x = startPosition.x + (i * TankSpacing);
+            Debug.LogError("Setup failed: Missing required references.");
+            return;
+        }
 
-            // Tank pozisyonu ve rotas?
-            Vector3 position = new Vector3(x, startPosition.y, startPosition.z);
-            Quaternion rotation = Quaternion.Euler(0, 0, 0);
+        foreach (var tankData in _levelDataSO.TankDataList)
+        {
+            Vector3 position = startPosition + Vector3.right * TankSpacing * tankQueue.Count;
+            Tank newTank = Instantiate(_tankPrefab, position, Quaternion.identity, transform);
+            newTank.UnitColorType = tankData.TankColorType;
+            newTank.Initialize(stopPoints[0].position);
 
-            // Tank? instantiate et
-            Tank tank = Instantiate(_tankPrefab, position, rotation, transform);
-            tank.UnitColorType = tankDataList[i].TankColorType;
-            tankQueue.Enqueue(tank);
-            tank.Initialize(stopPoints[0].position);
-
-            // Tank'?n ad?n? güncelle
-            tank.name = $"{tankDataList[i].TankColorType} Tank [{i}]";
+            newTank.name = $"{tankData.TankColorType} Tank [{tankQueue.Count}]";
+            tankQueue.Enqueue(newTank);
         }
     }
 
     /// <summary>
-    /// Her frame'de kullan?c? giri?lerini i?leyip, mevcut tank bilgilerini yazd?rma gibi i?lemleri yapar.
+    /// Handles user input and performs tank-related updates.
     /// </summary>
-    void Update()
+    private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.P)) // "P" tu?una bas?ld???nda mevcut tank bilgisini yazd?r
+        if (Input.GetKeyDown(KeyCode.P))
         {
             PrintCurrentTankInfo();
         }
     }
 
     /// <summary>
-    /// Kuyruktaki bir sonraki tank? durak noktas?na ta??r.
+    /// Moves the next tank in the queue to the stop point.
     /// </summary>
     public void MoveNextTankToStopPoint()
     {
-        if (tankQueue.Count == 0) return;
-
-        // E?er mevcut tank doluysa, hareket etmeye ba?la
-        if (currentTank != null && currentTank.stickmanCount >= MaxStickmanCount)
+        if (tankQueue.Count == 0)
         {
-            currentTank.StartMoving();  // Mevcut tank? hareket ettirmeye ba?la
-        }
-
-        // Kuyruktaki bir sonraki tank? al
-        if (currentTank != null && currentTank.stickmanCount >= MaxStickmanCount)
-        {
-            currentTank.currentState = TankState.Moving;
-            // Tank doldu ve hareket etmeye ba?lad?, bir sonraki tank? al
-            currentTank = tankQueue.Dequeue();
-        }
-
-        // E?er kuyrukta tank varsa, ilk tank? seçip durak noktas?na yerle?tir
-        if (tankQueue.Count > 0)
-        {
-            currentTank = tankQueue.Peek();  // Kuyru?un ba??ndaki tank? al
-            currentTank.Initialize(stopPoints[0].position);  // Yeni tank? durak noktas?na yerle?tir
-        }
-    }
-
-    /// <summary>
-    /// Mevcut tank hakk?nda bilgi yazd?r?r, örne?in ismi ve rengi.
-    /// </summary>
-    public void PrintCurrentTankInfo()
-    {
-        if (tankQueue.Count == 0 && currentTank == null)
-        {
-            Debug.Log("Tank listesi bo?!");
+            Debug.LogWarning("No tanks left in the queue.");
             return;
         }
 
-        if (currentTank != null)
+        if (currentTank != null && currentTank.StickmanCount >= MaxStickmanCount)
         {
-            Debug.Log($"Mevcut Tank: {currentTank.name}, Renk: {currentTank.UnitColorType}, Stickman Say?s?: {currentTank.stickmanCount}");
+            currentTank.MoveToTarget();
+            currentTank.CurrentState = TankState.Moving;
         }
-        else
-        {
-            Debug.Log("?u an aktif bir tank yok!");
-        }
+
+        currentTank = tankQueue.Dequeue();
+        currentTank.Initialize(stopPoints[0].position);
+        currentTank.CurrentState = TankState.Filling;
+
+        Debug.Log($"Next tank {currentTank.name} is now at the stop point.");
     }
 
     /// <summary>
-    /// Kontrol alt?nda olan aktif tank? döndürür.
+    /// Logs information about the currently active tank.
     /// </summary>
-    /// <returns>Kontrol edilen aktif tank.</returns>
+    private void PrintCurrentTankInfo()
+    {
+        if (currentTank == null)
+        {
+            Debug.Log("No active tank at the moment.");
+            return;
+        }
+
+        Debug.Log($"Active Tank: {currentTank.name}, Color: {currentTank.UnitColorType}, Stickmen: {currentTank.StickmanCount}");
+    }
+
+    /// <summary>
+    /// Returns the currently controlled tank.
+    /// </summary>
+    /// <returns>The currently active tank.</returns>
     public Tank GetCurrentTank()
     {
         return currentTank;
