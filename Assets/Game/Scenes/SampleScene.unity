@@ -122,6 +122,56 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &508350478
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 508350480}
+  - component: {fileID: 508350479}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &508350479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508350478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 993bd589f6cedc3468df587b61e05fc2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _tilePrefab: {fileID: 320167537857610431, guid: 8e68dd86094d53f45be2ff3a62c2628b, type: 3}
+  _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
+  rowWidth: 3
+  tileSpacing: 1
+  rowStartPosition: {x: 0, y: -1, z: -1}
+  availableHolders: []
+--- !u!4 &508350480
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508350478}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &703468041
 GameObject:
   m_ObjectHideFlags: 0
@@ -147,7 +197,7 @@ Transform:
   m_GameObject: {fileID: 703468041}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10}
+  m_LocalPosition: {x: 0, y: 0, z: -3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -279,6 +329,7 @@ MonoBehaviour:
   tankManager: {fileID: 1265246948}
   stickmanGrid: {fileID: 1012899815}
   tileGrid: {fileID: 1455282691}
+  waitingRowManager: {fileID: 508350479}
 --- !u!4 &727036124
 Transform:
   m_ObjectHideFlags: 0
@@ -495,8 +546,8 @@ MonoBehaviour:
   _tankPrefab: {fileID: 8353771008622751197, guid: b80bb5f08b249494fa623419fd80da9b, type: 3}
   stopPoints:
   - {fileID: 703468043}
-  firstTank: {fileID: 0}
-  startPosition: {x: 2, y: -3, z: 10}
+  currentTank: {fileID: 0}
+  startPosition: {x: 2, y: -3, z: 9}
 --- !u!1 &1455282690
 GameObject:
   m_ObjectHideFlags: 0
@@ -555,3 +606,4 @@ SceneRoots:
   - {fileID: 1455282692}
   - {fileID: 703468043}
   - {fileID: 727036124}
+  - {fileID: 508350480}

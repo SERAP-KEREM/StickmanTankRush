@@ -44,30 +44,9 @@ namespace _Main._Stickman.StickmanGrid
                 }
             }
         }
-
-        /// <summary>
-        /// Gets a specific tile at position (x, y).
-        /// </summary>
-        public Tile GetTile(int x, int y)
-        {
-            if (x >= 0 && x < _gridSize.x && y >= 0 && y < _gridSize.y)
-            {
-                return _tileGrid[x, y];
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Gets the world position of a specific tile.
-        /// </summary>
-        //public Vector3 GetPosition(int x, int y)
-        //{
-        //    Tile tile = GetTile(x, y);
-        //    return tile != null ? tile.Position : Vector3.zero;
-        //}
+   
         public bool AreNeighborsEmpty(int x, int y)
         {
-            // E?er Stickman en ön s?radaysa (y == 0), do?rudan true döndür.
             if (y == 0)
             {
                 return true;

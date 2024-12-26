@@ -1,5 +1,6 @@
 using _Main._Enums;
 using _Main._Tank;
+using DG.Tweening;
 using LevelEditor;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,7 +21,7 @@ public class TankManager : MonoBehaviour
     private List<Transform> stopPoints;
 
     private Queue<Tank> tankQueue = new Queue<Tank>();
-    private Tank currentTank;
+    [SerializeField] private Tank currentTank;
 
     private const float TankSpacing = 10f;
 
@@ -88,6 +89,7 @@ public class TankManager : MonoBehaviour
             currentTank.MoveToTarget();
             currentTank.CurrentState = TankState.Moving;
         }
+      
 
         currentTank = tankQueue.Dequeue();
         currentTank.Initialize(stopPoints[0].position);
@@ -95,11 +97,40 @@ public class TankManager : MonoBehaviour
 
         Debug.Log($"Next tank {currentTank.name} is now at the stop point.");
     }
-
     /// <summary>
-    /// Logs information about the currently active tank.
+    /// Kuyru?un geri kalan?ndaki tanklar? 10 birim ilerletir.
     /// </summary>
-    private void PrintCurrentTankInfo()
+
+
+public void MoveOtherTanks()
+{
+    // Tüm tanklar? s?ras?yla hareket ettiriyoruz
+    foreach (var tank in tankQueue)
+    {
+        // Tank?n mevcut pozisyonunu al?yoruz
+        Vector3 currentPosition = tank.transform.position;
+
+        // Yeni hedef pozisyonu belirliyoruz
+        Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
+
+        // DOTween ile tank? hareket ettiriyoruz
+        tank.transform.DOMove(targetPosition, 3f) // 1 saniyede hareket etmesi için
+            .SetEase(Ease.Linear); // Hareketin e?it h?zda olmas?n? sa?l?yoruz
+    }
+
+    // Current tank için ayn? i?lemi uyguluyoruz
+    Vector3 currentTankPosition = currentTank.transform.position;
+    Vector3 targetCurrentTankPosition = new Vector3(currentTankPosition.x - TankSpacing, currentTankPosition.y, currentTankPosition.z);
+
+    // DOTween ile current tank? hareket ettiriyoruz
+    currentTank.transform.DOMove(targetCurrentTankPosition, 3f)
+        .SetEase(Ease.Linear);
+}
+
+/// <summary>
+/// Logs information about the currently active tank.
+/// </summary>
+private void PrintCurrentTankInfo()
     {
         if (currentTank == null)
         {

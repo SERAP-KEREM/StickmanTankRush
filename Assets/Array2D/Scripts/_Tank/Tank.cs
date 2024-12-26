@@ -33,10 +33,11 @@ namespace _Main._Tank
                 if (currentState != value)
                 {
                     currentState = value;
-                    OnStateChanged?.Invoke(currentState); 
+                    OnStateChanged?.Invoke(currentState);
                 }
             }
         }
+
         [Tooltip("Current number of stickmen in the tank.")]
         private int stickmanCount;
         public int StickmanCount
@@ -60,9 +61,6 @@ namespace _Main._Tank
         [Header("Tank Color Configuration")]
         [SerializeField, Tooltip("The color type of the tank.")]
         private ColorType _colorType;
-
-        [Tooltip("Is this tank currently active.")]
-        public bool isCurrentTank = false;
 
         /// <summary>
         /// Gets or sets the color type of the tank. Updates the tank's color when set.
@@ -155,18 +153,6 @@ namespace _Main._Tank
         public bool IsFull()
         {
             return stickmanCount >= maxStickmanCount;
-        }
-
-      
-
-        public void StartFilling()
-        {
-            CurrentState = TankState.Filling; // Tank?n dolmaya ba?lamas?.
-        }
-
-        public void StopFilling()
-        {
-            CurrentState = TankState.Moving; 
         }
     }
 }

@@ -2,7 +2,9 @@ using _Main._Enums;
 using _Main._Stickman;
 using _Main._Stickman.StickmanGrid;
 using _Main._Tank;
+using DG.Tweening;
 using UnityEngine;
+using UnityEngine.WSA;
 
 namespace _Main
 {
@@ -19,6 +21,8 @@ namespace _Main
         private TileGrid tileGrid;
 
         private Stickman selectedStickman;
+        [SerializeField] private WaitingRowManager waitingRowManager;
+
 
         private void Start()
         {
@@ -99,35 +103,56 @@ namespace _Main
 
         /// <summary>
         /// Checks if the selected Stickman can be added to the tank and handles the addition.
+        /// If the tank color mismatches and there's an empty neighboring space, sends the Stickman to a holder.
         /// </summary>
         /// <param name="stickman">The selected Stickman.</param>
         private void CheckAndAddStickmanToTank(Stickman stickman)
         {
             Debug.Log($"Checking if Stickman {stickman.name} can be added to the tank.");
 
+            // Get the current tank (handle potential null case)
             Tank currentTank = tankManager.GetCurrentTank();
             if (currentTank == null)
             {
-                Debug.Log("No active tank available.");
+                Debug.LogWarning("No active tank available.");
                 return;
             }
 
             Debug.Log($"Current tank color: {currentTank.UnitColorType}, Stickman color: {stickman.UnitColorType}");
 
-            if (currentTank.UnitColorType != stickman.UnitColorType)
+            // Check tank color match and neighboring space
+            bool areNeighborsEmpty = tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY);
+            if (currentTank.UnitColorType != stickman.UnitColorType && areNeighborsEmpty)
             {
-                Debug.Log($"Color mismatch! Stickman color: {stickman.UnitColorType}, Tank color: {currentTank.UnitColorType}");
+                Debug.Log($"Color mismatch! Sending Stickman {stickman.name} to a holder.");
+
+                // Find the nearest available holder (ensure proper parameter passing)
+                Holder nearestHolder = waitingRowManager.MoveToNearestAvailableHolder(stickman);
+
+                // Move the stickman to the nearest holder (if found)
+                if (nearestHolder != null)
+                {
+                   // Bu k?s?mda stickmanlar holdera gitti?inde sadece x ve z konumlar? de?i?sin y sabit kals?n
+
+                    nearestHolder.AssignStickman(stickman);
+                }
+                else
+                {
+                    Debug.Log("No available holder found for the Stickman.");
+                    // Handle case where no holder is available (optional: play animation, show message)
+                }
                 return;
             }
 
-            if (!tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+            // If color matches or no empty neighbors, proceed with tank addition logic
+            if (!areNeighborsEmpty)
             {
                 Debug.Log("No empty neighboring grid spaces for the Stickman.");
                 return;
             }
 
             Debug.Log($"Stickman {stickman.name} is moving to the tank.");
-            stickman.MoveToTank(currentTank.transform.position);
+            stickman.MoveToTank(currentTank.transform.position); // Assuming Stickman has a MoveToTank method
             currentTank.AddStickman(stickman.UnitColorType);
 
             if (currentTank.IsFull())
@@ -140,7 +165,6 @@ namespace _Main
                 Debug.Log("Tank is not full yet.");
             }
         }
-
         /// <summary>
         /// Moves the next tank to the stop point.
         /// </summary>
@@ -148,6 +172,7 @@ namespace _Main
         {
             Debug.Log("Moving to the next tank.");
             tankManager.MoveNextTankToStopPoint();
+            tankManager.MoveOtherTanks();
         }
     }
 }

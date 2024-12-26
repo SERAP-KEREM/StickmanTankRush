@@ -92,7 +92,7 @@ namespace _Main._Stickman.StickmanGrid
                 });
             }
         }
-
+     
         //// Removes the Stickman from the grid and destroys it from the scene.
         //public void RemoveStickmanFromGrid()
         //{
