@@ -35,7 +35,7 @@ namespace _Main._Stickman.StickmanGrid
 
         // Cache reference to the StickmanGrid for performance improvement
         private StickmanGrid stickmanGrid;
-
+   
         private void Awake()
         {
             // Cache the StickmanGrid reference once during initialization
@@ -52,7 +52,7 @@ namespace _Main._Stickman.StickmanGrid
             GridX = x;
             GridY = y;
         }
-
+     
         // Initializes the Stickman by setting its color based on the assigned color type.
         public void Initialize()
         {

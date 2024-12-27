@@ -60,6 +60,19 @@ namespace _Main._Stickman.StickmanGrid
             return up || down || left || right;
         }
 
+        public Tile GetTileAt(int x, int y)
+        {
+            // Geçerli bir koordinat olup olmad???n? kontrol et
+            if (x >= 0 && x < _gridSize.x && y >= 0 && y < _gridSize.y)
+            {
+                return _tileGrid[x, y];
+            }
+
+            // Geçersiz koordinat durumunda null döndür
+            Debug.LogWarning($"Tile at ({x}, {y}) is out of bounds.");
+            return null;
+        }
+
 
     }
 }
