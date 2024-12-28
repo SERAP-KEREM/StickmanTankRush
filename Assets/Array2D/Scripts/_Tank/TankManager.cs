@@ -35,7 +35,10 @@ public class TankManager : MonoBehaviour
     /// </summary>
     private void Start()
     {
+        // Set up tanks at the start of the game
         SetupTanks();
+
+        // Move the first tank to the stop point
         MoveNextTankToStopPoint();
     }
 
@@ -47,6 +50,12 @@ public class TankManager : MonoBehaviour
         if (_levelDataSO == null || _tankPrefab == null || stopPoints.Count == 0)
         {
             Debug.LogError("Setup failed: Missing required references.");
+            return;
+        }
+
+        if (_levelDataSO.TankDataList == null || _levelDataSO.TankDataList.Count == 0)
+        {
+            Debug.LogError("Level data contains no tank configurations.");
             return;
         }
 
@@ -67,6 +76,7 @@ public class TankManager : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        // Optionally, handle user input for debugging purposes or tank-related operations
         if (Input.GetKeyDown(KeyCode.P))
         {
             PrintCurrentTankInfo();
@@ -84,53 +94,56 @@ public class TankManager : MonoBehaviour
             return;
         }
 
+        // If the current tank is full, move it to its target
         if (currentTank != null && currentTank.StickmanCount >= MaxStickmanCount)
         {
             currentTank.MoveToTarget();
             currentTank.CurrentState = TankState.Moving;
         }
-      
 
+        // Dequeue the next tank and initialize it
         currentTank = tankQueue.Dequeue();
         currentTank.Initialize(stopPoints[0].position);
         currentTank.CurrentState = TankState.Filling;
 
         Debug.Log($"Next tank {currentTank.name} is now at the stop point.");
     }
+
     /// <summary>
-    /// Kuyru?un geri kalan?ndaki tanklar? 10 birim ilerletir.
+    /// Moves all tanks in the queue by 10 units, including the current tank.
     /// </summary>
-
-
-public void MoveOtherTanks()
-{
-    // Tüm tanklar? s?ras?yla hareket ettiriyoruz
-    foreach (var tank in tankQueue)
+    public void MoveOtherTanks()
     {
-        // Tank?n mevcut pozisyonunu al?yoruz
-        Vector3 currentPosition = tank.transform.position;
+        // Move all tanks except for the current tank
+        foreach (var tank in tankQueue)
+        {
+            Vector3 currentPosition = tank.transform.position;
+            Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
 
-        // Yeni hedef pozisyonu belirliyoruz
-        Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
+            // Only move the tank if it's not already at the target position
+            if (currentPosition.x > targetPosition.x)
+            {
+                tank.transform.DOMove(targetPosition, 3f).SetEase(Ease.Linear);
+            }
+        }
 
-        // DOTween ile tank? hareket ettiriyoruz
-        tank.transform.DOMove(targetPosition, 3f) // 1 saniyede hareket etmesi için
-            .SetEase(Ease.Linear); // Hareketin e?it h?zda olmas?n? sa?l?yoruz
+        // Move the current tank in the same way
+        if (currentTank != null)
+        {
+            Vector3 currentTankPosition = currentTank.transform.position;
+            Vector3 targetCurrentTankPosition = new Vector3(currentTankPosition.x - TankSpacing, currentTankPosition.y, currentTankPosition.z);
+
+            if (currentTankPosition.x > targetCurrentTankPosition.x)
+            {
+                currentTank.transform.DOMove(targetCurrentTankPosition, 3f).SetEase(Ease.Linear);
+            }
+        }
     }
 
-    // Current tank için ayn? i?lemi uyguluyoruz
-    Vector3 currentTankPosition = currentTank.transform.position;
-    Vector3 targetCurrentTankPosition = new Vector3(currentTankPosition.x - TankSpacing, currentTankPosition.y, currentTankPosition.z);
-
-    // DOTween ile current tank? hareket ettiriyoruz
-    currentTank.transform.DOMove(targetCurrentTankPosition, 3f)
-        .SetEase(Ease.Linear);
-}
-
-/// <summary>
-/// Logs information about the currently active tank.
-/// </summary>
-private void PrintCurrentTankInfo()
+    /// <summary>
+    /// Logs information about the currently active tank.
+    /// </summary>
+    private void PrintCurrentTankInfo()
     {
         if (currentTank == null)
         {

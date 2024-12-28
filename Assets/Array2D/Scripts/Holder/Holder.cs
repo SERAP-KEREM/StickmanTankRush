@@ -42,6 +42,13 @@ namespace _Main
                 return;
             }
 
+            // Check if the Holder is already occupied
+            if (IsOccupied)
+            {
+                Debug.LogWarning("Holder is already occupied by another Stickman. Replacing the previous one.");
+                RemoveStickman(); // Optional: You can decide to overwrite or reject the assignment.
+            }
+
             // Assign the Stickman to this holder
             assignedStickman = stickman;
 
@@ -63,22 +70,32 @@ namespace _Main
             // Move the Stickman to the target position
             stickman.transform.position = targetPosition;
         }
-        public void PlaceStickman(Stickman stickman)
-        {
-            assignedStickman = stickman;
-        }
-        public Stickman GetStickman()
-        {
-            return assignedStickman;
-        }
-        // Holder'dan stickman'? ç?kar?r
+
+        /// <summary>
+        /// Removes the Stickman from this Holder.
+        /// </summary>
         public void RemoveStickman()
         {
             if (assignedStickman != null)
             {
-                assignedStickman = null;  // Stickman'? bo?alt?yoruz
+                Debug.Log($"Stickman '{assignedStickman.name}' removed from Holder '{name}'.");
+                assignedStickman = null;  // Clear the assigned Stickman
+            }
+            else
+            {
+                Debug.LogWarning("No Stickman to remove from the Holder.");
             }
         }
+
+        /// <summary>
+        /// Returns the current Stickman assigned to this Holder.
+        /// </summary>
+        public Stickman GetStickman()
+        {
+            return assignedStickman;
+        }
+
+     
         #endregion
     }
 }

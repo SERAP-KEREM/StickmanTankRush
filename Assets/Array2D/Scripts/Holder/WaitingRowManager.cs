@@ -8,6 +8,8 @@ using UnityEngine;
 
 public class WaitingRowManager : MonoBehaviour
 {
+    #region Fields
+
     [Header("Waiting Row Configuration")]
     [SerializeField, Tooltip("Tile prefab reference.")]
     private GameObject _tilePrefab;
@@ -24,13 +26,25 @@ public class WaitingRowManager : MonoBehaviour
     [SerializeField, Tooltip("Starting position for the waiting row.")]
     private Vector3 rowStartPosition;
 
-    private Holder[] waitingTiles; // Array to hold tiles
-    public List<Holder> availableHolders = new List<Holder>(); // List of available holders
+    [Header("Tile Data")]
+    [Tooltip("Array to hold tiles in the waiting row.")]
+    private Holder[] waitingTiles;
+
+    [SerializeField, Tooltip("List of available holders for stickmen.")]
+    private List<Holder> availableHolders = new List<Holder>();
+
+    #endregion
+
+    #region Unity Methods
 
     private void Start()
     {
         InitializeWaitingRow();  // Initialize the waiting row when the game starts
     }
+
+    #endregion
+
+    #region Public Methods
 
     /// <summary>
     /// Initializes the waiting row using the tile prefab and configuration from LevelDataSO.
@@ -38,40 +52,33 @@ public class WaitingRowManager : MonoBehaviour
     public void InitializeWaitingRow()
     {
         waitingTiles = new Holder[rowWidth];
-        availableHolders.Clear(); // Ensure that the list is cleared before adding new holders
+        availableHolders.Clear(); // Clear the list before adding new holders to avoid stale data
 
+        // Create tiles based on the row configuration
         for (int i = 0; i < rowWidth; i++)
         {
-            // Calculate tile position and instantiate the tile
             CreateTileAtPosition(i);
         }
     }
 
     /// <summary>
-    /// Helper method to create a tile at a specific position.
+    /// Retrieves all stickmen currently in available holders.
     /// </summary>
-    /// <param name="index">The index of the tile in the row.</param>
-    private void CreateTileAtPosition(int index)
+    public List<Stickman> GetAllStickmenInHolders()
     {
-        // Calculate the position for the tile
-        Vector3 tilePosition = rowStartPosition + Vector3.right * index * tileSpacing;
+        List<Stickman> stickmenInHolders = new List<Stickman>();
 
-        // Instantiate the tile prefab
-        GameObject tileObject = Instantiate(_tilePrefab, tilePosition, Quaternion.identity, transform);
+        // Iterate through each holder to check if it contains a Stickman
+        foreach (var holder in availableHolders)
+        {
+            Stickman stickman = holder.GetStickman();
+            if (stickman != null)
+            {
+                stickmenInHolders.Add(stickman); // Add Stickman to the list if found
+            }
+        }
 
-        // Attempt to get the Holder component and add to lists
-        Holder tileComponent = tileObject.GetComponent<Holder>();
-        if (tileComponent != null)
-        {
-            waitingTiles[index] = tileComponent;
-            availableHolders.Add(tileComponent); // Add each tile to the available holders list
-            tileObject.name = $"Holder [{index}]";
-            Debug.Log($"Tile created at position {tilePosition}.");
-        }
-        else
-        {
-            Debug.LogWarning("Tile prefab does not have a Holder component.");
-        }
+        return stickmenInHolders;
     }
 
     /// <summary>
@@ -81,22 +88,53 @@ public class WaitingRowManager : MonoBehaviour
     /// <returns>The first available Holder, or null if none are available.</returns>
     public Holder MoveToNearestAvailableHolder(Stickman stickman)
     {
-        // Loop through available holders to find the first one that isn't occupied
+        // Iterate through available holders and find the first one that's empty
         foreach (Holder holder in availableHolders)
         {
             if (!holder.IsOccupied)
             {
-              
-                holder.AssignStickman(stickman); // Assign the stickman to the holder
-                availableHolders.Remove(holder); // Remove this holder from the available list
-           
+                holder.AssignStickman(stickman); // Assign Stickman to the holder
                 Debug.Log($"Stickman {stickman.name} moved to Holder.");
-                return holder; // Return the holder where the stickman was placed
+                return holder; // Return the holder where Stickman was placed
             }
         }
 
-        // Log warning if no available holder is found
+        // Log a warning if no available holder is found
         Debug.LogWarning("No available holder found for Stickman.");
         return null; // Return null if no available holder is found
     }
+
+    #endregion
+
+    #region Private Helper Methods
+
+    /// <summary>
+    /// Creates a tile at a specific position in the row.
+    /// </summary>
+    /// <param name="index">The index of the tile in the row.</param>
+    private void CreateTileAtPosition(int index)
+    {
+        // Calculate the position for the tile using the starting position and spacing
+        Vector3 tilePosition = rowStartPosition + Vector3.right * index * tileSpacing;
+
+        // Instantiate the tile prefab at the calculated position
+        GameObject tileObject = Instantiate(_tilePrefab, tilePosition, Quaternion.identity, transform);
+
+        // Try to get the Holder component from the instantiated tile
+        Holder tileComponent = tileObject.GetComponent<Holder>();
+        if (tileComponent != null)
+        {
+            waitingTiles[index] = tileComponent;
+            availableHolders.Add(tileComponent); // Add the tile to the list of available holders
+            tileObject.name = $"Holder [{index}]"; // Set a descriptive name for the tile object
+
+            Debug.Log($"Tile created at position {tilePosition}.");
+        }
+        else
+        {
+            Debug.LogWarning("Tile prefab does not have a Holder component.");
+        }
+    }
+
+    #endregion
 }

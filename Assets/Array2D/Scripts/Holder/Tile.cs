@@ -4,15 +4,25 @@ namespace _Main._Stickman.StickmanGrid
 {
     public class Tile : MonoBehaviour
     {
-        // The stickman currently occupying this tile
+        #region Properties
+
+        // The stickman currently occupying this tile, read-only externally
         public Stickman CurrentStickman => _currentStickman;
 
         // The world position of the tile
         public Vector3 Position { get; private set; }
 
+        #endregion
+
+        #region Fields
+
         // Private reference to the current stickman occupying this tile
         [SerializeField]
         private Stickman _currentStickman;
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Initializes the tile with a given position.
@@ -26,44 +36,50 @@ namespace _Main._Stickman.StickmanGrid
         }
 
         /// <summary>
-        /// Places a stickman on this tile.
+        /// Attempts to place a stickman on this tile.
+        /// If the tile is already occupied, this will fail.
         /// </summary>
         /// <param name="stickman">The stickman to place on this tile.</param>
-        public void PlaceStickman(Stickman stickman)
+        /// <returns>True if the stickman was placed successfully, false if the tile is occupied.</returns>
+        public bool PlaceStickman(Stickman stickman)
         {
-            if (_currentStickman != null)
+            if (HasStickman())
             {
-                Debug.LogWarning("This tile is already occupied.");
-                return;  // If there's already a stickman, do not place another
+                Debug.LogWarning($"Cannot place Stickman on tile at {Position} because it's already occupied.");
+                return false;  // Tile is already occupied
             }
 
-            _currentStickman = stickman;  // Set the stickman on the tile
-           
+            _currentStickman = stickman;
             Debug.Log($"Stickman placed on tile at position: {Position}");
+            return true;
         }
 
         /// <summary>
         /// Removes the stickman from this tile.
         /// </summary>
-        public void RemoveStickman()
+        /// <returns>True if a stickman was removed, false if the tile was empty.</returns>
+        public bool RemoveStickman()
         {
-            if (_currentStickman == null)
+            if (!HasStickman())
             {
-                Debug.LogWarning("There is no stickman to remove.");
-                return;  // If there is no stickman, do nothing
+                Debug.LogWarning($"No Stickman to remove from tile at {Position}.");
+                return false;  // No stickman to remove
             }
 
             _currentStickman = null;  // Remove the stickman
             Debug.Log($"Stickman removed from tile at position: {Position}");
+            return true;
         }
 
         /// <summary>
-        /// Checks if there is a stickman on this tile.
+        /// Checks if there is a stickman currently occupying this tile.
         /// </summary>
         /// <returns>True if there is a stickman, otherwise false.</returns>
         public bool HasStickman()
         {
-            return _currentStickman != null;  // Return true if the tile has a stickman
+            return _currentStickman != null;
         }
+
+        #endregion
     }
 }

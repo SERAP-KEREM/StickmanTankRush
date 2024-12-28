@@ -6,12 +6,11 @@ using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace _Main
 {
     /// <summary>
-    /// Manages the main game logic, including Stickman selection, tank management, and grid operations.
-    /// Implements game flow for Stickman movement, adding Stickman to tanks, and validating conditions for tank full status.
+    /// GameManager handles the main logic of the game including Stickman selection, tank management, and grid operations.
+    /// It coordinates Stickman movement, adding Stickmen to tanks, and ensures that the game state is managed properly.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
@@ -64,8 +63,8 @@ namespace _Main
         #region Reference Validation
 
         /// <summary>
-        /// Validates required references and logs errors if any are missing.
-        /// Ensures all necessary components are assigned to avoid runtime errors.
+        /// Validates that all required references are assigned.
+        /// Logs an error if any required reference is missing.
         /// </summary>
         private void ValidateReferences()
         {
@@ -97,7 +96,7 @@ namespace _Main
 
         /// <summary>
         /// Detects mouse clicks and selects a Stickman if clicked.
-        /// Handles selection and determines if the clicked Stickman can be added to a tank.
+        /// Processes Stickman addition to tank or waiting row.
         /// </summary>
         private void HandleMouseClick()
         {
@@ -168,19 +167,19 @@ namespace _Main
         /// <param name="stickman">The Stickman to be moved.</param>
         private void HandleColorMismatch(Stickman stickman)
         {
-            // Stickman'?n üzerinde bulundu?u eski tile'? bo?altal?m
-           Tile currentTile = tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
+            // Clear the tile where the Stickman was previously
+            Tile currentTile = tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
             if (currentTile != null)
             {
-                currentTile.RemoveStickman();  // Stickman'? eski tile'dan kald?r
+                currentTile.RemoveStickman();  // Remove Stickman from the old tile
                 Debug.Log($"Tile at ({stickman.GridX}, {stickman.GridY}) is now empty.");
             }
 
-            // Stickman'? yeni holder'a ta??ma
+            // Move Stickman to the new holder
             Holder nearestHolder = waitingRowManager.MoveToNearestAvailableHolder(stickman);
             if (nearestHolder != null)
             {
-                nearestHolder.AssignStickman(stickman);  // Stickman'? holder'a yerle?tir
+                nearestHolder.AssignStickman(stickman);  // Place the Stickman into the holder
                 Debug.Log($"Stickman {stickman.name} moved to Holder {nearestHolder.name}.");
             }
             else
@@ -188,41 +187,6 @@ namespace _Main
                 Debug.LogWarning("No available holder found for the Stickman.");
             }
         }
-
-        /// <summary>
-        /// Tank?n uyumlu renklerdeki stickman'lar? al?p tank?n içine yerle?tirir.
-        /// </summary>
-        public void AssignStickmenToTank(Tank tank)
-        {
-            // Tank?n rengi ile uyumlu Stickman'lar? al
-            List<Stickman> stickmansToAdd = new List<Stickman>();
-
-            // availableHolders listesindeki her bir holder'? kontrol et
-            foreach (var holder in waitingRowManager.availableHolders)
-            {
-                if (holder.IsOccupied)  // E?er holder doluysa (stickman varsa)
-                {
-                    Stickman stickman = holder.GetStickman(); // Holder'daki Stickman'? al
-
-                    // E?er Stickman varsa ve tank?n rengiyle uyumluysa
-                    if (stickman != null && stickman.UnitColorType == tank.UnitColorType)
-                    {
-                        stickmansToAdd.Add(stickman);  // Bu Stickman'? listeye ekle
-                        holder.RemoveStickman();  // Holder'dan Stickman'? ç?kar
-
-                        // Stickman'? tank?n içine ta??
-                        MoveStickmanToTank(stickman, tank);
-                    }
-                }
-            }
-            // Bulunan Stickman'lar? tank?n içine ekle
-            foreach (var stickman in stickmansToAdd)
-            {
-                tank.AddStickman(stickman.UnitColorType);  // Tank?n içine Stickman ekle
-                stickman.MoveToTank(tank.transform.position);  // Stickman'? tank?n içine ta??
-            }
-        }
-
 
         /// <summary>
         /// Moves the Stickman to the tank and updates tank state accordingly.
@@ -248,19 +212,61 @@ namespace _Main
         #endregion
 
         #region Tank Management
-
         /// <summary>
         /// Moves the next tank to the stop point.
         /// </summary>
         private void MoveNextTankToStopPoint()
         {
+            // Get the current tank
             Tank currentTank = tankManager.GetCurrentTank();
+            if (currentTank == null)
+            {
+                Debug.LogWarning("No active tank available.");
+                return;
+            }
+
             Debug.Log("Moving to the next tank.");
-            tankManager.MoveNextTankToStopPoint();
-            tankManager.MoveOtherTanks();
-            AssignStickmenToTank(currentTank);
+            tankManager.MoveNextTankToStopPoint(); // Move the next tank to its destination
+            tankManager.MoveOtherTanks(); // Move other tanks accordingly
 
+            MoveAllHolderStickmenToCurrentTank();
+        }
 
+        /// <summary>
+        /// Moves all matching Stickmen from holders to the current tank.
+        /// </summary>
+        private void MoveAllHolderStickmenToCurrentTank()
+        {
+            // Get the current tank
+            Tank currentTank = tankManager.GetCurrentTank();
+            if (currentTank == null)
+            {
+                Debug.LogWarning("No active tank available.");
+                return;
+            }
+
+            // Get Stickmen from holders
+            List<Stickman> stickmenInHolders = waitingRowManager.GetAllStickmenInHolders();
+            Debug.Log($"Total Stickmen in holders: {stickmenInHolders.Count}");
+
+            // Process each Stickman
+            foreach (var stickman in stickmenInHolders)
+            {
+                if (stickman != null)
+                {
+                    Debug.Log($"Checking Stickman: {stickman.name}");
+                    Debug.Log($"Stickman Color: {stickman.UnitColorType}, Tank Color: {currentTank.UnitColorType}");
+                    // Move Stickman to the tank
+                    if (stickman.UnitColorType == currentTank.UnitColorType)
+                    {
+                        MoveStickmanToTank(stickman, currentTank);
+                    }
+                    else
+                    {
+                        Debug.Log($"Skipping Stickman {stickman.name} due to color mismatch.");
+                    }
+                }
+            }
         }
 
         #endregion
