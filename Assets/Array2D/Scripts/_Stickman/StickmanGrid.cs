@@ -10,29 +10,17 @@ namespace _Main._Stickman.StickmanGrid
     public class StickmanGrid : MonoBehaviour
     {
         [Header("Grid Configuration")]
-        [SerializeField]
-        private LevelDataSO _levelDataSO; // Data for grid initialization
-        [SerializeField]
-        private Stickman _stickmanPrefab; // Prefab for instantiating Stickman units
-        [SerializeField, Tooltip("Grid size and stickman layout.")]
+        [SerializeField] private LevelDataSO _levelDataSO; // Data for grid initialization
+        [SerializeField] private Stickman _stickmanPrefab; // Prefab for instantiating Stickman units
         private Stickman[,] _stickmanGrid; // 2D array of Stickman units
-
         private Vector2Int _gridSize; // Grid dimensions
-        private TankManager _tankManager; // Reference to TankManager
-        [SerializeField] private TileGrid _tileGrid;
-        public ColorType clickedStickmanColor; // Color of the clicked Stickman
 
-        private void Start()
-        {
-            // Find and validate the TankManager instance
-            _tankManager = FindObjectOfType<TankManager>();
-            if (_tankManager == null)
-            {
-                Debug.LogError("TankManager instance not found in the scene.");
-                return;
-            }
+  
 
-        }
+        [SerializeField, Tooltip("Reference to the TileGrid for positioning and interactions.")]
+        private TileGrid _tileGrid;
+
+     
 
         /// <summary>
         /// Initializes the Stickman grid using LevelDataSO.
@@ -77,12 +65,12 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
+        /// <summary>
+        /// Returns the Stickman at the specified grid position.
+        /// </summary>
         public Stickman GetStickmanAt(int x, int y)
         {
             return _stickmanGrid[x, y];
         }
-
-       
     }
 }
-

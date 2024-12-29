@@ -5,15 +5,11 @@ using LevelEditor;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Manages the initialization, configuration, and behavior of tanks in the game.
-/// </summary>
 public class TankManager : MonoBehaviour
 {
-    [Header("Grid Configuration")]
-    [SerializeField, Tooltip("ScriptableObject containing tank data and configurations.")]
-    private LevelDataSO _levelDataSO;
+    public static TankManager Instance { get; private set; }
 
+    [Header("Grid Configuration")]
     [SerializeField, Tooltip("Prefab reference for the tank.")]
     private Tank _tankPrefab;
 
@@ -30,24 +26,41 @@ public class TankManager : MonoBehaviour
 
     private const int MaxStickmanCount = 3;
 
-    /// <summary>
-    /// Sets up the tanks and moves the first one to the stop point.
-    /// </summary>
+    private LevelDataSO _levelDataSO; // LevelDataSO alan?
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); // E?er ba?ka bir instance varsa, yenisini yok et
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // Sahneler aras?nda kal?c? hale getir
+    }
+
+    // LevelDataSO'yu almak için bir metod
+    public void SetLevelDataSO(LevelDataSO levelDataSO)
+    {
+        _levelDataSO = levelDataSO;
+    }
+
     private void Start()
     {
-        // Set up tanks at the start of the game
-        SetupTanks();
+        if (_levelDataSO == null)
+        {
+            Debug.LogError("LevelDataSO reference is missing in TankManager.");
+            return;
+        }
 
-        // Move the first tank to the stop point
+        SetupTanks();
         MoveNextTankToStopPoint();
     }
 
-    /// <summary>
-    /// Initializes tanks based on the data from LevelDataSO.
-    /// </summary>
     private void SetupTanks()
     {
-        if (_levelDataSO == null || _tankPrefab == null || stopPoints.Count == 0)
+        if (_tankPrefab == null || stopPoints.Count == 0)
         {
             Debug.LogError("Setup failed: Missing required references.");
             return;
@@ -71,21 +84,6 @@ public class TankManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Handles user input and performs tank-related updates.
-    /// </summary>
-    private void Update()
-    {
-        // Optionally, handle user input for debugging purposes or tank-related operations
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            PrintCurrentTankInfo();
-        }
-    }
-
-    /// <summary>
-    /// Moves the next tank in the queue to the stop point.
-    /// </summary>
     public void MoveNextTankToStopPoint()
     {
         if (tankQueue.Count == 0)
@@ -94,14 +92,12 @@ public class TankManager : MonoBehaviour
             return;
         }
 
-        // If the current tank is full, move it to its target
         if (currentTank != null && currentTank.StickmanCount >= MaxStickmanCount)
         {
             currentTank.MoveToTarget();
             currentTank.CurrentState = TankState.Moving;
         }
 
-        // Dequeue the next tank and initialize it
         currentTank = tankQueue.Dequeue();
         currentTank.Initialize(stopPoints[0].position);
         currentTank.CurrentState = TankState.Filling;
@@ -109,25 +105,19 @@ public class TankManager : MonoBehaviour
         Debug.Log($"Next tank {currentTank.name} is now at the stop point.");
     }
 
-    /// <summary>
-    /// Moves all tanks in the queue by 10 units, including the current tank.
-    /// </summary>
     public void MoveOtherTanks()
     {
-        // Move all tanks except for the current tank
         foreach (var tank in tankQueue)
         {
             Vector3 currentPosition = tank.transform.position;
             Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
 
-            // Only move the tank if it's not already at the target position
             if (currentPosition.x > targetPosition.x)
             {
                 tank.transform.DOMove(targetPosition, 3f).SetEase(Ease.Linear);
             }
         }
 
-        // Move the current tank in the same way
         if (currentTank != null)
         {
             Vector3 currentTankPosition = currentTank.transform.position;
@@ -140,24 +130,6 @@ public class TankManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Logs information about the currently active tank.
-    /// </summary>
-    private void PrintCurrentTankInfo()
-    {
-        if (currentTank == null)
-        {
-            Debug.Log("No active tank at the moment.");
-            return;
-        }
-
-        Debug.Log($"Active Tank: {currentTank.name}, Color: {currentTank.UnitColorType}, Stickmen: {currentTank.StickmanCount}");
-    }
-
-    /// <summary>
-    /// Returns the currently controlled tank.
-    /// </summary>
-    /// <returns>The currently active tank.</returns>
     public Tank GetCurrentTank()
     {
         return currentTank;

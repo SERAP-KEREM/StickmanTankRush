@@ -9,13 +9,15 @@ namespace _Main._Stickman.StickmanGrid
 
         [Header("Tile Grid Configuration")]
         [SerializeField, Tooltip("Tile prefab reference.")]
-        private GameObject _tilePrefab; // Tile prefab reference
+        private Tile _tilePrefab; // Tile prefab reference (GameObject yerine Tile tipinde)
 
+        [Header("Level Data")]
         [SerializeField, Tooltip("Level data for grid and tile configuration.")]
-        private LevelDataSO _levelDataSO;
+        private LevelDataSO _levelDataSO; // LevelDataSO referans?, Level.cs üzerinden eri?ilecek
 
+        [Header("Grid Setup")]
         [SerializeField, Tooltip("Stickman grid reference.")]
-        private StickmanGrid stickmanGrid;
+        private StickmanGrid stickmanGrid; // StickmanGrid referans?, Level.cs üzerinden eri?ilecek
 
         private Tile[,] _tileGrid;  // 2D array of tiles in the grid
         private Vector2Int _gridSize;
@@ -29,7 +31,14 @@ namespace _Main._Stickman.StickmanGrid
         /// </summary>
         public void Initialize()
         {
-            Setup(_levelDataSO.Array2DGrid);
+            if (_levelDataSO != null)
+            {
+                Setup(_levelDataSO.Array2DGrid);
+            }
+            else
+            {
+                Debug.LogError("LevelDataSO is not assigned in TileGrid.");
+            }
         }
 
         /// <summary>
@@ -99,9 +108,11 @@ namespace _Main._Stickman.StickmanGrid
         /// <param name="position">The position to instantiate the tile at.</param>
         private void CreateTileAtPosition(int x, int y, Vector3 position)
         {
-            GameObject tileObj = Instantiate(_tilePrefab, position, Quaternion.identity, transform);
-            Tile tile = tileObj.GetComponent<Tile>();
+            // Instantiate the Tile object using the Tile prefab, not a GameObject
+            Tile tile = Instantiate(_tilePrefab, position, Quaternion.identity, transform);
             tile.Initialize(position);
+
+            // Place Stickman if available
             tile.PlaceStickman(stickmanGrid.GetStickmanAt(x, y));
 
             _tileGrid[x, y] = tile;
