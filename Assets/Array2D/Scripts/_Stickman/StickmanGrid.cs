@@ -1,29 +1,63 @@
 using _Main._Enums;
 using UnityEngine;
 using LevelEditor;
+using System.Collections.Generic;
 
 namespace _Main._Stickman.StickmanGrid
 {
     /// <summary>
-    /// Manages Stickman units on a grid, including interactions with tanks.
+    /// Manages Stickman units on a grid, including interactions with tanks and grid initialization.
     /// </summary>
     public class StickmanGrid : MonoBehaviour
     {
-        [Header("Grid Configuration")]
-        [SerializeField] private LevelDataSO _levelDataSO; // Data for grid initialization
-        [SerializeField] private Stickman _stickmanPrefab; // Prefab for instantiating Stickman units
-        private Stickman[,] _stickmanGrid; // 2D array of Stickman units
-        private Vector2Int _gridSize; // Grid dimensions
+        #region Fields
 
-  
+        [Header("Grid Configuration")]
+        [SerializeField, Tooltip("Data for grid initialization.")]
+        private LevelDataSO _levelDataSO;
+
+        [SerializeField, Tooltip("Prefab for instantiating Stickman units.")]
+        private Stickman _stickmanPrefab;
 
         [SerializeField, Tooltip("Reference to the TileGrid for positioning and interactions.")]
         private TileGrid _tileGrid;
 
-     
+        private Stickman[,] _stickmanGrid; // 2D array of Stickman units
+        private Vector2Int _gridSize; // Grid dimensions
+
+        #endregion
+
+        #region Properties
 
         /// <summary>
-        /// Initializes the Stickman grid using LevelDataSO.
+        /// Gets or sets the StickmanPrefab used for instantiating Stickman units.
+        /// </summary>
+        public Stickman StickmanPrefab
+        {
+            get => _stickmanPrefab;
+            set => _stickmanPrefab = value;
+        }
+
+        /// <summary>
+        /// Gets the 2D array of Stickman units.
+        /// </summary>
+        public Stickman[,] StickmanGridArray => _stickmanGrid;
+
+        /// <summary>
+        /// Gets or sets the grid size.
+        /// </summary>
+        public Vector2Int GridSize
+        {
+            get => _gridSize;
+            set => _gridSize = value;
+        }
+
+        #endregion
+
+        #region Unity Methods
+
+        /// <summary>
+        /// Initializes the Stickman grid using the LevelDataSO.
         /// </summary>
         public void Initialize()
         {
@@ -37,9 +71,14 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
+        #endregion
+
+        #region Public Methods
+
         /// <summary>
-        /// Sets up the grid by instantiating Stickman units based on LevelDataSO grid information.
+        /// Sets up the grid by instantiating Stickman units based on the provided grid information.
         /// </summary>
+        /// <param name="grid">The 2D array grid containing Stickman data.</param>
         public void Setup(Array2DGrid grid)
         {
             _gridSize = grid.GridSize;
@@ -68,9 +107,14 @@ namespace _Main._Stickman.StickmanGrid
         /// <summary>
         /// Returns the Stickman at the specified grid position.
         /// </summary>
+        /// <param name="x">X position in the grid.</param>
+        /// <param name="y">Y position in the grid.</param>
+        /// <returns>The Stickman at the specified grid position.</returns>
         public Stickman GetStickmanAt(int x, int y)
         {
             return _stickmanGrid[x, y];
         }
+
+        #endregion
     }
 }

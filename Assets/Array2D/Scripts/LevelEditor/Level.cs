@@ -8,7 +8,7 @@ public class Level : MonoBehaviour
     private TankManager tankManager;
 
     [SerializeField]
-    private StickmanGrid stickmanGrid;
+    private StickmanGrid stickmanGrid; 
 
     [SerializeField]
     private LevelDataSO _levelDataSO;
@@ -25,8 +25,6 @@ public class Level : MonoBehaviour
             Debug.LogError("Level is missing StickmanGrid or LevelDataSO references.");
         }
 
-        // TankManager'a LevelDataSO ve StickmanGrid referanslar?n? gönderiyoruz
         tankManager.SetLevelDataSO(_levelDataSO);
-       // tankManager.SetStickmanGrid(stickmanGrid);
     }
 }

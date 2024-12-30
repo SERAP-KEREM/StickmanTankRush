@@ -17,7 +17,7 @@ namespace _Main._Stickman.StickmanGrid
 
         [Header("Grid Setup")]
         [SerializeField, Tooltip("Stickman grid reference.")]
-        private StickmanGrid stickmanGrid; // StickmanGrid referans?, Level.cs üzerinden eri?ilecek
+        private StickmanGrid _stickmanGrid; // StickmanGrid referans?, Level.cs üzerinden eri?ilecek
 
         private Tile[,] _tileGrid;  // 2D array of tiles in the grid
         private Vector2Int _gridSize;
@@ -113,7 +113,7 @@ namespace _Main._Stickman.StickmanGrid
             tile.Initialize(position);
 
             // Place Stickman if available
-            tile.PlaceStickman(stickmanGrid.GetStickmanAt(x, y));
+            tile.AssignStickman(_stickmanGrid.GetStickmanAt(x, y));
 
             _tileGrid[x, y] = tile;
             tile.name = $"Tile [{x},{y}]";
@@ -127,7 +127,7 @@ namespace _Main._Stickman.StickmanGrid
         /// <returns>True if the tile is empty (no Stickman), otherwise false.</returns>
         private bool IsNeighborEmpty(int x, int y)
         {
-            return IsValidCoordinate(x, y) && !_tileGrid[x, y].HasStickman();
+            return IsValidCoordinate(x, y) && !_tileGrid[x, y].IsOccupied;
         }
 
         /// <summary>

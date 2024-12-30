@@ -21,47 +21,60 @@ namespace _Main._Tank
 
         #region Tank Configuration
 
+        [Header("Tank Configuration")]
         [SerializeField, Tooltip("Maximum number of stickmen the tank can hold.")]
-        private int maxStickmanCount = 3;
+        private int _maxStickmanCount = 3;
 
         [SerializeField, Tooltip("Current state of the tank.")]
-        private TankState currentState = TankState.Waiting;
+        private TankState _currentState = TankState.Waiting;
 
+        [SerializeField, Tooltip("Movement duration of the tank.")]
+        private float _movementDuration = 5f;
+
+        /// <summary>
+        /// Gets whether the tank is full based on the current stickman count.
+        /// </summary>
+        public bool IsFull => _stickmanCount >= _maxStickmanCount;
+
+        /// <summary>
+        /// Gets or sets the current state of the tank. Triggers an event when state changes.
+        /// </summary>
         public TankState CurrentState
         {
-            get => currentState;
+            get => _currentState;
             set
             {
-                if (currentState != value)
+                if (_currentState != value)
                 {
-                    currentState = value;
-                    OnStateChanged?.Invoke(currentState);
+                    _currentState = value;
+                    OnStateChanged?.Invoke(_currentState);
                 }
             }
         }
 
         [Tooltip("Current number of stickmen in the tank.")]
-        private int stickmanCount;
+        private int _stickmanCount;
 
         public int StickmanCount
         {
-            get => stickmanCount;
+            get => _stickmanCount;
             private set
             {
-                if (stickmanCount != value)
+                if (_stickmanCount != value)
                 {
-                    stickmanCount = value;
+                    _stickmanCount = value;
                     CheckForFullTank(); // Check if tank is full after each update
                 }
             }
         }
 
-        private Vector3 targetPosition;
+        private Vector3 _targetPosition;
 
         #endregion
 
         #region Tank Color Configuration
 
+        [Header("Tank Color Configuration")]
         [SerializeField, Tooltip("The color type of the tank.")]
         private ColorType _colorType;
 
@@ -88,7 +101,7 @@ namespace _Main._Tank
         /// <param name="target">The target position for the tank.</param>
         public void Initialize(Vector3 target)
         {
-            targetPosition = target;
+            _targetPosition = target;
             CurrentState = TankState.Waiting;
             UpdateColor();
         }
@@ -119,36 +132,22 @@ namespace _Main._Tank
             }
 
             StickmanCount++;  // Increment stickman count
-            Debug.Log($"Stickman added. Current count: {stickmanCount}/{maxStickmanCount}");
+            Debug.Log($"Stickman added. Current count: {_stickmanCount}/{_maxStickmanCount}");
         }
 
         /// <summary>
         /// Moves the tank to the target position based on a predefined distance factor. 
         /// Once the movement is complete, the tank is destroyed.
         /// </summary>
-        public void MoveToTarget()
+        public void MoveToTank()
         {
-            const float distanceFactor = 15f; // Distance the tank should move on the X axis
-            targetPosition = new Vector3(transform.position.x - distanceFactor, transform.position.y, transform.position.z);
+            const float distanceFactor = 25f; // Distance the tank should move on the X axis
+            _targetPosition = new Vector3(transform.position.x - distanceFactor, transform.position.y, transform.position.z);
 
-            Debug.Log($"Tank is moving from {transform.position} to {targetPosition}.");
+            Debug.Log($"Tank is moving from {transform.position} to {_targetPosition}.");
 
-            transform.DOMove(targetPosition, 5f)
-                .SetEase(Ease.Linear)
-                .OnComplete(() =>
-                {
-                    Debug.Log("Tank has arrived at the target and will now be destroyed.");
-                    Destroy(gameObject); // Destroy the tank once it reaches the target
-                });
-        }
-
-        /// <summary>
-        /// Determines whether the tank is full.
-        /// </summary>
-        /// <returns>True if the tank is full, false otherwise.</returns>
-        public bool IsFull()
-        {
-            return stickmanCount >= maxStickmanCount;
+            transform.DOMove(_targetPosition, _movementDuration) // Use the serialized field here
+                .SetEase(Ease.Linear);
         }
 
         #endregion
@@ -160,11 +159,11 @@ namespace _Main._Tank
         /// </summary>
         private void CheckForFullTank()
         {
-            if (IsFull() && currentState != TankState.Moving)
+            if (IsFull && _currentState != TankState.Moving)
             {
                 SetTankStateToMoving();  // Transition to moving state only if full
             }
-            else if (!IsFull() && currentState != TankState.Filling)
+            else if (!IsFull && _currentState != TankState.Filling)
             {
                 CurrentState = TankState.Filling;  // Tank is still being filled
             }
@@ -178,7 +177,7 @@ namespace _Main._Tank
             if (CurrentState != TankState.Moving)
             {
                 CurrentState = TankState.Moving;
-                MoveToTarget();  // Start the movement once the tank is full
+                MoveToTank();  // Start the movement once the tank is full
             }
         }
 

@@ -1,3 +1,4 @@
+using _Main._Stickman;
 using _Main._Stickman.StickmanGrid;
 using UnityEngine;
 
@@ -5,97 +6,28 @@ namespace _Main
 {
     /// <summary>
     /// Represents a holder where a Stickman can be assigned.
-    /// Handles the state of occupancy and manages Stickman movement to the holder.
     /// </summary>
-    public class Holder : MonoBehaviour
+    public class Holder : BaseOccupiable
     {
-        #region Fields
-
-        [Header("Holder State")]
-        [Tooltip("Currently assigned Stickman.")]
-        [SerializeField]
-        private Stickman assignedStickman;
-
-        #endregion
-
-        #region Properties
+        #region Public Methods
 
         /// <summary>
-        /// Returns whether this Holder is currently occupied by a Stickman.
+        /// Moves the assigned Stickman to the holder's position.
         /// </summary>
-        public bool IsOccupied => assignedStickman != null;
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Assigns a Stickman to this Holder.
-        /// Moves the Stickman to the Holder's position while preserving its current Y position.
-        /// </summary>
-        /// <param name="stickman">The Stickman to assign.</param>
-        public void AssignStickman(Stickman stickman)
+        /// <param name="stickman">The Stickman to assign and move.</param>
+        /// <returns>True if the Stickman was successfully assigned and moved; false otherwise.</returns>
+        public override bool AssignStickman(Stickman stickman)
         {
-            if (stickman == null)
-            {
-                Debug.LogError("Cannot assign a null Stickman to Holder.");
-                return;
-            }
+            // Call the base method to check if assignment is valid
+            if (!base.AssignStickman(stickman)) return false;
 
-            // Check if the Holder is already occupied
-            if (IsOccupied)
-            {
-                Debug.LogWarning("Holder is already occupied by another Stickman. Replacing the previous one.");
-                RemoveStickman(); // Optional: You can decide to overwrite or reject the assignment.
-            }
+            // Move Stickman to the Holder's position while preserving its Y position
+            stickman.MoveToHolder(new Vector3(transform.position.x, stickman.transform.position.y, transform.position.z));
 
-            // Assign the Stickman to this holder
-            assignedStickman = stickman;
-
-            // Move Stickman to the Holder's position (keeping the Y position intact)
-            MoveStickmanToHolder(stickman);
-
-            Debug.Log($"Stickman '{stickman.name}' assigned to Holder '{name}'.");
+            Debug.Log($"Stickman '{stickman.name}' successfully assigned and moved to Holder '{name}'.");
+            return true;
         }
 
-        /// <summary>
-        /// Moves the Stickman to the Holder's position, keeping the Y-coordinate unchanged.
-        /// </summary>
-        /// <param name="stickman">The Stickman to move.</param>
-        private void MoveStickmanToHolder(Stickman stickman)
-        {
-            Vector3 targetPosition = transform.position; // Holder's position
-            targetPosition.y = stickman.transform.position.y; // Keep the Stickman's current Y position
-
-            // Move the Stickman to the target position
-            stickman.transform.position = targetPosition;
-        }
-
-        /// <summary>
-        /// Removes the Stickman from this Holder.
-        /// </summary>
-        public void RemoveStickman()
-        {
-            if (assignedStickman != null)
-            {
-                Debug.Log($"Stickman '{assignedStickman.name}' removed from Holder '{name}'.");
-                assignedStickman = null;  // Clear the assigned Stickman
-            }
-            else
-            {
-                Debug.LogWarning("No Stickman to remove from the Holder.");
-            }
-        }
-
-        /// <summary>
-        /// Returns the current Stickman assigned to this Holder.
-        /// </summary>
-        public Stickman GetStickman()
-        {
-            return assignedStickman;
-        }
-
-     
         #endregion
     }
 }

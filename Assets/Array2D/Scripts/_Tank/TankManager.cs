@@ -1,4 +1,4 @@
-using _Main._Enums;
+ï»¿using _Main._Enums;
 using _Main._Tank;
 using DG.Tweening;
 using LevelEditor;
@@ -9,38 +9,55 @@ public class TankManager : MonoBehaviour
 {
     public static TankManager Instance { get; private set; }
 
-    [Header("Grid Configuration")]
+    [Header("Tank Configuration")]
     [SerializeField, Tooltip("Prefab reference for the tank.")]
     private Tank _tankPrefab;
 
-    [SerializeField, Tooltip("List of stop points where tanks will move to.")]
-    private List<Transform> stopPoints;
-
-    private Queue<Tank> tankQueue = new Queue<Tank>();
-    [SerializeField] private Tank currentTank;
-
-    private const float TankSpacing = 10f;
+    [Header("Tank Movement Configuration")]
+    [SerializeField, Tooltip("Duration of tank movement.")]
+    [Range(1f, 10f)]
+    private float _moveDuration = 3f;
 
     [SerializeField, Tooltip("Initial spawn position for tanks.")]
-    private Vector3 startPosition = Vector3.zero;
+    private Vector3 _startPosition = Vector3.zero;
 
+    private const float TankSpacing = 10f;
     private const int MaxStickmanCount = 3;
 
-    private LevelDataSO _levelDataSO; // LevelDataSO alan?
+    private LevelDataSO _levelDataSO;
+
+    private Queue<Tank> _tankQueue = new Queue<Tank>();
+
+    [SerializeField, Tooltip("The current tank being filled or moved.")]
+    private Tank _currentTank;
+
+    public Tank CurrentTank
+    {
+        get => _currentTank;
+        private set => _currentTank = value;
+    }
+
+    #region Singleton Pattern
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // E?er ba?ka bir instance varsa, yenisini yok et
+            Destroy(gameObject); // Ensure only one instance exists
             return;
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // Sahneler aras?nda kal?c? hale getir
+        DontDestroyOnLoad(gameObject); // Make sure it persists between scenes
     }
 
-    // LevelDataSO'yu almak için bir metod
+    #endregion
+
+    #region Level Setup
+
+    /// <summary>
+    /// Sets the level data containing tank configurations.
+    /// </summary>
     public void SetLevelDataSO(LevelDataSO levelDataSO)
     {
         _levelDataSO = levelDataSO;
@@ -58,15 +75,18 @@ public class TankManager : MonoBehaviour
         MoveNextTankToStopPoint();
     }
 
+    /// <summary>
+    /// Sets up the tanks based on level data.
+    /// </summary>
     private void SetupTanks()
     {
-        if (_tankPrefab == null || stopPoints.Count == 0)
+        if (_tankPrefab == null)
         {
-            Debug.LogError("Setup failed: Missing required references.");
+            Debug.LogError("Tank prefab is missing.");
             return;
         }
 
-        if (_levelDataSO.TankDataList == null || _levelDataSO.TankDataList.Count == 0)
+        if (_levelDataSO?.TankDataList == null || _levelDataSO.TankDataList.Count == 0)
         {
             Debug.LogError("Level data contains no tank configurations.");
             return;
@@ -74,64 +94,94 @@ public class TankManager : MonoBehaviour
 
         foreach (var tankData in _levelDataSO.TankDataList)
         {
-            Vector3 position = startPosition + Vector3.right * TankSpacing * tankQueue.Count;
+            Vector3 position = _startPosition + Vector3.right * TankSpacing * _tankQueue.Count;
             Tank newTank = Instantiate(_tankPrefab, position, Quaternion.identity, transform);
             newTank.UnitColorType = tankData.TankColorType;
-            newTank.Initialize(stopPoints[0].position);
+            newTank.Initialize(position);
 
-            newTank.name = $"{tankData.TankColorType} Tank [{tankQueue.Count}]";
-            tankQueue.Enqueue(newTank);
+            newTank.name = $"{tankData.TankColorType} Tank [{_tankQueue.Count}]";
+            _tankQueue.Enqueue(newTank);
         }
     }
 
+    #endregion
+
+    #region Tank Movement
+
+    /// <summary>
+    /// Moves the next tank to the stop point and handles the current tank's state.
+    /// </summary>
     public void MoveNextTankToStopPoint()
     {
-        if (tankQueue.Count == 0)
+        if (_tankQueue.Count == 0)
         {
             Debug.LogWarning("No tanks left in the queue.");
             return;
         }
 
-        if (currentTank != null && currentTank.StickmanCount >= MaxStickmanCount)
+        // If current tank is full, move it first
+        if (_currentTank != null && _currentTank.StickmanCount >= MaxStickmanCount)
         {
-            currentTank.MoveToTarget();
-            currentTank.CurrentState = TankState.Moving;
+            _currentTank.MoveToTank();
+            _currentTank.CurrentState = TankState.Moving;
         }
 
-        currentTank = tankQueue.Dequeue();
-        currentTank.Initialize(stopPoints[0].position);
-        currentTank.CurrentState = TankState.Filling;
+        // Get the next tank from the queue
+        _currentTank = _tankQueue.Dequeue();
+        _currentTank.Initialize(_startPosition);
+        _currentTank.CurrentState = TankState.Filling;
 
-        Debug.Log($"Next tank {currentTank.name} is now at the stop point.");
+        Debug.Log($"Next tank {_currentTank.name} is now active.");
     }
 
+    /// <summary>
+    /// Moves all tanks in the queue and the current tank.
+    /// </summary>
     public void MoveOtherTanks()
     {
-        foreach (var tank in tankQueue)
-        {
-            Vector3 currentPosition = tank.transform.position;
-            Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
-
-            if (currentPosition.x > targetPosition.x)
-            {
-                tank.transform.DOMove(targetPosition, 3f).SetEase(Ease.Linear);
-            }
-        }
-
-        if (currentTank != null)
-        {
-            Vector3 currentTankPosition = currentTank.transform.position;
-            Vector3 targetCurrentTankPosition = new Vector3(currentTankPosition.x - TankSpacing, currentTankPosition.y, currentTankPosition.z);
-
-            if (currentTankPosition.x > targetCurrentTankPosition.x)
-            {
-                currentTank.transform.DOMove(targetCurrentTankPosition, 3f).SetEase(Ease.Linear);
-            }
-        }
+        MoveQueueTanks();
+        MoveCurrentTank();
     }
 
-    public Tank GetCurrentTank()
+    #endregion
+
+    #region Tank Helpers
+
+    /// <summary>
+    /// Moves all tanks in the queue towards their target positions.
+    /// </summary>
+    private void MoveQueueTanks()
     {
-        return currentTank;
+        foreach (var tank in _tankQueue)
+        {
+            MoveTankToPosition(tank);
+        }
     }
+
+    /// <summary>
+    /// Moves the current tank towards its target position.
+    /// </summary>
+    private void MoveCurrentTank()
+    {
+        if (_currentTank == null) return;
+
+        MoveTankToPosition(_currentTank);
+    }
+
+    /// <summary>
+    /// Helper method to move a tank to its target position.
+    /// </summary>
+    /// <param name="tank">The tank to be moved.</param>
+    private void MoveTankToPosition(Tank tank)
+    {
+        Vector3 currentPosition = tank.transform.position;
+        Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
+
+        if (currentPosition.x > targetPosition.x)
+        {
+            tank.transform.DOMove(targetPosition, _moveDuration).SetEase(Ease.Linear);
+        }
+    }
+
+    #endregion
 }

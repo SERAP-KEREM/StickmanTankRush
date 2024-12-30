@@ -2,58 +2,96 @@ using _Main._Enums;
 using _Main._Stickman.StickmanGrid;
 using UnityEngine;
 using System.Collections;
-using DG.Tweening;  // DOTween kullan?m? için ekledik
+using DG.Tweening;  // Added for DOTween functionality
 
 namespace _Main._Stickman.StickmanGrid
 {
+    /// <summary>
+    /// Represents a Stickman character that can move and interact within the grid.
+    /// </summary>
     public class Stickman : MonoBehaviour
     {
+        #region Fields
+
         [Header("Stickman Configuration")]
-        [SerializeField]
+        [SerializeField, Tooltip("Determines the color type of the Stickman.")]
         private ColorType _colorType;
+
+        [SerializeField, Tooltip("Indicates if the Stickman is selectable.")]
+        private bool _isSelectable = true;
+
+        [SerializeField, Tooltip("Move speed of the Stickman.")]
+        private float _moveSpeed = 1f;
+
+        private StickmanGrid _stickmanGrid;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets the color type of the Stickman.
+        /// </summary>
         public ColorType UnitColorType
         {
             get => _colorType;
             set => _colorType = value;
         }
 
-        [SerializeField, Tooltip("Determines if the Stickman is selectable.")]
-        private bool _isSelectable = true;
+        /// <summary>
+        /// Gets or sets whether the Stickman is selectable.
+        /// </summary>
         public bool IsSelectable
         {
             get => _isSelectable;
             set => _isSelectable = value;
         }
 
-        // Grid position properties
+        /// <summary>
+        /// Gets the current grid X position of the Stickman.
+        /// </summary>
         public int GridX { get; private set; }
+
+        /// <summary>
+        /// Gets the current grid Y position of the Stickman.
+        /// </summary>
         public int GridY { get; private set; }
 
-        // Move speed (set to a low value for slower movement)
-        [SerializeField, Tooltip("Move speed of the Stickman.")]
-        private float moveSpeed = 1f;
+        #endregion
 
-        // Cache reference to the StickmanGrid for performance improvement
-        private StickmanGrid stickmanGrid;
-   
+        #region Unity Methods
+
+        /// <summary>
+        /// Initializes the Stickman by caching the StickmanGrid reference.
+        /// </summary>
         private void Awake()
         {
-            // Cache the StickmanGrid reference once during initialization
-            stickmanGrid = FindObjectOfType<StickmanGrid>();
-            if (stickmanGrid == null)
+            // Cache StickmanGrid reference for performance optimization
+            _stickmanGrid = FindObjectOfType<StickmanGrid>();
+            if (_stickmanGrid == null)
             {
                 Debug.LogError("No StickmanGrid instance found in the scene.");
             }
         }
 
-        // Sets the grid position of the Stickman.
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Sets the grid position of the Stickman.
+        /// </summary>
+        /// <param name="x">X position in the grid.</param>
+        /// <param name="y">Y position in the grid.</param>
         public void SetGridPosition(int x, int y)
         {
             GridX = x;
             GridY = y;
         }
-     
-        // Initializes the Stickman by setting its color based on the assigned color type.
+
+        /// <summary>
+        /// Initializes the Stickman by setting its color based on its assigned color type.
+        /// </summary>
         public void Initialize()
         {
             IsSelectable = true;
@@ -68,42 +106,32 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        //// Detects mouse clicks and informs the StickmanGrid about the clicked Stickman.
-        //private void OnMouseDown()
-        //{
-        //    if (stickmanGrid != null)
-        //    {
-        //        stickmanGrid.OnStickmanClicked(this);
-        //    }
-        //}
-
-        // Moves the Stickman to the given target position (tank position) using DOTween.
+        /// <summary>
+        /// Moves the Stickman to the specified target position using DOTween.
+        /// </summary>
+        /// <param name="targetPosition">The target position where the Stickman will move.</param>
         public void MoveToTank(Vector3 targetPosition)
         {
-            if (stickmanGrid != null)
+            if (_stickmanGrid != null)
             {
-                // DOTween kullanarak hareketi ba?lat?yoruz
-                // targetPosition.z'yi negatif yap?yoruz
-                targetPosition.z = -targetPosition.z; // Z de?erini tersine çeviriyoruz
-                transform.DOMove(targetPosition, moveSpeed).SetEase(Ease.Linear).OnKill(() =>
-                {
-                    // Hareket tamamland???nda Stickman'? yok ediyoruz
-                    Destroy(gameObject);
-                });
+                // Reverse the Z-axis value for movement
+                targetPosition.z = -targetPosition.z;
+                transform.DOMove(targetPosition, _moveSpeed)
+                         .SetEase(Ease.Linear);
             }
         }
-     
-        //// Removes the Stickman from the grid and destroys it from the scene.
-        //public void RemoveStickmanFromGrid()
-        //{
-        //    if (stickmanGrid != null)
-        //    {
-        //        stickmanGrid.RemoveStickmanFromGrid(GridX, GridY); // Remove from grid
-        //    }
 
-        //    Destroy(gameObject); // Destroy from scene
-        //}
+        /// <summary>
+        /// Moves the Stickman to a specified holder position.
+        /// </summary>
+        /// <param name="holderPosition">The target holder position.</param>
+        public void MoveToHolder(Vector3 holderPosition)
+        {
+            Vector3 targetPosition = holderPosition;
+            targetPosition.y = transform.position.y; // Keep the current Y position intact
+            transform.position = targetPosition;
+        }
 
-
+        #endregion
     }
 }
