@@ -17,8 +17,8 @@ MonoBehaviour:
     cellSize: {x: 64, y: 16}
     cells:
     - row: 010000000200000001000000
-    - row: 020000000200000006000000
-    - row: 010000000600000006000000
+    - row: 060000000200000006000000
+    - row: 010000000600000002000000
   _tankManager: {fileID: 0}
   _tankDataList:
   - TankColorType: 2

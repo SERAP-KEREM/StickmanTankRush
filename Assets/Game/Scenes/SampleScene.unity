@@ -343,10 +343,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a55a8f8b8e5b364bb3b9ab3443c9763, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tankManager: {fileID: 1265246948}
-  stickmanGrid: {fileID: 1012899815}
-  tileGrid: {fileID: 1455282691}
-  waitingRowManager: {fileID: 508350479}
+  _tankManager: {fileID: 1265246948}
+  _stickmanGrid: {fileID: 1012899815}
+  _tileGrid: {fileID: 1455282691}
+  _waitingRowManager: {fileID: 508350479}
+  _selectedStickman: {fileID: 0}
 --- !u!4 &727036124
 Transform:
   m_ObjectHideFlags: 0

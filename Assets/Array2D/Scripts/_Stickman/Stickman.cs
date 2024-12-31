@@ -128,7 +128,7 @@ namespace _Main._Stickman.StickmanGrid
         public void MoveToHolder(Vector3 holderPosition)
         {
             Vector3 targetPosition = holderPosition;
-            targetPosition.y = transform.position.y; // Keep the current Y position intact
+            targetPosition.y = transform.position.y; 
             transform.position = targetPosition;
         }
 

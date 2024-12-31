@@ -10,29 +10,34 @@ namespace _Main
     public class GameManager : MonoBehaviour
     {
         #region Field References
+
         public static GameManager Instance { get; private set; }
 
         [Header("References")]
-        [SerializeField, Tooltip("Tank manager for managing tanks.")]
-        public TankManager tankManager; // Public: TankManager reference
+        [SerializeField, Tooltip("Manages all tank operations in the game.")]
+        private TankManager _tankManager; 
 
-        [SerializeField, Tooltip("Stickman grid for managing stickmen.")]
-        public StickmanGrid stickmanGrid; // Public: StickmanGrid reference
+        [SerializeField, Tooltip("Handles the Stickman grid structure.")]
+        private StickmanGrid _stickmanGrid; 
 
-        [SerializeField, Tooltip("Tile grid for managing tiles.")]
-        public TileGrid tileGrid; // Public: TileGrid reference
+        [SerializeField, Tooltip("Handles the Tile grid structure.")]
+        private TileGrid _tileGrid; 
 
-        [SerializeField, Tooltip("Holder manager for managing waiting row of stickmen.")]
-        public HolderManager waitingRowManager; // Public: Waiting row manager reference
+        [SerializeField, Tooltip("Manages the holders for waiting Stickmen.")]
+        private HolderManager _waitingRowManager; 
 
         #endregion
 
         #region Private Fields
-        [Header("Private Fields")]
-        private Stickman _selectedStickman; // Private: Selected Stickman
+
+        [Header("Private State Variables")]
+        [SerializeField, Tooltip("Currently selected Stickman.")]
+        private Stickman _selectedStickman; 
+
         #endregion
 
         #region Unity Lifecycle Methods
+
         private void Awake()
         {
             if (Instance == null)
@@ -41,7 +46,7 @@ namespace _Main
             }
             else
             {
-                Destroy(gameObject); // Singleton: Destroy other copies
+                Destroy(gameObject); 
             }
         }
 
@@ -51,10 +56,10 @@ namespace _Main
             ValidateReferences();
 
             // Initialize grid systems
-            stickmanGrid.Initialize();
+            _stickmanGrid.Initialize();
             Debug.Log("StickmanGrid initialized.");
 
-            tileGrid.Initialize();
+            _tileGrid.Initialize();
             Debug.Log("TileGrid initialized.");
         }
 
@@ -67,17 +72,24 @@ namespace _Main
         #endregion
 
         #region Reference Validation
+
         private void ValidateReferences()
         {
-            if (tankManager == null) { Debug.LogError("TankManager is not assigned!"); return; }
-            if (stickmanGrid == null) { Debug.LogError("StickmanGrid is not assigned!"); return; }
-            if (tileGrid == null) { Debug.LogError("TileGrid is not assigned!"); return; }
+            if (_tankManager == null) { Debug.LogError("TankManager is not assigned!"); return; }
+            if (_stickmanGrid == null) { Debug.LogError("StickmanGrid is not assigned!"); return; }
+            if (_tileGrid == null) { Debug.LogError("TileGrid is not assigned!"); return; }
 
             Debug.Log("References validated.");
         }
+
         #endregion
 
         #region Stickman Handling
+
+        /// <summary>
+        /// Handles the selection of a Stickman by the player.
+        /// </summary>
+        /// <param name="stickman">The selected Stickman instance.</param>
         public void HandleStickmanSelection(Stickman stickman)
         {
             _selectedStickman = stickman;
@@ -87,9 +99,13 @@ namespace _Main
             CheckAndAddStickmanToTank(stickman);
         }
 
+        /// <summary>
+        /// Checks and adds the Stickman to the appropriate Tank or Holder.
+        /// </summary>
+        /// <param name="stickman">The Stickman to process.</param>
         private void CheckAndAddStickmanToTank(Stickman stickman)
         {
-            Tank currentTank = tankManager.CurrentTank;
+            Tank currentTank = _tankManager.CurrentTank;
 
             if (currentTank == null)
             {
@@ -97,15 +113,15 @@ namespace _Main
                 return;
             }
 
-            // Check color mismatch for Stickman
-            if (currentTank.UnitColorType != stickman.UnitColorType && tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+            // Check for color mismatch or availability in neighboring tiles
+            if (currentTank.UnitColorType != stickman.UnitColorType && _tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
             {
                 HandleColorMismatch(stickman);
                 return;
             }
 
             // Check if Stickman can be added to the tank
-            if (tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+            if (_tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
             {
                 MoveStickmanToTank(stickman, currentTank);
             }
@@ -113,30 +129,24 @@ namespace _Main
             {
                 Debug.LogWarning("No empty neighboring grid spaces for the Stickman.");
             }
-
-            // Tank's holder checks
-            if (currentTank.UnitColorType != stickman.UnitColorType)
-            {
-                HandleColorMismatch(stickman);
-            }
         }
 
         private void HandleColorMismatch(Stickman stickman)
         {
             // Remove Stickman from the current tile
-            Tile currentTile = tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
+            Tile currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
             if (currentTile != null)
             {
                 currentTile.RemoveStickman();
                 Debug.Log($"Tile at ({stickman.GridX}, {stickman.GridY}) is now empty.");
             }
 
-            // Move Stickman to holder
-            Holder nearestHolder = waitingRowManager.MoveToNearestAvailableHolder(stickman);
+            // Move Stickman to the nearest holder
+            Holder nearestHolder = _waitingRowManager.MoveToNearestAvailableHolder(stickman);
             if (nearestHolder != null)
             {
                 nearestHolder.AssignStickman(stickman);
-                stickman.IsSelectable = false; // Cannot be selected once moved to holder
+                stickman.IsSelectable = false; // Cannot be selected once moved to a holder
                 Debug.Log($"Stickman {stickman.name} moved to Holder {nearestHolder.name}.");
             }
             else
@@ -147,6 +157,15 @@ namespace _Main
 
         private void MoveStickmanToTank(Stickman stickman, Tank currentTank)
         {
+            // Remove Stickman from the current tile
+            Tile currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
+            if (currentTile != null)
+            {
+                currentTile.RemoveStickman();
+                Debug.Log($"Tile at ({stickman.GridX}, {stickman.GridY}) is now empty.");
+            }
+
+            // Move Stickman to the Tank
             stickman.MoveToTank(currentTank.transform.position);
 
             currentTank.AddStickman(stickman.UnitColorType);
@@ -164,8 +183,7 @@ namespace _Main
 
         private void MoveNextTankToStopPoint()
         {
-            // Get the current tank
-            Tank currentTank = tankManager.CurrentTank;
+            Tank currentTank = _tankManager.CurrentTank;
 
             if (currentTank == null)
             {
@@ -174,19 +192,15 @@ namespace _Main
             }
 
             Debug.Log("Moving to the next tank.");
-            tankManager.MoveNextTankToStopPoint(); // Move the next tank to its destination
-            tankManager.MoveOtherTanks(); // Move other tanks accordingly
+            _tankManager.MoveNextTankToStopPoint(); // Move the next tank to its stop point
+            _tankManager.MoveOtherTanks(); // Reorganize other tanks
 
             MoveAllHolderStickmenToCurrentTank();
         }
 
-        /// <summary>
-        /// Moves all matching Stickmen from holders to the current tank.
-        /// </summary>
         private void MoveAllHolderStickmenToCurrentTank()
         {
-            // Get the current tank
-            Tank currentTank = tankManager.CurrentTank;
+            Tank currentTank = _tankManager.CurrentTank;
 
             if (currentTank == null)
             {
@@ -194,33 +208,24 @@ namespace _Main
                 return;
             }
 
-            // Get all Stickmen in the holder
-            List<Holder> allHolders = waitingRowManager.GetAllHolders();
+            List<Holder> allHolders = _waitingRowManager.GetAllHolders();
             foreach (var holder in allHolders)
             {
                 Stickman stickmanInHolder = holder.CurrentStickman;
-                if (stickmanInHolder != null)
+                if (stickmanInHolder != null && !currentTank.IsFull)
                 {
-                    // Move the stickman to the current tank if the tank is not full
-                    if (!currentTank.IsFull)
-                    {
-                        // Remove Stickman from holder
-                        holder.RemoveStickman();
-
-                        // Move Stickman to the Tank
-                        MoveStickmanToTank(stickmanInHolder, currentTank);
-
-                        // Set Stickman as non-selectable once it is placed in the tank
-                        stickmanInHolder.IsSelectable = false;
-                        Debug.Log($"Stickman {stickmanInHolder.name} moved from holder to tank.");
-                    }
-                    else
-                    {
-                        Debug.Log("Tank is full, no more Stickmen can be added.");
-                    }
+                    holder.RemoveStickman();
+                    MoveStickmanToTank(stickmanInHolder, currentTank);
+                    stickmanInHolder.IsSelectable = false;
+                    Debug.Log($"Stickman {stickmanInHolder.name} moved from holder to tank.");
+                }
+                else if (currentTank.IsFull)
+                {
+                    Debug.Log("Tank is full, no more Stickmen can be added.");
                 }
             }
         }
+
         #endregion
     }
 }
