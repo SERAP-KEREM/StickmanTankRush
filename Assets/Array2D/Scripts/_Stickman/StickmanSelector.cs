@@ -32,14 +32,22 @@ namespace _Main._StickmanSelector
         #region Private Methods
 
         /// <summary>
-        /// Handles the Stickman selection event.
+        /// Handles the input event to determine if a Stickman was selected.
         /// </summary>
-        /// <param name="selectedStickman">The Stickman that has been selected.</param>
-        private void HandleStickmanSelection(Stickman selectedStickman)
+        /// <param name="screenPosition">The screen position of the touch or click.</param>
+        private void HandleStickmanSelection(Vector3 screenPosition)
         {
-            // Pass the selected Stickman to the GameManager for further processing
-            GameManager.Instance.HandleStickmanSelection(selectedStickman);
+            Ray ray = Camera.main.ScreenPointToRay(screenPosition); // Ray from screen position
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                Stickman clickedStickman = hit.collider.GetComponent<Stickman>();
+                if (clickedStickman != null && clickedStickman.IsSelectable)
+                {
+                    GameManager.Instance.HandleStickmanSelection(clickedStickman); // Pass the selected Stickman to the GameManager
+                }
+            }
         }
+
 
         #endregion
     }

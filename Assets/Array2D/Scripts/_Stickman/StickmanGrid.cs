@@ -27,34 +27,7 @@ namespace _Main._Stickman.StickmanGrid
 
         #endregion
 
-        #region Properties
-
-        /// <summary>
-        /// Gets or sets the StickmanPrefab used for instantiating Stickman units.
-        /// </summary>
-        public Stickman StickmanPrefab
-        {
-            get => _stickmanPrefab;
-            set => _stickmanPrefab = value;
-        }
-
-        /// <summary>
-        /// Gets the 2D array of Stickman units.
-        /// </summary>
-        public Stickman[,] StickmanGridArray => _stickmanGrid;
-
-        /// <summary>
-        /// Gets or sets the grid size.
-        /// </summary>
-        public Vector2Int GridSize
-        {
-            get => _gridSize;
-            set => _gridSize = value;
-        }
-
-        #endregion
-
-        #region Unity Methods
+        #region Public Methods
 
         /// <summary>
         /// Initializes the Stickman grid using the LevelDataSO.
@@ -71,9 +44,7 @@ namespace _Main._Stickman.StickmanGrid
             }
         }
 
-        #endregion
-
-        #region Public Methods
+     
 
         /// <summary>
         /// Sets up the grid by instantiating Stickman units based on the provided grid information.

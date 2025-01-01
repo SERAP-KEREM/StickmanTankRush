@@ -21,7 +21,7 @@ namespace LevelEditor
 
                 // Set the background color based on ColorType
                 var originalColor = GUI.backgroundColor;
-                //GUI.backgroundColor = colorType.ToColor();
+                GUI.backgroundColor = colorType.ToColor();
 
                 // Draw the dropdown with the color
                 property.enumValueIndex = EditorGUI.Popup(position, label.text, property.enumValueIndex, property.enumDisplayNames);

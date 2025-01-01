@@ -4,27 +4,31 @@ using _Main._Stickman.StickmanGrid;
 using _Main._Tank;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;  // Make sure DOTween is properly included for animations
 
 namespace _Main
 {
+    /// <summary>
+    /// Main controller for managing the game logic, Stickman interactions, tanks, and movement.
+    /// </summary>
     public class GameManager : MonoBehaviour
     {
         #region Field References
 
         public static GameManager Instance { get; private set; }
 
-        [Header("References")]
+        [Header("Game References")]
         [SerializeField, Tooltip("Manages all tank operations in the game.")]
-        private TankManager _tankManager; 
+        private TankManager _tankManager;
 
         [SerializeField, Tooltip("Handles the Stickman grid structure.")]
-        private StickmanGrid _stickmanGrid; 
+        private StickmanGrid _stickmanGrid;
 
         [SerializeField, Tooltip("Handles the Tile grid structure.")]
-        private TileGrid _tileGrid; 
+        private TileGrid _tileGrid;
 
         [SerializeField, Tooltip("Manages the holders for waiting Stickmen.")]
-        private HolderManager _waitingRowManager; 
+        private HolderManager _waitingRowManager;
 
         #endregion
 
@@ -32,7 +36,7 @@ namespace _Main
 
         [Header("Private State Variables")]
         [SerializeField, Tooltip("Currently selected Stickman.")]
-        private Stickman _selectedStickman; 
+        private Stickman _selectedStickman;
 
         #endregion
 
@@ -46,16 +50,16 @@ namespace _Main
             }
             else
             {
-                Destroy(gameObject); 
+                Destroy(gameObject);
             }
         }
 
         private void Start()
         {
-            // Validate references
+            // Validate references at the start
             ValidateReferences();
 
-            // Initialize grid systems
+            // Initialize grid systems (Stickman and Tile Grids)
             _stickmanGrid.Initialize();
             Debug.Log("StickmanGrid initialized.");
 
@@ -63,16 +67,13 @@ namespace _Main
             Debug.Log("TileGrid initialized.");
         }
 
-        private void Update()
-        {
-            // Handle input
-            InputHandler.Instance.CheckInput();
-        }
-
         #endregion
 
         #region Reference Validation
 
+        /// <summary>
+        /// Validates the assigned references for required components.
+        /// </summary>
         private void ValidateReferences()
         {
             if (_tankManager == null) { Debug.LogError("TankManager is not assigned!"); return; }
@@ -95,7 +96,7 @@ namespace _Main
             _selectedStickman = stickman;
             Debug.Log($"Selected Stickman: {stickman.name}");
 
-            // Check and add Stickman to tank or waiting row
+            // Check and add Stickman to the appropriate tank or waiting row
             CheckAndAddStickmanToTank(stickman);
         }
 
@@ -131,23 +132,17 @@ namespace _Main
             }
         }
 
+        /// <summary>
+        /// Handles the color mismatch situation and moves the Stickman to the nearest available holder.
+        /// </summary>
+        /// <param name="stickman">The Stickman to move.</param>
         private void HandleColorMismatch(Stickman stickman)
         {
-            // Remove Stickman from the current tile
-            Tile currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
-            if (currentTile != null)
-            {
-                currentTile.RemoveStickman();
-                Debug.Log($"Tile at ({stickman.GridX}, {stickman.GridY}) is now empty.");
-            }
-
             // Move Stickman to the nearest holder
             Holder nearestHolder = _waitingRowManager.MoveToNearestAvailableHolder(stickman);
             if (nearestHolder != null)
             {
-                nearestHolder.AssignStickman(stickman);
-                stickman.IsSelectable = false; // Cannot be selected once moved to a holder
-                Debug.Log($"Stickman {stickman.name} moved to Holder {nearestHolder.name}.");
+                ProcessStickmanMovement(stickman, null, nearestHolder);
             }
             else
             {
@@ -155,20 +150,14 @@ namespace _Main
             }
         }
 
+        /// <summary>
+        /// Moves the Stickman to the appropriate Tank.
+        /// </summary>
+        /// <param name="stickman">The Stickman to move.</param>
+        /// <param name="currentTank">The tank to move the Stickman to.</param>
         private void MoveStickmanToTank(Stickman stickman, Tank currentTank)
         {
-            // Remove Stickman from the current tile
-            Tile currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
-            if (currentTile != null)
-            {
-                currentTile.RemoveStickman();
-                Debug.Log($"Tile at ({stickman.GridX}, {stickman.GridY}) is now empty.");
-            }
-
-            // Move Stickman to the Tank
-            stickman.MoveToTank(currentTank.transform.position);
-
-            currentTank.AddStickman(stickman.UnitColorType);
+            ProcessStickmanMovement(stickman, currentTank);
 
             if (currentTank.IsFull)
             {
@@ -178,6 +167,39 @@ namespace _Main
             else
             {
                 Debug.Log("Tank is not full yet.");
+            }
+        }
+
+        /// <summary>
+        /// Processes the movement of a Stickman (either to the Tank or Holder).
+        /// </summary>
+        /// <param name="stickman">The Stickman to move.</param>
+        /// <param name="currentTank">The current Tank (optional, can be null for Holder).</param>
+        /// <param name="nearestHolder">The nearest available holder (optional, can be null).</param>
+        private void ProcessStickmanMovement(Stickman stickman, Tank currentTank, Holder nearestHolder = null)
+        {
+            // 1. Remove Stickman from grid.
+            Tile currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
+            if (currentTile != null)
+            {
+                currentTile.RemoveStickman();
+                Debug.Log($"Tile at ({stickman.GridX}, {stickman.GridY}) is now empty.");
+            }
+
+            // 2. Move Stickman to the new position.
+            if (nearestHolder != null)
+            {
+                // Stickman is moved to the waiting row (holder).
+                nearestHolder.AssignStickman(stickman);
+                stickman.IsSelectable = false; // Stickman in the holder cannot be selected.
+                Debug.Log($"Stickman {stickman.name} moved to Holder {nearestHolder.name}.");
+            }
+            else if (currentTank != null)
+            {
+                // Stickman is moved to the tank.
+                stickman.MoveToTank(currentTank.transform.position);
+                currentTank.AddStickman(stickman.UnitColorType);
+                Debug.Log($"Stickman {stickman.name} moved to Tank.");
             }
         }
 

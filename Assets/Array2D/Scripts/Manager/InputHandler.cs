@@ -1,5 +1,6 @@
 using _Main._Stickman.StickmanGrid;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace _Input
 {
@@ -11,9 +12,10 @@ namespace _Input
         #endregion
 
         #region Events
-        public delegate void StickmanSelectedEvent(Stickman stickman);
-        public event StickmanSelectedEvent OnStickmanSelected;
-
+        /// <summary>
+        /// Event triggered when the screen is touched or clicked.
+        /// </summary>
+        public event UnityAction<Vector3> OnStickmanSelected;
         #endregion
 
         #region Unity Lifecycle Methods
@@ -28,29 +30,23 @@ namespace _Input
                 Destroy(gameObject);
             }
         }
-
+        private void Update()
+        {
+            HandleStickmanSelection();
+        }
         #endregion
 
         #region Input Checking
-        public void CheckInput()
-        {
-            if (Input.GetMouseButtonDown(0)) // Left mouse button click
-            {
-                HandleStickmanSelection();
-            }
-        }
+
 
         private void HandleStickmanSelection()
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);  // Ray from mouse click
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Input.GetMouseButtonDown(0)) 
             {
-                Stickman clickedStickman = hit.collider.GetComponent<Stickman>();
-                if (clickedStickman != null && clickedStickman.IsSelectable)
-                {
-                    OnStickmanSelected?.Invoke(clickedStickman); // Trigger event if Stickman is selected
-                }
+                Vector3 mousePosition = Input.mousePosition;
+                OnStickmanSelected?.Invoke(mousePosition);
             }
+
         }
         #endregion
     }
