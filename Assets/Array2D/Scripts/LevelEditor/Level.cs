@@ -30,7 +30,7 @@ public class Level : MonoBehaviour
     private void Start()
     {
         ValidateLevelReferences();
-        _tankManager.SetLevelDataSO(_levelDataSO);
+        TankManager.Instance.SetLevelDataSO(_levelDataSO);
     }
 
     #endregion

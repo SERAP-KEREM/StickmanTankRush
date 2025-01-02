@@ -17,15 +17,16 @@ namespace LevelEditor
         [Header("Managers")]
         [SerializeField] private TankManager _tankManager;
 
-        [Title("Tank")]
-		[SerializeField] 
-		private List<TankData> _tankDataList=new List<TankData>();
-        public List<TankData> TankDataList { get => _tankDataList; }
-    }
+		[Title("Tank")]
+		[SerializeField]
+		private List<TankData> _tankDataList = new List<TankData>();
+		public List<TankData> TankDataList { get => _tankDataList; }
+	}
 
 	[System.Serializable]
 	public class TankData
 	{
 		public ColorType TankColorType;
 	}
+
 }

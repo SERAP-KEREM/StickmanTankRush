@@ -15,7 +15,7 @@ namespace _Main
         [SerializeField] private List<Level> _levelPrefabs;
 
         [Header("Game State Variables")]
-        [Tooltip("Current level index.")]
+        [Tooltip("Index of the current level.")]
         [SerializeField] private int _currentLevelIndex = 0;
 
         [Tooltip("Level transition duration in seconds.")]
@@ -32,6 +32,7 @@ namespace _Main
         public static event Action OnLevelStarted;
         public static event Action OnLevelCompleted;
         public static event Action OnLevelFailed;
+        public static event Action OnLevelPaused;
 
         #endregion
 
@@ -82,20 +83,6 @@ namespace _Main
             StartLevel(_currentLevelIndex);
         }
 
-        private void Update()
-        {
-            // Test kazanma olay? (K tu?u)
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                CompleteLevel();
-            }
-
-            // Test kaybetme olay? (F tu?u)
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                FailLevel();
-            }
-        }
         #endregion
 
         #region Level Management
@@ -112,7 +99,7 @@ namespace _Main
                 return;
             }
 
-            // E?er mevcut seviyemiz varsa, onu temizleyelim
+            // Clean up current level
             if (_currentLevel != null)
             {
                 Destroy(_currentLevel.gameObject);
@@ -120,24 +107,27 @@ namespace _Main
 
             _isLevelInProgress = true;
 
-            // Yeni seviyeyi instantiate edelim
-            Level newLevel = Instantiate(_levelPrefabs[levelIndex]);
+            // Instantiate the new level prefab
+            Level newLevel = Instantiate(_levelPrefabs[levelIndex], Vector3.zero, Quaternion.identity);
+            newLevel.transform.SetParent(transform); // Set LevelManager as the parent
+            newLevel.transform.localPosition = Vector3.zero; // Keep the position as is
+
             _currentLevel = newLevel;
 
-            // Yeni seviyeyi LevelDataSO ile ba?lat
+            // Initialize the new level with its corresponding LevelDataSO
             LevelDataSO levelData = _levelDataList[levelIndex];
-            newLevel.InitializeLevel(levelData);  // Bu fonksiyon Stickman'leri ve di?er nesneleri sahneye eklemeli
+            newLevel.InitializeLevel(levelData);
 
-            // Seviye ba?lad??? eventini tetikle
+            // Trigger level start event
             OnLevelStarted?.Invoke();
 
-            // Seviye geçi? animasyonu
+            // Level transition animation
             newLevel.transform.localScale = Vector3.zero;
             newLevel.transform.DOScale(Vector3.one, _transitionDuration).SetEase(Ease.OutBounce);
         }
 
         /// <summary>
-        /// Complete the current level and load the next level in sequence.
+        /// Completes the current level and loads the next level.
         /// </summary>
         public void CompleteLevel()
         {
@@ -147,7 +137,7 @@ namespace _Main
             _currentLevel.CompleteLevel();
             OnLevelCompleted?.Invoke();
 
-            // Sonraki seviyeyi yükleyelim
+            // Load the next level
             int nextLevelIndex = _currentLevelIndex + 1;
             if (nextLevelIndex < _levelPrefabs.Count)
             {
@@ -156,15 +146,26 @@ namespace _Main
             }
             else
             {
-                Debug.Log("Tüm seviyeler tamamland?!");
-                // ?sterseniz ilk seviyeye geri dönebilirsiniz
-                _currentLevelIndex = 0;
+                // If all levels are completed, choose a random level
+                Debug.Log("All levels completed!");
+                _currentLevelIndex = UnityEngine.Random.Range(0, _levelPrefabs.Count);
                 StartLevel(_currentLevelIndex);
             }
         }
 
         /// <summary>
-        /// Fail the current level and reload the same level.
+        /// Pauses the current level.
+        /// </summary>
+        public void PauseLevel()
+        {
+            if (!_isLevelInProgress) return;
+
+            _isLevelInProgress = false;
+            OnLevelPaused?.Invoke();
+        }
+
+        /// <summary>
+        /// Fails the current level and reloads it.
         /// </summary>
         public void FailLevel()
         {
@@ -174,7 +175,7 @@ namespace _Main
             _currentLevel.FailLevel();
             OnLevelFailed?.Invoke();
 
-            // Ayn? seviyeyi tekrar yükleyelim
+            // Reload the current level
             StartLevel(_currentLevelIndex);
         }
 

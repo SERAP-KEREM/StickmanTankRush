@@ -78,28 +78,39 @@ public class TankManager : MonoBehaviour
     /// <summary>
     /// Sets up the tanks based on level data.
     /// </summary>
-    private void SetupTanks()
+    public void SetupTanks()
     {
         if (_tankPrefab == null)
         {
             Debug.LogError("Tank prefab is missing.");
             return;
         }
-
+        Debug.Log("___________________________________________"+_levelDataSO.TankDataList.Count.ToString());
         if (_levelDataSO?.TankDataList == null || _levelDataSO.TankDataList.Count == 0)
         {
             Debug.LogError("Level data contains no tank configurations.");
             return;
         }
 
-        foreach (var tankData in _levelDataSO.TankDataList)
+        // TankManager'ın pozisyonunu kontrol et
+        if (transform.position == Vector3.zero)
         {
-            Vector3 position = _startPosition + Vector3.right * TankSpacing * _tankQueue.Count;
+            Debug.LogWarning("TankManager position is at (0,0,0). Ensure it's set correctly.");
+        }
+
+        // Tankları yerleştirirken doğru pozisyon ayarları yapılacak
+        for (int i = 0; i < _levelDataSO.TankDataList.Count; i++)
+        {
+            // Tankların sırasına göre pozisyon hesaplanır
+            Vector3 position = _startPosition + Vector3.right * TankSpacing * i;
+            TankData tankData = _levelDataSO.TankDataList[i];
+
+            // Tank prefab'ını oluştur
             Tank newTank = Instantiate(_tankPrefab, position, Quaternion.identity, transform);
-            newTank.UnitColorType = tankData.TankColorType;
+            newTank.UnitColorType = tankData.TankColorType; // Tankın rengi
             newTank.Initialize(position);
 
-            newTank.name = $"{tankData.TankColorType} Tank [{_tankQueue.Count}]";
+            newTank.name = $"{tankData.TankColorType} Tank [{i}]"; // Debug için isim
             _tankQueue.Enqueue(newTank);
         }
     }
