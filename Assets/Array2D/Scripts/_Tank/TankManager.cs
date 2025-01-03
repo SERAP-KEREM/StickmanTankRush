@@ -48,7 +48,6 @@ public class TankManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // Make sure it persists between scenes
     }
 
     #endregion
@@ -78,41 +77,61 @@ public class TankManager : MonoBehaviour
     /// <summary>
     /// Sets up the tanks based on level data.
     /// </summary>
-    public void SetupTanks()
+    private void SetupTanks()
+    {
+        // Mevcut tankları temizle
+        ClearExistingTanks();
+
+        if (!ValidateReferences()) return;
+
+        CreateTanks();
+    }
+
+    private bool ValidateReferences()
     {
         if (_tankPrefab == null)
         {
-            Debug.LogError("Tank prefab is missing.");
-            return;
+            Debug.LogError("Tank prefab is missing.", this);
+            return false;
         }
-        Debug.Log("___________________________________________"+_levelDataSO.TankDataList.Count.ToString());
+
         if (_levelDataSO?.TankDataList == null || _levelDataSO.TankDataList.Count == 0)
         {
-            Debug.LogError("Level data contains no tank configurations.");
-            return;
+            Debug.LogError("Level data contains no tank configurations.", this);
+            return false;
         }
 
-        // TankManager'ın pozisyonunu kontrol et
-        if (transform.position == Vector3.zero)
+        return true;
+    }
+
+    private void ClearExistingTanks()
+    {
+        while (_tankQueue.Count > 0)
         {
-            Debug.LogWarning("TankManager position is at (0,0,0). Ensure it's set correctly.");
+            var tank = _tankQueue.Dequeue();
+            if (tank != null) Destroy(tank.gameObject);
         }
+        _currentTank = null;
+    }
 
-        // Tankları yerleştirirken doğru pozisyon ayarları yapılacak
-        for (int i = 0; i < _levelDataSO.TankDataList.Count; i++)
+    private void CreateTanks()
+    {
+        foreach (var tankData in _levelDataSO.TankDataList)
         {
-            // Tankların sırasına göre pozisyon hesaplanır
-            Vector3 position = _startPosition + Vector3.right * TankSpacing * i;
-            TankData tankData = _levelDataSO.TankDataList[i];
+            Vector3 position = _startPosition + Vector3.right * TankSpacing * _tankQueue.Count;
+            Tank newTank = Instantiate(_tankPrefab, position, Quaternion.identity);
+            newTank.transform.SetParent(transform, worldPositionStays: false);
 
-            // Tank prefab'ını oluştur
-            Tank newTank = Instantiate(_tankPrefab, position, Quaternion.identity, transform);
-            newTank.UnitColorType = tankData.TankColorType; // Tankın rengi
-            newTank.Initialize(position);
-
-            newTank.name = $"{tankData.TankColorType} Tank [{i}]"; // Debug için isim
-            _tankQueue.Enqueue(newTank);
+            ConfigureTank(newTank, tankData, position);
         }
+    }
+
+    private void ConfigureTank(Tank tank, TankData data, Vector3 position)
+    {
+        tank.UnitColorType = data.TankColorType;
+        tank.Initialize(position);
+        tank.name = $"{data.TankColorType} Tank [{_tankQueue.Count}]";
+        _tankQueue.Enqueue(tank);
     }
 
     #endregion

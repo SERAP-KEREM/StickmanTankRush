@@ -91,41 +91,46 @@ namespace _Main
         /// Starts a level by index.
         /// </summary>
         /// <param name="levelIndex">Index of the level to start.</param>
-        private void StartLevel(int levelIndex)
+        public void StartLevel(int levelIndex)
         {
-            if (levelIndex < 0 || levelIndex >= _levelPrefabs.Count)
-            {
-                Debug.LogWarning("Invalid level index provided.");
-                return;
-            }
+            if (!ValidateLevelIndex(levelIndex)) return;
 
-            // Clean up current level
+            // Önceki level'? temizle
             if (_currentLevel != null)
             {
                 Destroy(_currentLevel.gameObject);
             }
 
-            _isLevelInProgress = true;
-
-            // Instantiate the new level prefab
-            Level newLevel = Instantiate(_levelPrefabs[levelIndex], Vector3.zero, Quaternion.identity);
-            newLevel.transform.SetParent(transform); // Set LevelManager as the parent
-            newLevel.transform.localPosition = Vector3.zero; // Keep the position as is
-
-            _currentLevel = newLevel;
-
-            // Initialize the new level with its corresponding LevelDataSO
+            // Yeni level'? olu?tur
+            Level levelPrefab = _levelPrefabs[levelIndex];
             LevelDataSO levelData = _levelDataList[levelIndex];
-            newLevel.InitializeLevel(levelData);
 
-            // Trigger level start event
-            OnLevelStarted?.Invoke();
-
-            // Level transition animation
-            newLevel.transform.localScale = Vector3.zero;
-            newLevel.transform.DOScale(Vector3.one, _transitionDuration).SetEase(Ease.OutBounce);
+            _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
+            _currentLevel.InitializeLevel(levelData);
         }
 
+        private bool ValidateLevelIndex(int levelIndex)
+        {
+            if (levelIndex < 0 || levelIndex >= _levelPrefabs.Count)
+            {
+                Debug.LogError($"Invalid level prefab index: {levelIndex}");
+                return false;
+            }
+
+            if (levelIndex >= _levelDataList.Count)
+            {
+                Debug.LogError($"Missing level data for index: {levelIndex}");
+                return false;
+            }
+
+            if (_levelPrefabs[levelIndex] == null)
+            {
+                Debug.LogError($"Level prefab at index {levelIndex} is null!");
+                return false;
+            }
+
+            return true;
+        }
         /// <summary>
         /// Completes the current level and loads the next level.
         /// </summary>

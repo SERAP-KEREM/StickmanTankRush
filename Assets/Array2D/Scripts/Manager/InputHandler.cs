@@ -41,7 +41,7 @@ namespace _Input
 
         private void HandleStickmanSelection()
         {
-            if (Input.GetMouseButtonDown(0)) 
+            if (Input.GetMouseButtonDown(0) && Level.Instance != null) 
             {
                 Vector3 mousePosition = Input.mousePosition;
                 OnStickmanSelected?.Invoke(mousePosition);

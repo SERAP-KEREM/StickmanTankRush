@@ -1,36 +1,61 @@
 using UnityEngine;
 using _Main._Stickman.StickmanGrid;
 using LevelEditor;
+using _Main;
 
 public class Level : MonoBehaviour
 {
     #region Field References
 
-    [Header("References")]
-    [SerializeField, Tooltip("Manages all tank operations in the current level.")]
-    private TankManager _tankManager;
-
-    [SerializeField, Tooltip("Handles the Stickman grid for the current level.")]
-    private StickmanGrid _stickmanGrid;
-
     [SerializeField, Tooltip("Level data containing information for this level.")]
     private LevelDataSO _levelDataSO;
 
     #endregion
+    public static Level Instance { get; private set; }
 
-    #region Properties
-
-    public StickmanGrid StickmanGrid => _stickmanGrid;
-    public LevelDataSO LevelDataSO => _levelDataSO;
-
-    #endregion
+    [SerializeField] private TileGrid tileGrid;
+    [SerializeField] private TankManager tankManager;
+    [SerializeField] private StickmanGrid stickmanGrid;
+    public TileGrid TileGrid => tileGrid;
+    public TankManager TankManager => tankManager;
+    public StickmanGrid StickmanGrid => stickmanGrid;
 
     #region Unity Lifecycle
+
+    private void Awake()
+    {
+        Instance = this;
+
+        if (tileGrid == null) tileGrid = GetComponentInChildren<TileGrid>();
+        if (tankManager == null) tankManager = GetComponentInChildren<TankManager>();
+        if (stickmanGrid == null) stickmanGrid = GetComponentInChildren<StickmanGrid>();
+
+        // LevelDataSO'yu tüm gerekli componentlere set et
+        if (_levelDataSO != null)
+        {
+            tileGrid?.SetLevelDataSO(_levelDataSO);
+            tankManager?.SetLevelDataSO(_levelDataSO);
+            stickmanGrid?.SetLevelDataSO(_levelDataSO);
+        }
+        else
+        {
+            Debug.LogError("LevelDataSO is not assigned in Level prefab!");
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnLevelCreated(this);
+        }
+    }
 
     private void Start()
     {
         ValidateLevelReferences();
         TankManager.Instance.SetLevelDataSO(_levelDataSO);
+        StickmanGrid.Instance.SetLevelDataSO(_levelDataSO);
+        TileGrid.Instance.SetLevelDataSO(_levelDataSO);
+ 
+   
     }
 
     #endregion
@@ -40,10 +65,15 @@ public class Level : MonoBehaviour
     /// <summary>
     /// Initializes the level with specific data.
     /// </summary>
-    public void InitializeLevel(LevelDataSO levelData)
+    public void InitializeLevel(LevelDataSO data)
     {
-        _levelDataSO = levelData;
-        Debug.Log($"Level initialized with {levelData.name}");
+        _levelDataSO = data;
+        if (data != null)
+        {
+            tileGrid?.SetLevelDataSO(data);
+            tankManager?.SetLevelDataSO(data);
+            stickmanGrid?.SetLevelDataSO(data);
+        }
     }
 
     /// <summary>
@@ -73,7 +103,7 @@ public class Level : MonoBehaviour
     /// </summary>
     private void ValidateLevelReferences()
     {
-        if (_stickmanGrid == null || _levelDataSO == null)
+        if (StickmanGrid.Instance == null || _levelDataSO == null)
         {
             Debug.LogError("Level is missing StickmanGrid or LevelDataSO references.");
         }

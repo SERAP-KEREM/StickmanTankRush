@@ -18,13 +18,13 @@ namespace _Main
         public static GameManager Instance { get; private set; }
 
         [Header("Game References")]
-        [SerializeField, Tooltip("Manages all tank operations in the game.")]
+        [ Tooltip("Manages all tank operations in the game.")]
         private TankManager _tankManager;
 
-        [SerializeField, Tooltip("Handles the Stickman grid structure.")]
+        [ Tooltip("Handles the Stickman grid structure.")]
         private StickmanGrid _stickmanGrid;
 
-        [SerializeField, Tooltip("Handles the Tile grid structure.")]
+        [ Tooltip("Handles the Tile grid structure.")]
         private TileGrid _tileGrid;
 
         [SerializeField, Tooltip("Manages the holders for waiting Stickmen.")]
@@ -54,18 +54,7 @@ namespace _Main
             }
         }
 
-        private void Start()
-        {
-            // Validate references at the start
-            ValidateReferences();
-
-            // Initialize grid systems (Stickman and Tile Grids)
-            _stickmanGrid.Initialize();
-            Debug.Log("StickmanGrid initialized.");
-
-            _tileGrid.Initialize();
-            Debug.Log("TileGrid initialized.");
-        }
+     
 
         #endregion
 
@@ -86,7 +75,32 @@ namespace _Main
         #endregion
 
         #region Stickman Handling
+        public void OnLevelCreated(Level level)
+        {
+            if (level == null)
+            {
+                Debug.LogError("Level reference is null!");
+                return;
+            }
 
+            // Referanslar? güncelle
+            _tankManager = level.TankManager;
+            _stickmanGrid = level.StickmanGrid;
+            _tileGrid = level.TileGrid;
+
+            // Referanslar? kontrol et
+            if (_tankManager == null) Debug.LogError("TankManager reference is null!");
+            if (_stickmanGrid == null) Debug.LogError("StickmanGrid reference is null!");
+            if (_tileGrid == null) Debug.LogError("TileGrid reference is null!");
+
+            // Tüm referanslar tamam ise initialize et
+            if (_tankManager != null && _stickmanGrid != null && _tileGrid != null)
+            {
+                ValidateReferences();
+                _stickmanGrid.Initialize();
+                _tileGrid.Initialize();
+            }
+        }
         /// <summary>
         /// Handles the selection of a Stickman by the player.
         /// </summary>
@@ -106,6 +120,11 @@ namespace _Main
         /// <param name="stickman">The Stickman to process.</param>
         private void CheckAndAddStickmanToTank(Stickman stickman)
         {
+            if (_tankManager == null)
+            {
+                Debug.LogError("TankManager is null!");
+                return;
+            }
             Tank currentTank = _tankManager.CurrentTank;
 
             if (currentTank == null)
