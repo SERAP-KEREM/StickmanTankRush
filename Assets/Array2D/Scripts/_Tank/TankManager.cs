@@ -143,25 +143,28 @@ public class TankManager : MonoBehaviour
     /// </summary>
     public void MoveNextTankToStopPoint()
     {
-        if (_tankQueue.Count == 0)
-        {
-            Debug.LogWarning("No tanks left in the queue.");
-            return;
-        }
-
-        // If current tank is full, move it first
-        if (_currentTank != null && _currentTank.StickmanCount >= MaxStickmanCount)
+        // Eğer current tank doluysa
+        if (_currentTank != null && _currentTank.IsFull)
         {
             _currentTank.MoveToTank();
             _currentTank.CurrentState = TankState.Moving;
+
+            // Eğer queue'da tank kalmadıysa
+            if (_tankQueue.Count == 0)
+            {
+                Debug.Log("Last tank is full and moving.");
+                return; // Son tank için queue'dan yeni tank almaya çalışma
+            }
         }
 
-        // Get the next tank from the queue
-        _currentTank = _tankQueue.Dequeue();
-        _currentTank.Initialize(_startPosition);
-        _currentTank.CurrentState = TankState.Filling;
-
-        Debug.Log($"Next tank {_currentTank.name} is now active.");
+        // Queue'da tank varsa devam et
+        if (_tankQueue.Count > 0)
+        {
+            _currentTank = _tankQueue.Dequeue();
+            _currentTank.Initialize(_startPosition);
+            _currentTank.CurrentState = TankState.Filling;
+            Debug.Log($"Next tank {_currentTank.name} is now active.");
+        }
     }
 
     /// <summary>
