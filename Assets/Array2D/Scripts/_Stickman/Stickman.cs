@@ -1,7 +1,6 @@
 using _Main._Enums;
 using _Main._Stickman.StickmanGrid;
 using UnityEngine;
-using System.Collections;
 using DG.Tweening;  // Added for DOTween functionality
 
 namespace _Main._Stickman.StickmanGrid
@@ -110,14 +109,13 @@ namespace _Main._Stickman.StickmanGrid
         /// Moves the Stickman to the specified target position using DOTween.
         /// </summary>
         /// <param name="targetPosition">The target position where the Stickman will move.</param>
-        public void MoveToTank(Vector3 targetPosition)
+        /// <param name="tankTransform">The tank's transform to attach the Stickman to after movement.</param>
+        public void MoveToTank(Vector3 targetPosition, Transform tankTransform)
         {
             if (_stickmanGrid != null)
             {
-                // Reverse the Z-axis value for movement
-                targetPosition.z = -targetPosition.z;
-                transform.DOMove(targetPosition, _moveSpeed)
-                         .SetEase(Ease.Linear);
+                targetPosition.z = -targetPosition.z; // Ensure the z-axis is flipped (if necessary for your setup)
+                MoveToPosition(targetPosition, tankTransform);
             }
         }
 
@@ -128,8 +126,32 @@ namespace _Main._Stickman.StickmanGrid
         public void MoveToHolder(Vector3 holderPosition)
         {
             Vector3 targetPosition = holderPosition;
-            targetPosition.y = transform.position.y; 
-            transform.position = targetPosition;
+            targetPosition.y = transform.position.y; // Maintain current Y position
+            MoveToPosition(targetPosition);
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// General method for moving the Stickman to a specified position.
+        /// </summary>
+        /// <param name="targetPosition">The target position where the Stickman will move.</param>
+        /// <param name="tankTransform">Optional: The tank's transform to attach the Stickman to after movement.</param>
+        private void MoveToPosition(Vector3 targetPosition, Transform tankTransform = null)
+        {
+            transform.DOMove(targetPosition, _moveSpeed)
+                .SetEase(Ease.Linear)
+                .OnComplete(() =>
+                {
+                    if (tankTransform != null)
+                    {
+                        transform.SetParent(tankTransform);
+                        IsSelectable = false;
+                        Debug.Log($"Stickman {gameObject.name} attached to tank {tankTransform.name}");
+                    }
+                });
         }
 
         #endregion

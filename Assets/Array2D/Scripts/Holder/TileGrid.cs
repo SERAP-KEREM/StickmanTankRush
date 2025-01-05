@@ -126,7 +126,6 @@ public class TileGrid : MonoBehaviour
         tile.transform.SetParent(transform, worldPositionStays: false);
         tile.Initialize(position);
 
-        // Stickman kontrolü ve atama
         if (_stickmanGrid != null)
         {
             Stickman stickman = _stickmanGrid.GetStickmanAt(x, y);

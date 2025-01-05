@@ -19,9 +19,6 @@ namespace _Main._Stickman.StickmanGrid
         private Stickman[,] _stickmanGrid;
         private Vector2Int _gridSize;
 
-        public Vector2Int GridSize => _gridSize;
-
-        // Event system for grid changes
         public delegate void GridEventHandler(Vector2Int position, Stickman stickman);
         public event GridEventHandler OnStickmanPlaced;
         public event GridEventHandler OnStickmanRemoved;
@@ -36,16 +33,9 @@ namespace _Main._Stickman.StickmanGrid
                 return;
             }
             Instance = this;
-            // DontDestroyOnLoad kald?r?ld? çünkü her level için yeni bir grid olu?turulmal?
         }
 
-        private void Start()
-        {
-            if (_levelDataSO != null)
-            {
-                Initialize();
-            }
-        }
+       
 
         private void OnDestroy()
         {
@@ -63,7 +53,6 @@ namespace _Main._Stickman.StickmanGrid
             }
 
             _levelDataSO = levelDataSO;
-            Initialize();
         }
 
         public void Initialize()
@@ -133,6 +122,11 @@ namespace _Main._Stickman.StickmanGrid
             stickman.transform.SetParent(transform, worldPositionStays: false);
             stickman.UnitColorType = colorType;
             stickman.SetGridPosition(x, y);
+            Tile tile = _tileGrid.GetTileAt(x, y);
+            if (tile != null)
+            {
+                tile.AssignStickman(stickman);
+            }
             stickman.Initialize();
             stickman.name = $"Stickman [{x},{y}]";
             return stickman;
@@ -164,39 +158,9 @@ namespace _Main._Stickman.StickmanGrid
             return _stickmanGrid[x, y];
         }
 
-        public Stickman GetStickmanAt(Vector2Int position)
-        {
-            return GetStickmanAt(position.x, position.y);
-        }
-
         public bool IsValidPosition(int x, int y)
         {
             return x >= 0 && x < _gridSize.x && y >= 0 && y < _gridSize.y;
-        }
-
-        public bool HasStickmanAt(int x, int y)
-        {
-            return IsValidPosition(x, y) && _stickmanGrid[x, y] != null;
-        }
-        #endregion
-
-        #region Debug
-        private void OnDrawGizmos()
-        {
-            if (!Application.isPlaying || _stickmanGrid == null) return;
-
-            Gizmos.color = Color.yellow;
-            for (int y = 0; y < _gridSize.y; y++)
-            {
-                for (int x = 0; x < _gridSize.x; x++)
-                {
-                    if (HasStickmanAt(x, y))
-                    {
-                        Vector3 pos = CalculateWorldPosition(x, y);
-                        Gizmos.DrawWireCube(pos, Vector3.one);
-                    }
-                }
-            }
         }
         #endregion
     }

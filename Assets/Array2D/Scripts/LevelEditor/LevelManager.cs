@@ -23,7 +23,6 @@ public class LevelManager : MonoBehaviour
     #region Level Management
     private void Start()
     {
-        // Oyun ba?lad???nda ilk leveli yükle
         if (_levelPrefabs != null && _levelPrefabs.Count > 0)
         {
             _currentLevelIndex = 0;
@@ -42,47 +41,39 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        StopAllCoroutines(); // Önceki tüm coroutine'leri durdur
+        StopAllCoroutines(); 
         StartCoroutine(LoadLevelSequence(levelIndex));
     }
 
     private IEnumerator LoadLevelSequence(int levelIndex)
     {
-        // 1. Önceki leveli temizle
         if (_currentLevel != null)
         {
             Destroy(_currentLevel.gameObject);
             _currentLevel = null;
-            yield return new WaitForSeconds(0.1f); // Destruction için k?sa bir bekleme
+            yield return new WaitForSeconds(0.1f); 
         }
 
-        // 2. Yeni level için haz?rl?k
         Level levelPrefab = _levelPrefabs[levelIndex];
         LevelDataSO levelData = _levelDataList[levelIndex];
 
         Debug.Log($"Loading Level {levelIndex}: {levelPrefab.name} with data {levelData.name}");
 
-        // 3. Yeni leveli olu?tur
         _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
         _currentLevel.transform.SetParent(transform, worldPositionStays: true);
 
-        // 4. ?lk frame'i bekle
         yield return null;
 
-        // 5. Level'? initialize et
         _currentLevel.InitializeLevel(levelData);
 
-        // 6. Bir frame daha bekle
         yield return null;
 
-        // 7. Component'leri kontrol et
         if (!ValidateLevelComponents())
         {
             Debug.LogError($"Level {levelIndex} failed to initialize components properly!");
             yield break;
         }
 
-        // 8. Level ba?lang?ç animasyonu
         _currentLevel.transform.localScale = Vector3.zero;
         _currentLevel.transform.DOScale(Vector3.one, _transitionDuration)
             .SetEase(Ease.OutBounce)
@@ -187,12 +178,11 @@ public class LevelManager : MonoBehaviour
     #region Debug
     private void Update()
     {
-        // Test için
-        if (Input.GetKeyDown(KeyCode.N)) // Next Level
+        if (Input.GetKeyDown(KeyCode.N)) 
         {
             LoadNextLevel();
         }
-        if (Input.GetKeyDown(KeyCode.R)) // Restart
+        if (Input.GetKeyDown(KeyCode.R))
         {
             RestartLevel();
         }

@@ -30,7 +30,14 @@ namespace _Main._Tank
 
         [SerializeField, Tooltip("Movement duration of the tank.")]
         private float _movementDuration = 5f;
+        [Header("Stickman Settings")]
+        [SerializeField]
+        [Tooltip("Distance in front of the tank where stickmen should stop")]
+        private float _stickmanStopDistance = 2f;
 
+        [SerializeField]
+        [Tooltip("Height at which stickmen should stay")]
+        private float _stickmanHeight = 0f;
         /// <summary>
         /// Gets whether the tank is full based on the current stickman count.
         /// </summary>
@@ -134,7 +141,6 @@ namespace _Main._Tank
             StickmanCount++;
             Debug.Log($"Tank {gameObject.name}: Stickman added. Count: {_stickmanCount}/{_maxStickmanCount}");
 
-            // Tank doldu mu kontrol et
             if (_stickmanCount >= _maxStickmanCount)
             {
                 Debug.Log($"Tank {gameObject.name} is now full!");
@@ -163,7 +169,7 @@ namespace _Main._Tank
                 .SetEase(Ease.Linear)
                 .OnComplete(() => {
                     Debug.Log($"Tank {gameObject.name} completed movement.");
-                 
+
                 });
         }
 
@@ -194,7 +200,15 @@ namespace _Main._Tank
             CurrentState = TankState.Moving;
             MoveToTank();
         }
-
+        public Vector3 GetStickmanTargetPosition()
+        {
+            Vector3 tankPosition = transform.position;
+            return new Vector3(
+                tankPosition.x,
+                _stickmanHeight,
+                tankPosition.z + _stickmanStopDistance
+            );
+        }
         #endregion
     }
 }

@@ -944,7 +944,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _colorType: 0
   _isSelectable: 0
-  moveSpeed: 1
+  _moveSpeed: 1
 --- !u!195 &1656120410901977822
 NavMeshAgent:
   m_ObjectHideFlags: 0
