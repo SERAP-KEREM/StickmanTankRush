@@ -68,7 +68,7 @@ namespace _Main
             if (_tileGrid == null) { Debug.LogError("TileGrid is not assigned!"); return; }
             if (_holderManager == null) { Debug.LogError("HolderManager is not assigned!"); return; }
 
-            Debug.Log("References validated.");
+          //  Debug.Log("References validated.");
         }
 
         #endregion
@@ -109,30 +109,30 @@ namespace _Main
         {
             if (_holderManager == null)
             {
-                Debug.LogError("HolderManager is null!");
+               // Debug.LogError("HolderManager is null!");
                 return;
             }
 
             if (stickman == null || !stickman.IsSelectable)
             {
-                Debug.Log("Stickman is null or not selectable");
+               // Debug.Log("Stickman is null or not selectable");
                 return;
             }
 
             _selectedStickman = stickman;
-            Debug.Log($"Selected Stickman: {stickman.name}, Color: {stickman.UnitColorType}");
+            //Debug.Log($"Selected Stickman: {stickman.name}, Color: {stickman.UnitColorType}");
 
             // Check for available neighbors
             if (!_tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
             {
-                Debug.Log($"No empty neighbors for stickman at ({stickman.GridX}, {stickman.GridY})");
+              //  Debug.Log($"No empty neighbors for stickman at ({stickman.GridX}, {stickman.GridY})");
                 return;
             }
 
             Tank currentTank = _tankManager.CurrentTank;
             if (currentTank == null)
             {
-                Debug.LogWarning("No active tank available.");
+               // Debug.LogWarning("No active tank available.");
                 return;
             }
 
@@ -141,17 +141,17 @@ namespace _Main
             {
                 if (!currentTank.IsFull)
                 {
-                    Debug.Log($"Moving matching color stickman to tank. Stickman: {stickman.UnitColorType}, Tank: {currentTank.UnitColorType}");
+                   // Debug.Log($"Moving matching color stickman to tank. Stickman: {stickman.UnitColorType}, Tank: {currentTank.UnitColorType}");
                     MoveStickmanToTank(stickman, currentTank);
                 }
                 else
                 {
-                    Debug.Log("Tank is full!");
+                    //Debug.Log("Tank is full!");
                 }
             }
             else
             {
-                Debug.Log($"Color mismatch! Stickman: {stickman.UnitColorType}, Tank: {currentTank.UnitColorType}");
+               // Debug.Log($"Color mismatch! Stickman: {stickman.UnitColorType}, Tank: {currentTank.UnitColorType}");
                 HandleColorMismatch(stickman);
             }
         }
@@ -162,7 +162,7 @@ namespace _Main
         /// <param name="stickman">The Stickman to move.</param>
         private void HandleColorMismatch(Stickman stickman)
         {
-            Debug.Log("Attempting to move stickman to holder...");
+            //Debug.Log("Attempting to move stickman to holder...");
 
             // Move Stickman to the nearest available holder
             Holder nearestHolder = _holderManager.MoveToNearestAvailableHolder(stickman);
@@ -170,11 +170,11 @@ namespace _Main
             if (nearestHolder != null)
             {
                 ProcessStickmanMovement(stickman, null, nearestHolder);
-                Debug.Log($"Successfully moved stickman to holder: {nearestHolder.name}");
+               // Debug.Log($"Successfully moved stickman to holder: {nearestHolder.name}");
             }
             else
             {
-                Debug.LogWarning("No available holder found!");
+               // Debug.LogWarning("No available holder found!");
             }
         }
 
@@ -188,12 +188,12 @@ namespace _Main
             if (stickman == null || currentTank == null) return;
 
             ProcessStickmanMovement(stickman, currentTank);
-            Debug.Log($"Stickman moved to tank. Current count: {currentTank.StickmanCount}");
+            //Debug.Log($"Stickman moved to tank. Current count: {currentTank.StickmanCount}");
 
             // Check if the tank is full
             if (currentTank.IsFull)
             {
-                Debug.Log("Tank is full, moving to next tank...");
+               // Debug.Log("Tank is full, moving to next tank...");
                 MoveNextTankToStopPoint();
             }
         }
@@ -211,7 +211,7 @@ namespace _Main
             if (currentTile != null)
             {
                 currentTile.RemoveStickman();
-                Debug.Log($"Removed stickman from tile ({stickman.GridX}, {stickman.GridY})");
+                //Debug.Log($"Removed stickman from tile ({stickman.GridX}, {stickman.GridY})");
             }
 
             if (nearestHolder != null)
@@ -219,13 +219,14 @@ namespace _Main
                 // Assign Stickman to the nearest holder
                 nearestHolder.AssignStickman(stickman);
                 stickman.IsSelectable = false;
-                Debug.Log($"Assigned stickman to holder {nearestHolder.name}");
+               // Debug.Log($"Assigned stickman to holder {nearestHolder.name}");
             }
             else if (currentTank != null)
             {
                 stickman.MoveToTank(currentTank.GetStickmanTargetPosition(), currentTank.transform);
                 currentTank.AddStickman(stickman.UnitColorType);
-                Debug.Log($"Added stickman to tank. Tank color: {currentTank.UnitColorType}");
+           
+                // Debug.Log($"Added stickman to tank. Tank color: {currentTank.UnitColorType}");
             }
         }
 
@@ -239,7 +240,7 @@ namespace _Main
                 return;
             }
 
-            Debug.Log("Moving to the next tank.");
+           // Debug.Log("Moving to the next tank.");
             _tankManager.MoveNextTankToStopPoint(); // Move the next tank to its stop point
             _tankManager.MoveOtherTanks(); // Reorganize other tanks
 
@@ -265,6 +266,7 @@ namespace _Main
                     !currentTank.IsFull &&
                     stickmanInHolder.UnitColorType == currentTank.UnitColorType) // Color match check
                 {
+                    holder.RemoveStickman();
                     MoveStickmanToTank(stickmanInHolder, currentTank);
                 }
             }

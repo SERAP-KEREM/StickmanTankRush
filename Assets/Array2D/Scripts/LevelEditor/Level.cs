@@ -95,30 +95,30 @@ public class Level : MonoBehaviour
     {
         if (!ValidateReferences()) return;
 
-        Debug.Log("Initializing Level Components...");
+      //  Debug.Log("Initializing Level Components...");
 
         if (stickmanGrid != null)
         {
             stickmanGrid.SetLevelDataSO(_levelDataSO);
-            Debug.Log("StickmanGrid initialized");
+            //Debug.Log("StickmanGrid initialized");
         }
 
         if (tileGrid != null)
         {
             tileGrid.SetLevelDataSO(_levelDataSO);
-            Debug.Log("TileGrid initialized");
+            //Debug.Log("TileGrid initialized");
         }
 
         if (tankManager != null)
         {
             tankManager.SetLevelDataSO(_levelDataSO);
-            Debug.Log("TankManager initialized");
+           // Debug.Log("TankManager initialized");
         } 
         if (holderManager != null)
         {
 
             holderManager.InitializeWaitingRow();
-            Debug.Log("TankManager initialized");
+           // Debug.Log("TankManager initialized");
         }
 
         _isInitialized = true;

@@ -12,7 +12,7 @@ public class TankManager : MonoBehaviour
     [Header("Tank Configuration")]
     [SerializeField, Tooltip("Prefab reference for the tank.")]
     private Tank _tankPrefab;
-
+  
     [Header("Tank Movement Configuration")]
     [SerializeField, Tooltip("Duration of tank movement.")]
     [Range(1f, 10f)]
@@ -36,7 +36,7 @@ public class TankManager : MonoBehaviour
         get => _currentTank;
         private set => _currentTank = value;
     }
-
+    public event System.Action OnAllTanksLeft;
     #region Singleton Pattern
 
     private void Awake()
@@ -135,7 +135,14 @@ public class TankManager : MonoBehaviour
     }
 
     #endregion
-
+    private void CheckAllTanksLeft()
+    {
+        if (_tankQueue.Count == 0 && _currentTank == null)
+        {
+            Debug.Log("All tanks have left!");
+            OnAllTanksLeft?.Invoke();
+        }
+    }
     #region Tank Movement
 
     /// <summary>
@@ -150,7 +157,9 @@ public class TankManager : MonoBehaviour
 
             if (_tankQueue.Count == 0)
             {
-                Debug.Log("Last tank is full and moving.");
+                //Debug.Log("Last tank is full and moving.");
+                _currentTank = null;
+                CheckAllTanksLeft();
                 return; 
             }
         }
@@ -159,7 +168,7 @@ public class TankManager : MonoBehaviour
             _currentTank = _tankQueue.Dequeue();
             _currentTank.Initialize(_startPosition);
             _currentTank.CurrentState = TankState.Filling;
-            Debug.Log($"Next tank {_currentTank.name} is now active.");
+            //Debug.Log($"Next tank {_currentTank.name} is now active.");
         }
     }
 

@@ -24,7 +24,7 @@ namespace _Main
             // Move Stickman to the Holder's position while preserving its Y position
             stickman.MoveToHolder(new Vector3(transform.position.x, stickman.transform.position.y, transform.position.z));
 
-            Debug.Log($"Stickman '{stickman.name}' successfully assigned and moved to Holder '{name}'.");
+            //Debug.Log($"Stickman '{stickman.name}' successfully assigned and moved to Holder '{name}'.");
             return true;
         }
 

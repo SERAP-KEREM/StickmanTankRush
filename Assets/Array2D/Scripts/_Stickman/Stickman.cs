@@ -149,7 +149,7 @@ namespace _Main._Stickman.StickmanGrid
                     {
                         transform.SetParent(tankTransform);
                         IsSelectable = false;
-                        Debug.Log($"Stickman {gameObject.name} attached to tank {tankTransform.name}");
+                       // Debug.Log($"Stickman {gameObject.name} attached to tank {tankTransform.name}");
                     }
                 });
         }

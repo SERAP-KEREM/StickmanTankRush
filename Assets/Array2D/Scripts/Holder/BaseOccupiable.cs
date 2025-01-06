@@ -55,7 +55,7 @@ namespace _Main._Stickman
             }
 
             CurrentStickman = stickman;
-            Debug.Log($"Stickman '{stickman.name}' successfully assigned to {name}.");
+           // Debug.Log($"Stickman '{stickman.name}' successfully assigned to {name}.");
             return true;
         }
 
@@ -73,7 +73,7 @@ namespace _Main._Stickman
 
             Stickman removedStickman = CurrentStickman;
             CurrentStickman = null;
-            Debug.Log($"Stickman '{removedStickman.name}' removed from {name}.");
+            //Debug.Log($"Stickman '{removedStickman.name}' removed from {name}.");
             return removedStickman;
         }
 

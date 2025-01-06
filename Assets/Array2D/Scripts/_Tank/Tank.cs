@@ -134,16 +134,16 @@ namespace _Main._Tank
         {
             if (stickmanColor != _colorType)
             {
-                Debug.LogWarning($"Stickman color does not match tank color. Tank: {_colorType}, Stickman: {stickmanColor}");
+                //Debug.LogWarning($"Stickman color does not match tank color. Tank: {_colorType}, Stickman: {stickmanColor}");
                 return;
             }
 
             StickmanCount++;
-            Debug.Log($"Tank {gameObject.name}: Stickman added. Count: {_stickmanCount}/{_maxStickmanCount}");
+            //Debug.Log($"Tank {gameObject.name}: Stickman added. Count: {_stickmanCount}/{_maxStickmanCount}");
 
             if (_stickmanCount >= _maxStickmanCount)
             {
-                Debug.Log($"Tank {gameObject.name} is now full!");
+               // Debug.Log($"Tank {gameObject.name} is now full!");
                 SetTankStateToMoving();
             }
         }
@@ -156,19 +156,19 @@ namespace _Main._Tank
         {
             if (_currentState != TankState.Moving)
             {
-                Debug.LogWarning($"Attempting to move tank {gameObject.name} while not in Moving state.");
+                //Debug.LogWarning($"Attempting to move tank {gameObject.name} while not in Moving state.");
                 return;
             }
 
             const float distanceFactor = 25f;
             _targetPosition = new Vector3(transform.position.x - distanceFactor, transform.position.y, transform.position.z);
 
-            Debug.Log($"Tank {gameObject.name} moving from {transform.position} to {_targetPosition}.");
+           // Debug.Log($"Tank {gameObject.name} moving from {transform.position} to {_targetPosition}.");
 
             transform.DOMove(_targetPosition, _movementDuration)
                 .SetEase(Ease.Linear)
                 .OnComplete(() => {
-                    Debug.Log($"Tank {gameObject.name} completed movement.");
+                    //Debug.Log($"Tank {gameObject.name} completed movement.");
 
                 });
         }
@@ -182,11 +182,11 @@ namespace _Main._Tank
         /// </summary>
         private void CheckForFullTank()
         {
-            Debug.Log($"Tank {gameObject.name}: Checking full status. Count: {_stickmanCount}/{_maxStickmanCount}, Current State: {_currentState}");
+            //Debug.Log($"Tank {gameObject.name}: Checking full status. Count: {_stickmanCount}/{_maxStickmanCount}, Current State: {_currentState}");
 
             if (_stickmanCount >= _maxStickmanCount)
             {
-                Debug.Log($"Tank {gameObject.name} should move now!");
+               // Debug.Log($"Tank {gameObject.name} should move now!");
                 SetTankStateToMoving();
             }
         }
@@ -196,7 +196,7 @@ namespace _Main._Tank
         /// </summary>
         private void SetTankStateToMoving()
         {
-            Debug.Log($"Setting tank {gameObject.name} state to Moving.");
+            //Debug.Log($"Setting tank {gameObject.name} state to Moving.");
             CurrentState = TankState.Moving;
             MoveToTank();
         }

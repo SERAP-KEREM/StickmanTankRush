@@ -15,10 +15,15 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private Level _currentLevel;
     private bool _isLevelInProgress;
     private int _currentLevelIndex;
-
-    // Events
-    public static event System.Action OnLevelStarted;
     #endregion
+
+    #region Events
+    public static event System.Action OnLevelStarted;
+    public static event System.Action OnLevelWon;
+    public static event System.Action OnLevelLost;
+    #endregion
+
+    
 
     #region Level Management
     private void Start()
@@ -47,6 +52,7 @@ public class LevelManager : MonoBehaviour
 
     private IEnumerator LoadLevelSequence(int levelIndex)
     {
+        UnsubscribeFromEvents();
         if (_currentLevel != null)
         {
             Destroy(_currentLevel.gameObject);
@@ -57,7 +63,7 @@ public class LevelManager : MonoBehaviour
         Level levelPrefab = _levelPrefabs[levelIndex];
         LevelDataSO levelData = _levelDataList[levelIndex];
 
-        Debug.Log($"Loading Level {levelIndex}: {levelPrefab.name} with data {levelData.name}");
+        //Debug.Log($"Loading Level {levelIndex}: {levelPrefab.name} with data {levelData.name}");
 
         _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
         _currentLevel.transform.SetParent(transform, worldPositionStays: true);
@@ -73,17 +79,20 @@ public class LevelManager : MonoBehaviour
             Debug.LogError($"Level {levelIndex} failed to initialize components properly!");
             yield break;
         }
-
+        SubscribeToEvents();
         _currentLevel.transform.localScale = Vector3.zero;
         _currentLevel.transform.DOScale(Vector3.one, _transitionDuration)
             .SetEase(Ease.OutBounce)
             .OnComplete(() => {
                 _isLevelInProgress = true;
                 OnLevelStarted?.Invoke();
-                Debug.Log($"Level {levelIndex} started successfully");
+                //Debug.Log($"Level {levelIndex} started successfully");
             });
     }
-
+    private void OnDestroy()
+    {
+        UnsubscribeFromEvents();
+    }
     private bool ValidateLevelComponents()
     {
         if (_currentLevel == null) return false;
@@ -152,7 +161,61 @@ public class LevelManager : MonoBehaviour
         return true;
     }
     #endregion
+    #region Win/Lose System
+    private void SubscribeToEvents()
+    {
+        if (_currentLevel != null)
+        {
+            _currentLevel.TankManager.OnAllTanksLeft += HandleLevelWon;
+            _currentLevel.HolderManager.OnAllHoldersFull += HandleLevelLost;
+        }
+    }
 
+    private void UnsubscribeFromEvents()
+    {
+        if (_currentLevel != null)
+        {
+            _currentLevel.TankManager.OnAllTanksLeft -= HandleLevelWon;
+            _currentLevel.HolderManager.OnAllHoldersFull -= HandleLevelLost;
+        }
+    }
+
+    private void HandleLevelWon()
+    {
+        if (!_isLevelInProgress) return;
+
+        _isLevelInProgress = false;
+        Debug.Log("=== LEVEL WON! ===");
+
+        _currentLevel.transform.DOScale(Vector3.one * 1.1f, 0.5f)
+            .SetEase(Ease.OutBounce)
+            .OnComplete(() => {
+                OnLevelWon?.Invoke();
+                StartCoroutine(LoadNextLevelWithDelay(1f));
+            });
+    }
+
+    private void HandleLevelLost()
+    {
+        if (!_isLevelInProgress) return;
+
+        _isLevelInProgress = false;
+        Debug.Log("=== LEVEL LOST! ===");
+        Debug.Log("All holders are full! Press R to restart.");
+
+        _currentLevel.transform.DOScale(Vector3.one * 0.9f, 0.5f)
+            .SetEase(Ease.InBounce)
+            .OnComplete(() => {
+                OnLevelLost?.Invoke();
+            });
+    }
+
+    private IEnumerator LoadNextLevelWithDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        LoadNextLevel();
+    }
+    #endregion
     #region Public Methods
     public void LoadNextLevel()
     {

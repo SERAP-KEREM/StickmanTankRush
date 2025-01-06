@@ -25,6 +25,8 @@ public class HolderManager : MonoBehaviour
     private Holder[] _waitingHolders;
     private List<Holder> _availableHolders = new List<Holder>();
     #endregion
+    public event System.Action OnAllHoldersFull;
+    
 
     #region Initialization
     public void InitializeWaitingRow()
@@ -67,6 +69,30 @@ public class HolderManager : MonoBehaviour
 
         _waitingHolders = new Holder[_rowWidth];
         _availableHolders.Clear();
+ 
+    }
+    /// <summary>
+    /// Checks if all holders are currently occupied
+    /// </summary>
+    public bool AreAllHoldersFull()
+    {
+        if (_waitingHolders == null || _waitingHolders.Length == 0)
+            return false;
+
+        // Tüm holder'lar? kontrol et
+        foreach (var holder in _waitingHolders)
+        {
+            // E?er bir holder bo?sa, hepsi dolu de?il demektir
+            if (holder != null && !holder.IsOccupied)
+            {
+                return false;
+            }
+        }
+
+        // Tüm holder'lar doluysa true döndür
+        Debug.Log("All holders are full! Game Over condition met.");
+        OnAllHoldersFull?.Invoke();
+        return true;
     }
 
     private void CreateHolders()
@@ -75,7 +101,7 @@ public class HolderManager : MonoBehaviour
         {
             CreateHolderAtPosition(i);
         }
-        Debug.Log($"Created {_rowWidth} holders in waiting row");
+        //Debug.Log($"Created {_rowWidth} holders in waiting row");
     }
     #endregion
 
@@ -113,7 +139,7 @@ public class HolderManager : MonoBehaviour
     {
         if (stickman == null)
         {
-            Debug.LogError("Cannot move null stickman to holder!");
+           // Debug.LogError("Cannot move null stickman to holder!");
             return null;
         }
 
@@ -124,15 +150,18 @@ public class HolderManager : MonoBehaviour
                 bool success = holder.AssignStickman(stickman);
                 if (success)
                 {
-                    Debug.Log($"Successfully moved {stickman.name} to {holder.name}");
+                    //Debug.Log($"Successfully moved {stickman.name} to {holder.name}");
+                    AreAllHoldersFull();
                     return holder;
                 }
             }
         }
 
-        Debug.LogWarning("No available holder found for stickman");
+       // Debug.LogWarning("No available holder found for stickman");
         return null;
     }
+
+    
     #endregion
 
     #region Helper Methods
@@ -148,7 +177,7 @@ public class HolderManager : MonoBehaviour
             _waitingHolders[index] = holder;
             _availableHolders.Add(holder);
 
-            Debug.Log($"Created {holder.name} at position {position}");
+          //  Debug.Log($"Created {holder.name} at position {position}");
         }
         else
         {
