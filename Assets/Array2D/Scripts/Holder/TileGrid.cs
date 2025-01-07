@@ -5,7 +5,7 @@ using UnityEngine;
 public class TileGrid : MonoBehaviour
 {
     #region Fields
-    public static TileGrid Instance { get; private set; }
+
 
     [Header("Tile Grid Configuration")]
     [SerializeField] private Tile _tilePrefab;
@@ -17,17 +17,6 @@ public class TileGrid : MonoBehaviour
     private bool _isInitialized;
     #endregion
 
-    #region Unity Methods
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-    }
-    #endregion
 
     #region Public Methods
     public void SetLevelDataSO(LevelDataSO levelDataSO)

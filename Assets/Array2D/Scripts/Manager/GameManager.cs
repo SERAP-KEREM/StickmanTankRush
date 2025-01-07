@@ -5,17 +5,16 @@ using _Main._Tank;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using SerapKeremGameTools._Game._Singleton;
 
 namespace _Main
 {
     /// <summary>
     /// Main controller for managing the game logic, Stickman interactions, tanks, and movement.
     /// </summary>
-    public class GameManager : MonoBehaviour
+    public class GameManager : MonoSingleton<GameManager>
     {
         #region Field References
-
-        public static GameManager Instance { get; private set; }
 
         [Header("Game References")]
         [Tooltip("Manages all tank operations in the game.")]
@@ -42,26 +41,19 @@ namespace _Main
 
         #region Unity Lifecycle Methods
 
-        private void Awake()
+        protected override void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            base.Awake();
         }
 
-        #endregion
+            #endregion
 
-        #region Reference Validation
+            #region Reference Validation
 
-        /// <summary>
-        /// Validates the assigned references for required components.
-        /// </summary>
-        private void ValidateReferences()
+            /// <summary>
+            /// Validates the assigned references for required components.
+            /// </summary>
+            private void ValidateReferences()
         {
             if (_tankManager == null) { Debug.LogError("TankManager is not assigned!"); return; }
             if (_stickmanGrid == null) { Debug.LogError("StickmanGrid is not assigned!"); return; }

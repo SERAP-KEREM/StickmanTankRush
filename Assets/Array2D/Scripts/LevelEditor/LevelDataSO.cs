@@ -14,9 +14,6 @@ namespace LevelEditor
 		private Array2DGrid _array2DGrid;
 		public Array2DGrid Array2DGrid { get => _array2DGrid; set => _array2DGrid = value; }
 
-        [Header("Managers")]
-        [SerializeField] private TankManager _tankManager;
-
 		[Title("Tank")]
 		[SerializeField]
 		private List<TankData> _tankDataList = new List<TankData>();

@@ -95,10 +95,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
-  tileGrid: {fileID: 8233481212163296266}
-  tankManager: {fileID: 4400155607343758349}
-  stickmanGrid: {fileID: 5289277413121498745}
-  holderManager: {fileID: 3370300921690580709}
+  _tileGrid: {fileID: 8233481212163296266}
+  _tankManager: {fileID: 4400155607343758349}
+  _stickmanGrid: {fileID: 5289277413121498745}
+  _holderManager: {fileID: 3370300921690580709}
 --- !u!1 &5350876747691730296
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,7 +194,6 @@ MonoBehaviour:
   _rowWidth: 3
   _holderSpacing: 1
   _rowStartPosition: {x: 0, y: -1, z: -1}
-  _availableHolders: []
 --- !u!1 &7957850989372806839
 GameObject:
   m_ObjectHideFlags: 0

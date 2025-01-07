@@ -462,6 +462,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1446090110}
   - component: {fileID: 1446090109}
+  - component: {fileID: 1446090111}
   m_Layer: 0
   m_Name: InputManager
   m_TagString: Untagged
@@ -496,6 +497,30 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1446090111
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1446090108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc5a1a3f3aba93144911fc789e1aa956, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OnMouseDownEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMouseHeldEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMouseUpEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  OnMousePositionInput:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &1512601090
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,7 +8,6 @@ namespace _Main._Stickman.StickmanGrid
     public class StickmanGrid : MonoBehaviour
     {
         #region Fields & Properties
-        public static StickmanGrid Instance { get; private set; }
 
         [Header("Grid Configuration")]
         [SerializeField] private Stickman _stickmanPrefab;
@@ -25,17 +24,6 @@ namespace _Main._Stickman.StickmanGrid
         #endregion
 
         #region Unity Lifecycle
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-        }
-
-       
 
         private void OnDestroy()
         {

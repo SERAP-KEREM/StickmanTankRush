@@ -1,34 +1,26 @@
 using _Main._Stickman.StickmanGrid;
+using SerapKeremGameTools._Game._Singleton;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace _Input
 {
-    public class InputHandler : MonoBehaviour
+    public class InputHandler : MonoSingleton<InputHandler>
     {
-        #region Singleton
-        public static InputHandler Instance;
-
-        #endregion
+       
 
         #region Events
         /// <summary>
         /// Event triggered when the screen is touched or clicked.
         /// </summary>
         public event UnityAction<Vector3> OnStickmanSelected;
+
         #endregion
 
         #region Unity Lifecycle Methods
-        private void Awake()
+        protected override void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
+            base.Awake();   
         }
         private void Update()
         {

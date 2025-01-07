@@ -1,13 +1,13 @@
 using _Main;
 using _Main._Stickman.StickmanGrid;
 using LevelEditor;
+using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
 using UnityEngine;
 
-public class Level : MonoBehaviour
+public class Level : MonoSingleton<Level>
 {
     #region Fields
-    public static Level Instance { get; private set; }
 
     [Header("Level Configuration")]
     [SerializeField] private LevelDataSO _levelDataSO;
@@ -27,9 +27,9 @@ public class Level : MonoBehaviour
     #endregion
 
     #region Unity Lifecycle
-    private void Awake()
+    protected override void Awake()
     {
-        Instance = this;
+        base.Awake();
         FindReferences();
     }
 

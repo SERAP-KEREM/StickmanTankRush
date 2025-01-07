@@ -12,19 +12,27 @@ namespace _Main
         #region Public Methods
 
         /// <summary>
-        /// Moves the assigned Stickman to the holder's position.
+        /// Assigns a Stickman to this Holder and moves it to the Holder's position.
         /// </summary>
         /// <param name="stickman">The Stickman to assign and move.</param>
-        /// <returns>True if the Stickman was successfully assigned and moved; false otherwise.</returns>
+        /// <returns>
+        /// True if the Stickman was successfully assigned and moved; 
+        /// false if the assignment failed (e.g., Holder is already occupied).
+        /// </returns>
         public override bool AssignStickman(Stickman stickman)
         {
-            // Call the base method to check if assignment is valid
-            if (!base.AssignStickman(stickman)) return false;
+            // Call the base method to validate the assignment
+            if (!base.AssignStickman(stickman))
+                return false;
 
             // Move Stickman to the Holder's position while preserving its Y position
-            stickman.MoveToHolder(new Vector3(transform.position.x, stickman.transform.position.y, transform.position.z));
+            stickman.MoveToHolder(new Vector3(
+                transform.position.x,
+                stickman.transform.position.y,
+                transform.position.z
+            ));
 
-            //Debug.Log($"Stickman '{stickman.name}' successfully assigned and moved to Holder '{name}'.");
+            // Assignment successful
             return true;
         }
 

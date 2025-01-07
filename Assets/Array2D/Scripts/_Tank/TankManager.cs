@@ -7,7 +7,6 @@ using UnityEngine;
 
 public class TankManager : MonoBehaviour
 {
-    public static TankManager Instance { get; private set; }
 
     [Header("Tank Configuration")]
     [SerializeField, Tooltip("Prefab reference for the tank.")]
@@ -37,20 +36,7 @@ public class TankManager : MonoBehaviour
         private set => _currentTank = value;
     }
     public event System.Action OnAllTanksLeft;
-    #region Singleton Pattern
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject); // Ensure only one instance exists
-            return;
-        }
-
-        Instance = this;
-    }
-
-    #endregion
 
     #region Level Setup
 

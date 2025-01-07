@@ -1,5 +1,4 @@
 using _Main._Enums;
-using _Main._Stickman.StickmanGrid;
 using UnityEngine;
 using DG.Tweening;  // Added for DOTween functionality
 
@@ -10,7 +9,7 @@ namespace _Main._Stickman.StickmanGrid
     /// </summary>
     public class Stickman : MonoBehaviour
     {
-        #region Fields
+        #region Fields & Properties
 
         [Header("Stickman Configuration")]
         [SerializeField, Tooltip("Determines the color type of the Stickman.")]
@@ -19,7 +18,7 @@ namespace _Main._Stickman.StickmanGrid
         [SerializeField, Tooltip("Indicates if the Stickman is selectable.")]
         private bool _isSelectable = true;
 
-        [SerializeField, Tooltip("Move speed of the Stickman.")]
+        [SerializeField, Range(0.1f, 5f), Tooltip("Move speed of the Stickman.")]
         private float _moveSpeed = 1f;
 
         private StickmanGrid _stickmanGrid;
@@ -60,9 +59,6 @@ namespace _Main._Stickman.StickmanGrid
 
         #region Unity Methods
 
-        /// <summary>
-        /// Initializes the Stickman by caching the StickmanGrid reference.
-        /// </summary>
         private void Awake()
         {
             // Cache StickmanGrid reference for performance optimization
@@ -149,7 +145,6 @@ namespace _Main._Stickman.StickmanGrid
                     {
                         transform.SetParent(tankTransform);
                         IsSelectable = false;
-                       // Debug.Log($"Stickman {gameObject.name} attached to tank {tankTransform.name}");
                     }
                 });
         }
