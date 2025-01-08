@@ -1,11 +1,11 @@
-﻿using _Input;
-using _Main._Stickman;
+﻿using _Main._Stickman;
 using _Main._Stickman.StickmanGrid;
 using _Main._Tank;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 using SerapKeremGameTools._Game._Singleton;
+using SerapKeremGameTools._Game._AudioSystem;
 
 namespace _Main
 {
@@ -44,16 +44,21 @@ namespace _Main
         protected override void Awake()
         {
             base.Awake();
+            InitializeAudio();
         }
+        private void InitializeAudio()
+        {
+            AudioManager.Instance.PlayAudio(AudioKeys.GAME_MUSIC);
+            AudioManager.Instance.PlayAudio(AudioKeys.GAME_START);
+        }
+        #endregion
 
-            #endregion
+        #region Reference Validation
 
-            #region Reference Validation
-
-            /// <summary>
-            /// Validates the assigned references for required components.
-            /// </summary>
-            private void ValidateReferences()
+        /// <summary>
+        /// Validates the assigned references for required components.
+        /// </summary>
+        private void ValidateReferences()
         {
             if (_tankManager == null) { Debug.LogError("TankManager is not assigned!"); return; }
             if (_stickmanGrid == null) { Debug.LogError("StickmanGrid is not assigned!"); return; }
@@ -110,7 +115,7 @@ namespace _Main
                // Debug.Log("Stickman is null or not selectable");
                 return;
             }
-
+            AudioManager.Instance.PlayAudio(AudioKeys.STICKMAN_CLICK);
             _selectedStickman = stickman;
             //Debug.Log($"Selected Stickman: {stickman.name}, Color: {stickman.UnitColorType}");
 

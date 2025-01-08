@@ -2,6 +2,7 @@
 using _Main._Tank;
 using DG.Tweening;
 using LevelEditor;
+using SerapKeremGameTools._Game._AudioSystem;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -138,6 +139,7 @@ public class TankManager : MonoBehaviour
     {
         if (_currentTank != null && _currentTank.IsFull)
         {
+            AudioManager.Instance.PlayAudio(AudioKeys.TANK_MOVE);
             _currentTank.MoveToTank();
             _currentTank.CurrentState = TankState.Moving;
 

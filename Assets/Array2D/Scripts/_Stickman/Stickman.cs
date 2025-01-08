@@ -1,14 +1,16 @@
 using _Main._Enums;
 using UnityEngine;
-using DG.Tweening;  // Added for DOTween functionality
+using DG.Tweening;
+using SerapKeremGameTools.Game._Interfaces; 
 
 namespace _Main._Stickman.StickmanGrid
 {
     /// <summary>
     /// Represents a Stickman character that can move and interact within the grid.
     /// </summary>
-    public class Stickman : MonoBehaviour
+    public class Stickman : MonoBehaviour, ISelectable
     {
+    
         #region Fields & Properties
 
         [Header("Stickman Configuration")]
@@ -56,7 +58,22 @@ namespace _Main._Stickman.StickmanGrid
         public int GridY { get; private set; }
 
         #endregion
+        #region ISelectable Implementation
+        public void Select()
+        {
+            if (!IsSelectable) return;
 
+            _isSelectable = true;
+            GameManager.Instance.HandleStickmanSelection(this);
+            Debug.Log($"[Stickman] Selected: {name}");
+        }
+
+        public void DeSelect()
+        {
+            _isSelectable = false;
+            Debug.Log($"[Stickman] Deselected: {name}");
+        }
+        #endregion
         #region Unity Methods
 
         private void Awake()

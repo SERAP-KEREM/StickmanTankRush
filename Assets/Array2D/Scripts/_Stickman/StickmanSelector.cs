@@ -1,5 +1,6 @@
-using _Input;
 using _Main._Stickman.StickmanGrid;
+using SerapKeremGameTools._Game._InputSystem;
+using SerapKeremGameTools._Game._Singleton;
 using UnityEngine;
 
 namespace _Main._StickmanSelector
@@ -7,48 +8,49 @@ namespace _Main._StickmanSelector
     /// <summary>
     /// Handles the selection of Stickman units by the player.
     /// </summary>
-    public class StickmanSelector : MonoBehaviour
+    public class StickmanSelector : MonoSingleton<StickmanSelector>
     {
-        #region Unity Lifecycle Methods
+        [Header("Raycast Settings")]
+        [SerializeField, Tooltip("Maximum distance for raycast detection")]
+        private float _raycastLength = 10f;
 
-        /// <summary>
-        /// Subscribes to the OnStickmanSelected event when the object is enabled.
-        /// </summary>
+        #region Unity Lifecycle
+        protected override void Awake()
+        {
+            base.Awake();
+            transform.SetParent(FindObjectOfType<Level>()?.transform);
+        }
+
         private void OnEnable()
         {
-            InputHandler.Instance.OnStickmanSelected += HandleStickmanSelection;
-        }
-
-        /// <summary>
-        /// Unsubscribes from the OnStickmanSelected event when the object is disabled.
-        /// </summary>
-        private void OnDisable()
-        {
-            InputHandler.Instance.OnStickmanSelected -= HandleStickmanSelection;
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Handles the input event to determine if a Stickman was selected.
-        /// </summary>
-        /// <param name="screenPosition">The screen position of the touch or click.</param>
-        private void HandleStickmanSelection(Vector3 screenPosition)
-        {
-            Ray ray = Camera.main.ScreenPointToRay(screenPosition); // Ray from screen position
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (PlayerInput.Instance != null)
             {
-                Stickman clickedStickman = hit.collider.GetComponent<Stickman>();
-                if (clickedStickman != null && clickedStickman.IsSelectable)
-                {
-                    GameManager.Instance.HandleStickmanSelection(clickedStickman); // Pass the selected Stickman to the GameManager
-                }
+                PlayerInput.Instance.OnMouseDownEvent.AddListener(HandleSelection);
             }
         }
 
+        private void OnDisable()
+        {
+            if (PlayerInput.Instance != null)
+            {
+                PlayerInput.Instance.OnMouseDownEvent.RemoveListener(HandleSelection);
+            }
+        }
+        #endregion
 
+        #region Selection Handling
+        private void HandleSelection()
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, _raycastLength))
+            {
+                if (hit.collider.TryGetComponent<Stickman>(out var stickman) && stickman.IsSelectable)
+                {
+                    GameManager.Instance.HandleStickmanSelection(stickman);
+                    Debug.Log($"[GameSelector] Selected stickman: {stickman.name}");
+                }
+            }
+        }
         #endregion
     }
 }

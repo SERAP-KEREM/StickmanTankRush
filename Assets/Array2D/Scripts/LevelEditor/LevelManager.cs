@@ -1,5 +1,6 @@
 using DG.Tweening;
 using LevelEditor;
+using SerapKeremGameTools._Game._AudioSystem;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -186,6 +187,7 @@ public class LevelManager : MonoBehaviour
 
         _isLevelInProgress = false;
         Debug.Log("=== LEVEL WON! ===");
+        AudioManager.Instance.PlayAudio(AudioKeys.LEVEL_WIN);
 
         _currentLevel.transform.DOScale(Vector3.one * 1.1f, 0.5f)
             .SetEase(Ease.OutBounce)
@@ -202,7 +204,7 @@ public class LevelManager : MonoBehaviour
         _isLevelInProgress = false;
         Debug.Log("=== LEVEL LOST! ===");
         Debug.Log("All holders are full! Press R to restart.");
-
+        AudioManager.Instance.PlayAudio(AudioKeys.LEVEL_LOSE);
         _currentLevel.transform.DOScale(Vector3.one * 0.9f, 0.5f)
             .SetEase(Ease.InBounce)
             .OnComplete(() => {

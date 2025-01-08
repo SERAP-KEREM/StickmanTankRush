@@ -482,6 +482,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ace2140f21c29f746a32b1b1e5475243, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnMouseDownEvent:
+    m_PersistentCalls:
+      m_Calls: []
+    m_CallsDirty: 1
 --- !u!4 &1446090110
 Transform:
   m_ObjectHideFlags: 0
@@ -521,6 +525,83 @@ MonoBehaviour:
   OnMousePositionInput:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1456288297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1456288299}
+  - component: {fileID: 1456288298}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1456288298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456288297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 984ab2fc06892cd4a93a19ee6df57853, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioClips:
+  - name: game_music
+    clip: {fileID: 8300000, guid: 83c63ad16c35bcf47ab83f8fdd829bfc, type: 3}
+    volume: 0.3
+    pitch: 0
+    loop: 1
+  - name: game_start
+    clip: {fileID: 8300000, guid: 0df435d2e7a8c8645a92f420cea50c40, type: 3}
+    volume: 0.5
+    pitch: 0
+    loop: 0
+  - name: stickman_click
+    clip: {fileID: 8300000, guid: f468ebc7c24e60541bc45199d20da521, type: 3}
+    volume: 0.5
+    pitch: 0
+    loop: 0
+  - name: level_win
+    clip: {fileID: 8300000, guid: 977ff7f3fa8767042ae5d61547e2570f, type: 3}
+    volume: 0.5
+    pitch: 0
+    loop: 0
+  - name: level_lose
+    clip: {fileID: 8300000, guid: 8c1bb81b7c6f8c14dabd2dabbcded507, type: 3}
+    volume: 0.5
+    pitch: 0
+    loop: 0
+  - name: tank_move
+    clip: {fileID: 8300000, guid: 280977793e4f2c242848a4aae71b9840, type: 3}
+    volume: 0.5
+    pitch: 0
+    loop: 0
+  audioPlayerPrefab: {fileID: 8573648614527833978, guid: 7c5474113d83d314385d6989bb528a31, type: 3}
+  poolSize: 10
+--- !u!4 &1456288299
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1456288297}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1512601090
 GameObject:
   m_ObjectHideFlags: 0
@@ -550,6 +631,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8008c4ef503b324d9d6c62516d53e00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _raycastLength: 10
 --- !u!4 &1512601092
 Transform:
   m_ObjectHideFlags: 0
@@ -818,3 +900,4 @@ SceneRoots:
   - {fileID: 1512601092}
   - {fileID: 1446090110}
   - {fileID: 1175818111}
+  - {fileID: 1456288299}
