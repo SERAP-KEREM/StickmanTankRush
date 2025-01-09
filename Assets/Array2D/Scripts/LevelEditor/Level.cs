@@ -1,5 +1,6 @@
 using _Main;
 using _Main._Stickman.StickmanGrid;
+using DG.Tweening;
 using LevelEditor;
 using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
@@ -24,13 +25,38 @@ public class Level : MonoSingleton<Level>
     public HolderManager HolderManager => holderManager;
 
     private bool _isInitialized = false;
-    #endregion
 
+    #endregion
+    #region Events
+    public static event System.Action OnLevelCompleted;
+    public static event System.Action OnLevelFailed;
+    #endregion
     #region Unity Lifecycle
     protected override void Awake()
     {
         base.Awake();
         FindReferences();
+        SubscribeToEvents();
+    }
+    private void SubscribeToEvents()
+    {
+        if (tankManager != null)
+        {
+            Debug.Log("[Level] Subscribing to TankManager events");
+            tankManager.OnAllTanksLeft += OnTankManagerCompleted;
+        }
+    }
+    private void UnsubscribeFromEvents()
+    {
+        if (tankManager != null)
+        {
+            tankManager.OnAllTanksLeft -= OnTankManagerCompleted;
+        }
+    }
+    private void OnTankManagerCompleted()
+    {
+        Debug.Log("[Level] All tanks completed, triggering level complete!");
+        CompleteLevel();
     }
 
     private void Start()
@@ -171,14 +197,30 @@ public class Level : MonoSingleton<Level>
     #region Level State
     public void CompleteLevel()
     {
-        if (!_isInitialized) return;
-        Debug.Log("Level completed!");
+        if (!_isInitialized)
+        {
+            Debug.LogWarning("[Level] Trying to complete uninitialized level!");
+            return;
+        }
+
+        Debug.Log("[Level] Level completed! Triggering OnLevelCompleted event");
+        OnLevelCompleted?.Invoke();
+
+        // Level animasyonu
+        transform.DOScale(Vector3.one * 1.1f, 0.5f)
+            .SetEase(Ease.OutBounce);
     }
 
     public void FailLevel()
     {
         if (!_isInitialized) return;
-        Debug.Log("Level failed!");
+
+        Debug.Log("[Level] Level failed! Triggering OnLevelFailed event");
+        OnLevelFailed?.Invoke();
+
+        // Level animasyonu
+        transform.DOScale(Vector3.one * 0.9f, 0.5f)
+            .SetEase(Ease.InBounce);
     }
     #endregion
 }

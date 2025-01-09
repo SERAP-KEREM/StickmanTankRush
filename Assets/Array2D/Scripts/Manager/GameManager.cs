@@ -6,6 +6,7 @@ using UnityEngine;
 using DG.Tweening;
 using SerapKeremGameTools._Game._Singleton;
 using SerapKeremGameTools._Game._AudioSystem;
+using System.Collections;
 
 namespace _Main
 {
@@ -38,18 +39,90 @@ namespace _Main
         private Stickman _selectedStickman;
 
         #endregion
-
+        [Header("UI References")]
+        [SerializeField] private GameplayUI _gameplayUI;
+        [Header("Score System")]
+        private float _lastMatchTime;
         #region Unity Lifecycle Methods
 
+        #region Game State
+        private bool _isPaused;
+        #endregion
         protected override void Awake()
         {
             base.Awake();
-            InitializeAudio();
+            InitializeAudioManager();
+        }
+        private void InitializeAudioManager()
+        {
+            if (AudioManager.Instance == null)
+            {
+                // Resources'dan AudioManager prefabını yükle
+                var audioManagerPrefab = Resources.Load<AudioManager>("Prefabs/AudioManager");
+
+                if (audioManagerPrefab != null)
+                {
+                    var audioManager = Instantiate(audioManagerPrefab);
+                    audioManager.name = "AudioManager";
+                    Debug.Log("[GameManager] AudioManager created from Resources");
+                }
+                else
+                {
+                    Debug.LogError("[GameManager] AudioManager prefab not found in Resources/Prefabs!");
+                }
+            }
+
+            StartCoroutine(InitializeAudioDelayed());
+        }
+
+        private IEnumerator InitializeAudioDelayed()
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            if (AudioManager.Instance != null)
+            {
+                InitializeAudio();
+            }
         }
         private void InitializeAudio()
         {
             AudioManager.Instance.PlayAudio(AudioKeys.GAME_MUSIC);
             AudioManager.Instance.PlayAudio(AudioKeys.GAME_START);
+        }
+        #endregion
+        #region UI Methods
+        public void PauseGame()
+        {
+            if (_isPaused) return;
+
+            _isPaused = true;
+            Time.timeScale = 0f;
+            AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
+            _gameplayUI?.Hide();
+        }
+
+        public void ResumeGame()
+        {
+            if (!_isPaused) return;
+
+            _isPaused = false;
+            Time.timeScale = 1f;
+            AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
+            _gameplayUI?.Show();
+        }
+        #endregion
+
+        #region Tank Progress Updates
+        private void UpdateTankProgress(Tank tank)
+        {
+            if (_gameplayUI != null && tank != null)
+            {
+                _gameplayUI.UpdateTankProgress(
+                    tank.StickmanCount,
+                    tank.MaxStickmanCount,
+                    tank.UnitColorType
+                );
+            }
         }
         #endregion
 
@@ -89,6 +162,12 @@ namespace _Main
             _stickmanGrid = level.StickmanGrid;
             _tileGrid = level.TileGrid;
             _holderManager = level.HolderManager;
+
+            if (_gameplayUI != null)
+            {
+                _gameplayUI.Show();
+                _gameplayUI.ResetProgress();
+            }
 
             // Validate references
             ValidateReferences();
@@ -166,6 +245,7 @@ namespace _Main
 
             if (nearestHolder != null)
             {
+                ScoreManager.Instance.OnHolderUsed();
                 ProcessStickmanMovement(stickman, null, nearestHolder);
                // Debug.Log($"Successfully moved stickman to holder: {nearestHolder.name}");
             }
@@ -186,11 +266,20 @@ namespace _Main
 
             ProcessStickmanMovement(stickman, currentTank);
             //Debug.Log($"Stickman moved to tank. Current count: {currentTank.StickmanCount}");
+            UpdateTankProgress(currentTank);
+
+            float matchTime = Time.time - _lastMatchTime;
+            if (matchTime < 1.5f)
+            {
+                ScoreManager.Instance.OnQuickMatch();
+            }
+            _lastMatchTime = Time.time;
 
             // Check if the tank is full
             if (currentTank.IsFull)
             {
-               // Debug.Log("Tank is full, moving to next tank...");
+                ScoreManager.Instance.OnTankCompleted();
+                // Debug.Log("Tank is full, moving to next tank...");
                 MoveNextTankToStopPoint();
             }
         }
@@ -240,6 +329,8 @@ namespace _Main
            // Debug.Log("Moving to the next tank.");
             _tankManager.MoveNextTankToStopPoint(); // Move the next tank to its stop point
             _tankManager.MoveOtherTanks(); // Reorganize other tanks
+
+            UpdateTankProgress(_tankManager.CurrentTank);
 
             MoveAllHolderStickmenToCurrentTank();
         }

@@ -23,7 +23,7 @@ namespace _Main._Tank
 
         [Header("Tank Configuration")]
         [SerializeField, Tooltip("Maximum number of stickmen the tank can hold.")]
-        private int _maxStickmanCount = 3;
+        public int MaxStickmanCount = 3;
 
         [SerializeField, Tooltip("Current state of the tank.")]
         private TankState _currentState = TankState.Waiting;
@@ -41,7 +41,7 @@ namespace _Main._Tank
         /// <summary>
         /// Gets whether the tank is full based on the current stickman count.
         /// </summary>
-        public bool IsFull => _stickmanCount >= _maxStickmanCount;
+        public bool IsFull => _stickmanCount >= MaxStickmanCount;
 
         /// <summary>
         /// Gets or sets the current state of the tank. Triggers an event when state changes.
@@ -141,7 +141,7 @@ namespace _Main._Tank
             StickmanCount++;
             //Debug.Log($"Tank {gameObject.name}: Stickman added. Count: {_stickmanCount}/{_maxStickmanCount}");
 
-            if (_stickmanCount >= _maxStickmanCount)
+            if (_stickmanCount >= MaxStickmanCount)
             {
                // Debug.Log($"Tank {gameObject.name} is now full!");
                 SetTankStateToMoving();
@@ -184,7 +184,7 @@ namespace _Main._Tank
         {
             //Debug.Log($"Tank {gameObject.name}: Checking full status. Count: {_stickmanCount}/{_maxStickmanCount}, Current State: {_currentState}");
 
-            if (_stickmanCount >= _maxStickmanCount)
+            if (_stickmanCount >= MaxStickmanCount)
             {
                // Debug.Log($"Tank {gameObject.name} should move now!");
                 SetTankStateToMoving();

@@ -1,11 +1,12 @@
 using DG.Tweening;
 using LevelEditor;
 using SerapKeremGameTools._Game._AudioSystem;
+using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LevelManager : MonoBehaviour
+public class LevelManager : MonoSingleton<LevelManager>
 {
     #region Fields
     [Header("Level Settings")]
@@ -23,10 +24,18 @@ public class LevelManager : MonoBehaviour
     public static event System.Action OnLevelWon;
     public static event System.Action OnLevelLost;
     #endregion
-
-    
+    [Header("UI References")]
+    [SerializeField] private GameplayUI _gameplayUI;
+    [SerializeField] private LevelCompleteUI _levelCompleteUI;
+    [SerializeField] private LevelFailedUI levelFailedUI;
+    private bool isTransitioning = false;
 
     #region Level Management
+
+    protected override void Awake()
+    {
+        base.Awake();
+    }
     private void Start()
     {
         if (_levelPrefabs != null && _levelPrefabs.Count > 0)
@@ -46,11 +55,21 @@ public class LevelManager : MonoBehaviour
             Debug.LogError($"Invalid level index: {levelIndex}");
             return;
         }
-
+        ScoreManager.Instance.ResetScores();
         StopAllCoroutines(); 
         StartCoroutine(LoadLevelSequence(levelIndex));
     }
+    private void OnEnable()
+    {
+        Level.OnLevelCompleted += HandleLevelWon;
+        Level.OnLevelFailed += HandleLevelLost;
+    }
 
+    private void OnDisable()
+    {
+        Level.OnLevelCompleted -= HandleLevelWon;
+        Level.OnLevelFailed -= HandleLevelLost;
+    }
     private IEnumerator LoadLevelSequence(int levelIndex)
     {
         UnsubscribeFromEvents();
@@ -61,15 +80,22 @@ public class LevelManager : MonoBehaviour
             yield return new WaitForSeconds(0.1f); 
         }
 
+
+        //Debug.Log($"Loading Level {levelIndex}: {levelPrefab.name} with data {levelData.name}");
+        if (_gameplayUI != null)
+        {
+            _gameplayUI.UpdateLevelText(levelIndex + 1); // Level numaras?n? güncelle
+            _gameplayUI.ResetProgress();
+            _gameplayUI.Show();
+        }
+
         Level levelPrefab = _levelPrefabs[levelIndex];
         LevelDataSO levelData = _levelDataList[levelIndex];
 
-        //Debug.Log($"Loading Level {levelIndex}: {levelPrefab.name} with data {levelData.name}");
-
         _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
         _currentLevel.transform.SetParent(transform, worldPositionStays: true);
-
         yield return null;
+
 
         _currentLevel.InitializeLevel(levelData);
 
@@ -183,25 +209,48 @@ public class LevelManager : MonoBehaviour
 
     private void HandleLevelWon()
     {
-        if (!_isLevelInProgress) return;
+
+        if (!_isLevelInProgress || isTransitioning) return;
 
         _isLevelInProgress = false;
-        Debug.Log("=== LEVEL WON! ===");
-        AudioManager.Instance.PlayAudio(AudioKeys.LEVEL_WIN);
+        isTransitioning = true;
+        ScoreData scoreData = ScoreManager.Instance.GetScoreData();
+        Debug.Log($"[LevelManager] Score calculated: {scoreData.TotalScore}");
 
+        // UI kontrolü
+        if (_levelCompleteUI == null)
+        {
+            Debug.LogError("[LevelManager] levelCompleteUI is null!");
+            return;
+        }
+        // Level animasyonu
         _currentLevel.transform.DOScale(Vector3.one * 1.1f, 0.5f)
             .SetEase(Ease.OutBounce)
             .OnComplete(() => {
-                OnLevelWon?.Invoke();
-                StartCoroutine(LoadNextLevelWithDelay(1f));
+                // Score hesapla ve UI'? göster
+                ScoreData scoreData = ScoreManager.Instance.GetScoreData();
+                _levelCompleteUI.Show(scoreData);
             });
+        // Ses efekti
+        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
+
     }
 
-    private void HandleLevelLost()
+private void HandleLevelLost()
     {
         if (!_isLevelInProgress) return;
 
         _isLevelInProgress = false;
+        isTransitioning = true;
+
+        _gameplayUI?.Hide();
+        // UI kontrolü
+        if (levelFailedUI != null)
+        {
+            Debug.Log("[LevelManager] Showing LevelFailedUI");
+            levelFailedUI.gameObject.SetActive(true);
+            levelFailedUI.Show();
+        }
         Debug.Log("=== LEVEL LOST! ===");
         Debug.Log("All holders are full! Press R to restart.");
         AudioManager.Instance.PlayAudio(AudioKeys.LEVEL_LOSE);
@@ -211,7 +260,7 @@ public class LevelManager : MonoBehaviour
                 OnLevelLost?.Invoke();
             });
     }
-
+   
     private IEnumerator LoadNextLevelWithDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -221,10 +270,28 @@ public class LevelManager : MonoBehaviour
     #region Public Methods
     public void LoadNextLevel()
     {
-        _currentLevelIndex = (_currentLevelIndex + 1) % _levelPrefabs.Count;
-        StartLevel(_currentLevelIndex);
-    }
+        if (isTransitioning)
+        {
+            Debug.Log("[LevelManager] Already transitioning to next level");
+            return;
+        }
 
+        int nextLevelIndex = _currentLevelIndex + 1;
+        if (nextLevelIndex >= _levelPrefabs.Count)
+        {
+            nextLevelIndex = 0;
+        }
+
+        StartLevel(nextLevelIndex);
+        isTransitioning = false;
+    }
+    public void OnNextLevelButtonClicked()
+    {
+        if (!isTransitioning) return;
+
+        isTransitioning = false;
+        LoadNextLevel();
+    }
     public void RestartLevel()
     {
         StartLevel(_currentLevelIndex);
