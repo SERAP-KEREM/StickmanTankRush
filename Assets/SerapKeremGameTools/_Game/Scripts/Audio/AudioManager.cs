@@ -29,6 +29,20 @@ namespace SerapKeremGameTools._Game._AudioSystem
         // Holds the currently playing audio name
         private string currentAudio = string.Empty;
 
+        [Header("Audio Sources")]
+        [SerializeField] private AudioSource musicSource;
+        [SerializeField] private AudioSource soundSource;
+
+        [Header("Volume Settings")]
+        [SerializeField] private float defaultSoundVolume = 1f;
+        [SerializeField] private float defaultMusicVolume = 1f;
+
+        private float soundVolume;
+        private float musicVolume;
+
+        public float SoundVolume => soundVolume;
+        public float MusicVolume => musicVolume;
+
         /// <summary>
         /// Initializes the AudioManager instance and sets up the audio pool.
         /// Ensures only one instance of AudioManager exists and loads audio clips.
@@ -42,8 +56,81 @@ namespace SerapKeremGameTools._Game._AudioSystem
 
             // Load the audio clips from Resources folder
             LoadAudioClips();
+            InitializeVolumes();
+        }
+        private void InitializeVolumes()
+        {
+            soundVolume = PlayerPrefs.GetFloat("SoundVolume", defaultSoundVolume);
+            musicVolume = PlayerPrefs.GetFloat("MusicVolume", defaultMusicVolume);
+
+            ApplyVolumeSettings();
+        }
+        private void ApplyVolumeSettings()
+        {
+            if (soundSource != null)
+                soundSource.volume = soundVolume;
+
+            if (musicSource != null)
+                musicSource.volume = musicVolume;
         }
 
+        public void PlaySound(AudioClip clip, float volumeMultiplier = 1f)
+        {
+            if (soundSource != null && clip != null)
+            {
+                soundSource.PlayOneShot(clip, soundVolume * volumeMultiplier);
+            }
+        }
+
+        public void PlayMusic(AudioClip clip)
+        {
+            if (musicSource != null && clip != null)
+            {
+                musicSource.clip = clip;
+                musicSource.volume = musicVolume;
+                musicSource.loop = true;
+                musicSource.Play();
+            }
+        }
+
+        public void StopMusic()
+        {
+            if (musicSource != null)
+            {
+                musicSource.Stop();
+            }
+        }
+
+        private void OnApplicationQuit()
+        {
+            PlayerPrefs.SetFloat("SoundVolume", soundVolume);
+            PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+            PlayerPrefs.Save();
+        }
+        public void SetSoundVolume(float volume)
+        {
+            soundVolume = Mathf.Clamp01(volume);
+
+            if (soundSource != null)
+                soundSource.volume = soundVolume;
+
+            PlayerPrefs.SetFloat("SoundVolume", soundVolume);
+            PlayerPrefs.Save();
+
+            Debug.Log($"[AudioManager] Sound volume set to: {soundVolume}");
+        }
+
+        public void SetMusicVolume(float volume)
+        {
+            musicVolume = Mathf.Clamp01(volume);
+
+            if (musicSource != null)
+                musicSource.volume = musicVolume;
+
+            PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+            PlayerPrefs.Save();
+
+        }
         /// <summary>
         /// Initializes the ObjectPool for AudioPlayers with a specified pool size.
         /// </summary>

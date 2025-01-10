@@ -5,7 +5,6 @@ using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class LevelManager : MonoSingleton<LevelManager>
 {
     #region Fields
@@ -14,8 +13,14 @@ public class LevelManager : MonoSingleton<LevelManager>
     [SerializeField] private List<LevelDataSO> _levelDataList;
     [SerializeField] private float _transitionDuration = 1f;
 
-    [SerializeField] private Level _currentLevel;
+    [Header("UI References")]
+    [SerializeField] private GameplayUI _gameplayUI;
+    [SerializeField] private LevelCompleteUI _levelCompleteUI;
+    [SerializeField] private LevelFailedUI levelFailedUI;
+
+    private Level _currentLevel;
     private bool _isLevelInProgress;
+    private bool _isTransitioning;
     private int _currentLevelIndex;
     #endregion
 
@@ -24,41 +29,19 @@ public class LevelManager : MonoSingleton<LevelManager>
     public static event System.Action OnLevelWon;
     public static event System.Action OnLevelLost;
     #endregion
-    [Header("UI References")]
-    [SerializeField] private GameplayUI _gameplayUI;
-    [SerializeField] private LevelCompleteUI _levelCompleteUI;
-    [SerializeField] private LevelFailedUI levelFailedUI;
-    private bool isTransitioning = false;
 
-    #region Level Management
-
+    #region Unity Lifecycle
     protected override void Awake()
     {
         base.Awake();
+        ValidateReferences();
     }
+
     private void Start()
     {
-        if (_levelPrefabs != null && _levelPrefabs.Count > 0)
-        {
-            _currentLevelIndex = 0;
-            StartLevel(_currentLevelIndex);
-        }
-        else
-        {
-            Debug.LogError("No level prefabs assigned to LevelManager!");
-        }
+        InitializeFirstLevel();
     }
-    private void StartLevel(int levelIndex)
-    {
-        if (!ValidateLevelIndex(levelIndex))
-        {
-            Debug.LogError($"Invalid level index: {levelIndex}");
-            return;
-        }
-        ScoreManager.Instance.ResetScores();
-        StopAllCoroutines(); 
-        StartCoroutine(LoadLevelSequence(levelIndex));
-    }
+
     private void OnEnable()
     {
         Level.OnLevelCompleted += HandleLevelWon;
@@ -70,56 +53,267 @@ public class LevelManager : MonoSingleton<LevelManager>
         Level.OnLevelCompleted -= HandleLevelWon;
         Level.OnLevelFailed -= HandleLevelLost;
     }
-    private IEnumerator LoadLevelSequence(int levelIndex)
+
+    private void OnDestroy()
     {
         UnsubscribeFromEvents();
-        if (_currentLevel != null)
+    }
+    #endregion
+
+    #region Initialization
+    private void ValidateReferences()
+    {
+        if (_gameplayUI == null) Debug.LogError("[LevelManager] GameplayUI reference is missing!");
+        if (_levelCompleteUI == null) Debug.LogError("[LevelManager] LevelCompleteUI reference is missing!");
+        if (levelFailedUI == null) Debug.LogError("[LevelManager] LevelFailedUI reference is missing!");
+    }
+
+    private void InitializeFirstLevel()
+    {
+        if (_levelPrefabs != null && _levelPrefabs.Count > 0)
         {
-            Destroy(_currentLevel.gameObject);
-            _currentLevel = null;
-            yield return new WaitForSeconds(0.1f); 
+            _currentLevelIndex = 0;
+            StartLevel(_currentLevelIndex);
+        }
+        else
+        {
+            Debug.LogError("[LevelManager] No level prefabs assigned!");
+        }
+    }
+    #endregion
+
+    #region Level Management
+    private void StartLevel(int levelIndex)
+    {
+        if (!ValidateLevelIndex(levelIndex))
+        {
+            Debug.LogError($"[LevelManager] Invalid level index: {levelIndex}");
+            return;
         }
 
+        _isLevelInProgress = true;
+        _isTransitioning = false;
 
-        //Debug.Log($"Loading Level {levelIndex}: {levelPrefab.name} with data {levelData.name}");
-        if (_gameplayUI != null)
-        {
-            _gameplayUI.UpdateLevelText(levelIndex + 1); // Level numaras?n? güncelle
-            _gameplayUI.ResetProgress();
-            _gameplayUI.Show();
-        }
+        ScoreManager.Instance.ResetScores();
+        StopAllCoroutines();
+        StartCoroutine(LoadLevelSequence(levelIndex));
+    }
 
-        Level levelPrefab = _levelPrefabs[levelIndex];
-        LevelDataSO levelData = _levelDataList[levelIndex];
+    private IEnumerator LoadLevelSequence(int levelIndex)
+    {
+        Debug.Log($"[LevelManager] Starting level sequence for level {levelIndex}");
 
-        _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
-        _currentLevel.transform.SetParent(transform, worldPositionStays: true);
-        yield return null;
+        UnsubscribeFromEvents();
+        yield return CleanupCurrentLevel();
+        yield return CreateNewLevel(levelIndex);
+        yield return InitializeNewLevel(levelIndex);
 
-
-        _currentLevel.InitializeLevel(levelData);
-
-        yield return null;
-
-        if (!ValidateLevelComponents())
-        {
-            Debug.LogError($"Level {levelIndex} failed to initialize components properly!");
-            yield break;
-        }
-        SubscribeToEvents();
+        // Animate level entry
         _currentLevel.transform.localScale = Vector3.zero;
         _currentLevel.transform.DOScale(Vector3.one, _transitionDuration)
             .SetEase(Ease.OutBounce)
             .OnComplete(() => {
                 _isLevelInProgress = true;
                 OnLevelStarted?.Invoke();
-                //Debug.Log($"Level {levelIndex} started successfully");
+                Debug.Log($"[LevelManager] Level {levelIndex} started successfully");
             });
     }
-    private void OnDestroy()
+
+    private IEnumerator CleanupCurrentLevel()
     {
-        UnsubscribeFromEvents();
+        if (_currentLevel != null)
+        {
+            Destroy(_currentLevel.gameObject);
+            _currentLevel = null;
+            yield return new WaitForSeconds(0.1f);
+        }
     }
+
+    private IEnumerator CreateNewLevel(int levelIndex)
+    {
+        Level levelPrefab = _levelPrefabs[levelIndex];
+        _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
+        _currentLevel.transform.SetParent(transform, worldPositionStays: true);
+        yield return null;
+    }
+
+    private IEnumerator InitializeNewLevel(int levelIndex)
+    {
+        LevelDataSO levelData = _levelDataList[levelIndex];
+        _currentLevel.InitializeLevel(levelData);
+
+        if (_gameplayUI != null)
+        {
+            _gameplayUI.UpdateLevelText(levelIndex + 1);
+            _gameplayUI.ResetProgress();
+            _gameplayUI.Show();
+        }
+
+        yield return null;
+
+        if (!ValidateLevelComponents())
+        {
+            Debug.LogError($"[LevelManager] Level {levelIndex} failed to initialize!");
+            yield break;
+        }
+
+        SubscribeToEvents();
+    }
+    #endregion
+
+    #region Win/Lose Handling
+    private void HandleLevelWon()
+    {
+        if (!_isLevelInProgress || _isTransitioning)
+        {
+            Debug.Log("[LevelManager] Ignoring level won - not in progress or transitioning");
+            return;
+        }
+
+        Debug.Log("[LevelManager] Level Won!");
+        _isLevelInProgress = false;
+        _isTransitioning = true;
+
+        // Score calculation
+        ScoreData scoreData = ScoreManager.Instance.GetScoreData();
+        Debug.Log($"[LevelManager] Final Score: {scoreData.TotalScore}");
+
+        // Level animation
+        _currentLevel.transform.DOScale(Vector3.one * 1.1f, 0.5f)
+            .SetEase(Ease.OutBounce)
+            .OnComplete(() => {
+                ShowLevelCompleteUI(scoreData);
+            });
+
+        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
+        OnLevelWon?.Invoke();
+    }
+
+    private void ShowLevelCompleteUI(ScoreData scoreData)
+    {
+        if (_levelCompleteUI != null)
+        {
+            // Ensure UI is active
+            Canvas parentCanvas = _levelCompleteUI.GetComponentInParent<Canvas>();
+            if (parentCanvas != null && !parentCanvas.gameObject.activeSelf)
+            {
+                parentCanvas.gameObject.SetActive(true);
+            }
+
+            _levelCompleteUI.gameObject.SetActive(true);
+            _levelCompleteUI.Show(scoreData);
+            Debug.Log("[LevelManager] Level complete UI shown");
+        }
+        else
+        {
+            Debug.LogError("[LevelManager] LevelCompleteUI reference is missing!");
+        }
+    }
+
+    private void HandleLevelLost()
+    {
+        if (!_isLevelInProgress)
+        {
+            Debug.Log("[LevelManager] Ignoring level lost - not in progress");
+            return;
+        }
+
+        Debug.Log("[LevelManager] Level Lost!");
+        _isLevelInProgress = false;
+        _isTransitioning = true;
+
+        _gameplayUI?.Hide();
+
+        if (levelFailedUI != null)
+        {
+            levelFailedUI.gameObject.SetActive(true);
+            levelFailedUI.Show();
+        }
+
+        _currentLevel.transform.DOScale(Vector3.one * 0.9f, 0.5f)
+            .SetEase(Ease.InBounce)
+            .OnComplete(() => {
+                OnLevelLost?.Invoke();
+            });
+
+        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_LOSE);
+    }
+    #endregion
+
+    #region Public Methods
+    public void LoadNextLevel()
+    {
+        _currentLevelIndex = (_currentLevelIndex + 1) % _levelPrefabs.Count;
+        StartLevel(_currentLevelIndex);
+    }
+
+    public void RestartLevel()
+    {
+        StartLevel(_currentLevelIndex);
+    }
+
+    public void OnNextLevelButtonClicked()
+    {
+        if (!_isTransitioning) return;
+        _isTransitioning = false;
+        LoadNextLevel();
+    }
+    #endregion
+
+    #region Utility Methods
+    private void SubscribeToEvents()
+    {
+        if (_currentLevel != null)
+        {
+            _currentLevel.TankManager.OnAllTanksLeft += HandleLevelWon;
+            _currentLevel.HolderManager.OnAllHoldersFull += HandleLevelLost;
+        }
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        if (_currentLevel != null)
+        {
+            _currentLevel.TankManager.OnAllTanksLeft -= HandleLevelWon;
+            _currentLevel.HolderManager.OnAllHoldersFull -= HandleLevelLost;
+        }
+    }
+
+    private bool ValidateLevelIndex(int levelIndex)
+    {
+        if (_levelPrefabs == null || _levelPrefabs.Count == 0)
+        {
+            Debug.LogError("[LevelManager] No level prefabs assigned!");
+            return false;
+        }
+
+        if (_levelDataList == null || _levelDataList.Count == 0)
+        {
+            Debug.LogError("[LevelManager] No level data assigned!");
+            return false;
+        }
+
+        if (levelIndex < 0 || levelIndex >= _levelPrefabs.Count)
+        {
+            Debug.LogError($"[LevelManager] Level index {levelIndex} is out of range!");
+            return false;
+        }
+
+        if (levelIndex >= _levelDataList.Count)
+        {
+            Debug.LogError($"[LevelManager] No level data for index {levelIndex}!");
+            return false;
+        }
+
+        if (_levelPrefabs[levelIndex] == null)
+        {
+            Debug.LogError($"[LevelManager] Level prefab at index {levelIndex} is null!");
+            return false;
+        }
+
+        return true;
+    }
+
     private bool ValidateLevelComponents()
     {
         if (_currentLevel == null) return false;
@@ -147,170 +341,18 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         if (!isValid)
         {
-            Debug.LogError($"Level component validation failed:\n{errors}");
+            Debug.LogError($"[LevelManager] Level component validation failed:\n{errors}");
         }
 
         return isValid;
-    }
-
-    private bool ValidateLevelIndex(int levelIndex)
-    {
-        if (_levelPrefabs == null || _levelPrefabs.Count == 0)
-        {
-            Debug.LogError("No level prefabs assigned!");
-            return false;
-        }
-
-        if (_levelDataList == null || _levelDataList.Count == 0)
-        {
-            Debug.LogError("No level data assigned!");
-            return false;
-        }
-
-        if (levelIndex < 0 || levelIndex >= _levelPrefabs.Count)
-        {
-            Debug.LogError($"Level index {levelIndex} is out of range!");
-            return false;
-        }
-
-        if (levelIndex >= _levelDataList.Count)
-        {
-            Debug.LogError($"No level data for index {levelIndex}!");
-            return false;
-        }
-
-        if (_levelPrefabs[levelIndex] == null)
-        {
-            Debug.LogError($"Level prefab at index {levelIndex} is null!");
-            return false;
-        }
-
-        return true;
-    }
-    #endregion
-    #region Win/Lose System
-    private void SubscribeToEvents()
-    {
-        if (_currentLevel != null)
-        {
-            _currentLevel.TankManager.OnAllTanksLeft += HandleLevelWon;
-            _currentLevel.HolderManager.OnAllHoldersFull += HandleLevelLost;
-        }
-    }
-
-    private void UnsubscribeFromEvents()
-    {
-        if (_currentLevel != null)
-        {
-            _currentLevel.TankManager.OnAllTanksLeft -= HandleLevelWon;
-            _currentLevel.HolderManager.OnAllHoldersFull -= HandleLevelLost;
-        }
-    }
-
-    private void HandleLevelWon()
-    {
-
-        if (!_isLevelInProgress || isTransitioning) return;
-
-        _isLevelInProgress = false;
-        isTransitioning = true;
-        ScoreData scoreData = ScoreManager.Instance.GetScoreData();
-        Debug.Log($"[LevelManager] Score calculated: {scoreData.TotalScore}");
-
-        // UI kontrolü
-        if (_levelCompleteUI == null)
-        {
-            Debug.LogError("[LevelManager] levelCompleteUI is null!");
-            return;
-        }
-        // Level animasyonu
-        _currentLevel.transform.DOScale(Vector3.one * 1.1f, 0.5f)
-            .SetEase(Ease.OutBounce)
-            .OnComplete(() => {
-                // Score hesapla ve UI'? göster
-                ScoreData scoreData = ScoreManager.Instance.GetScoreData();
-                _levelCompleteUI.Show(scoreData);
-            });
-        // Ses efekti
-        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
-
-    }
-
-private void HandleLevelLost()
-    {
-        if (!_isLevelInProgress) return;
-
-        _isLevelInProgress = false;
-        isTransitioning = true;
-
-        _gameplayUI?.Hide();
-        // UI kontrolü
-        if (levelFailedUI != null)
-        {
-            Debug.Log("[LevelManager] Showing LevelFailedUI");
-            levelFailedUI.gameObject.SetActive(true);
-            levelFailedUI.Show();
-        }
-        Debug.Log("=== LEVEL LOST! ===");
-        Debug.Log("All holders are full! Press R to restart.");
-        AudioManager.Instance.PlayAudio(AudioKeys.LEVEL_LOSE);
-        _currentLevel.transform.DOScale(Vector3.one * 0.9f, 0.5f)
-            .SetEase(Ease.InBounce)
-            .OnComplete(() => {
-                OnLevelLost?.Invoke();
-            });
-    }
-   
-    private IEnumerator LoadNextLevelWithDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        LoadNextLevel();
-    }
-    #endregion
-    #region Public Methods
-    public void LoadNextLevel()
-    {
-        if (isTransitioning)
-        {
-            Debug.Log("[LevelManager] Already transitioning to next level");
-            return;
-        }
-
-        int nextLevelIndex = _currentLevelIndex + 1;
-        if (nextLevelIndex >= _levelPrefabs.Count)
-        {
-            nextLevelIndex = 0;
-        }
-
-        StartLevel(nextLevelIndex);
-        isTransitioning = false;
-    }
-    public void OnNextLevelButtonClicked()
-    {
-        if (!isTransitioning) return;
-
-        isTransitioning = false;
-        LoadNextLevel();
-    }
-    public void RestartLevel()
-    {
-        StartLevel(_currentLevelIndex);
-    }
-
-    public void LoadSpecificLevel(int index)
-    {
-        if (ValidateLevelIndex(index))
-        {
-            _currentLevelIndex = index;
-            StartLevel(_currentLevelIndex);
-        }
     }
     #endregion
 
     #region Debug
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.N)) 
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.N))
         {
             LoadNextLevel();
         }
@@ -318,6 +360,7 @@ private void HandleLevelLost()
         {
             RestartLevel();
         }
+#endif
     }
     #endregion
 }
