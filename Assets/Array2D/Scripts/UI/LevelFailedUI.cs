@@ -4,111 +4,148 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Manages the Level Failed UI, including showing animations, button functionality, 
+/// and interactions with the LevelManager.
+/// </summary>
 public class LevelFailedUI : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private CanvasGroup canvasGroup;
-    [SerializeField] private TextMeshProUGUI titleText;
-    [SerializeField] private Button retryButton;
-    [SerializeField] private Button mainMenuButton;
+    [Tooltip("The canvas group for controlling UI visibility and interaction.")]
+    [SerializeField] private CanvasGroup _canvasGroup;
+
+    [Tooltip("The title text displaying the 'Level Failed' message.")]
+    [SerializeField] private TextMeshProUGUI _titleText;
+
+    [Tooltip("Button for retrying the current level.")]
+    [SerializeField] private Button _retryButton;
+
+    [Tooltip("Button for returning to the main menu.")]
+    [SerializeField] private Button _mainMenuButton;
 
     [Header("Animation Settings")]
-    [SerializeField] private float showDelay = 0.5f;
-    [SerializeField] private float fadeInDuration = 0.3f;
-    [SerializeField] private float buttonAnimDelay = 0.2f;
+    [Tooltip("Delay before showing the UI.")]
+    [SerializeField, Range(0f, 2f)] private float _showDelay = 0.5f;
+
+    [Tooltip("Duration for fading in the UI.")]
+    [SerializeField, Range(0f, 1f)] private float _fadeInDuration = 0.3f;
+
+    [Tooltip("Delay between button animations.")]
+    [SerializeField, Range(0f, 1f)] private float _buttonAnimDelay = 0.2f;
 
     private void Awake()
     {
-        if (canvasGroup == null)
-            canvasGroup = GetComponent<CanvasGroup>();
+        if (_canvasGroup == null)
+        {
+            Debug.LogWarning("[LevelFailedUI] CanvasGroup is not assigned. Attempting to find it.");
+            _canvasGroup = GetComponent<CanvasGroup>();
+        }
 
         InitializeButtons();
         Hide(true);
     }
 
+    /// <summary>
+    /// Initializes button click listeners.
+    /// </summary>
     private void InitializeButtons()
     {
-        retryButton.onClick.AddListener(OnRetryClicked);
-        mainMenuButton.onClick.AddListener(OnMainMenuClicked);
+        _retryButton.onClick.AddListener(OnRetryClicked);
+        _mainMenuButton.onClick.AddListener(OnMainMenuClicked);
     }
 
+    /// <summary>
+    /// Displays the Level Failed UI with animations.
+    /// </summary>
     public void Show()
     {
-        Debug.Log("[LevelFailedUI] Show called");
+        Debug.Log("[LevelFailedUI] Show called.");
         gameObject.SetActive(true);
 
-        // Reset everything
         ResetUI();
 
-        // Start animation sequence
-        DOVirtual.DelayedCall(showDelay, () => {
-            // Panel fade in
-            canvasGroup.DOFade(1f, fadeInDuration);
-            canvasGroup.interactable = true;
-            canvasGroup.blocksRaycasts = true;
+        DOVirtual.DelayedCall(_showDelay, () =>
+        {
+            _canvasGroup.DOFade(1f, _fadeInDuration);
+            _canvasGroup.interactable = true;
+            _canvasGroup.blocksRaycasts = true;
 
-            // Title bounce
-            titleText.transform.DOScale(1f, fadeInDuration)
-                .SetEase(Ease.OutBack);
+            _titleText.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack);
 
-            // Buttons sequence
-            DOVirtual.DelayedCall(buttonAnimDelay, () => {
-                retryButton.transform.DOScale(1f, fadeInDuration)
-                    .SetEase(Ease.OutBack);
-            });
+            DOVirtual.DelayedCall(_buttonAnimDelay, () =>
+                _retryButton.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack));
 
-            DOVirtual.DelayedCall(buttonAnimDelay * 2, () => {
-                mainMenuButton.transform.DOScale(1f, fadeInDuration)
-                    .SetEase(Ease.OutBack);
-            });
+            DOVirtual.DelayedCall(_buttonAnimDelay * 2, () =>
+                _mainMenuButton.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack));
 
-            // Sound effect
             AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_FAIL);
         });
     }
 
+    /// <summary>
+    /// Resets the UI elements to their initial state.
+    /// </summary>
     private void ResetUI()
     {
-        canvasGroup.alpha = 0f;
-        titleText.transform.localScale = Vector3.zero;
-        retryButton.transform.localScale = Vector3.zero;
-        mainMenuButton.transform.localScale = Vector3.zero;
+        _canvasGroup.alpha = 0f;
+        _titleText.transform.localScale = Vector3.zero;
+        _retryButton.transform.localScale = Vector3.zero;
+        _mainMenuButton.transform.localScale = Vector3.zero;
     }
 
+    /// <summary>
+    /// Hides the Level Failed UI, optionally instantly.
+    /// </summary>
+    /// <param name="instant">Whether to hide the UI instantly or with a fade-out animation.</param>
     public void Hide(bool instant = false)
     {
         if (instant)
         {
-            canvasGroup.alpha = 0f;
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
             gameObject.SetActive(false);
         }
         else
         {
-            canvasGroup.DOFade(0f, fadeInDuration)
-                .OnComplete(() => {
-                    canvasGroup.interactable = false;
-                    canvasGroup.blocksRaycasts = false;
+            _canvasGroup.DOFade(0f, _fadeInDuration)
+                .OnComplete(() =>
+                {
+                    _canvasGroup.interactable = false;
+                    _canvasGroup.blocksRaycasts = false;
                     gameObject.SetActive(false);
                 });
         }
     }
 
+    /// <summary>
+    /// Handles the retry button click event.
+    /// </summary>
     private void OnRetryClicked()
     {
-        Debug.Log("[LevelFailedUI] Retry clicked");
+        Debug.Log("[LevelFailedUI] Retry button clicked.");
         AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
         Hide();
         LevelManager.Instance.RestartLevel();
     }
 
+    /// <summary>
+    /// Handles the main menu button click event.
+    /// </summary>
     private void OnMainMenuClicked()
     {
-        Debug.Log("[LevelFailedUI] Main Menu clicked");
+        Debug.Log("[LevelFailedUI] Main Menu button clicked.");
         AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
         Hide();
-        // TODO: Ana menüye dön
+        // TODO: Implement main menu navigation.
         // SceneManager.LoadScene("MainMenu");
+    }
+
+    /// <summary>
+    /// Cleans up DOTween animations when the object is destroyed.
+    /// </summary>
+    private void OnDestroy()
+    {
+        DOTween.Kill(this);
     }
 }

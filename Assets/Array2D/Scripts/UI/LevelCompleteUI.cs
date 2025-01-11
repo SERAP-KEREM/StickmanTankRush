@@ -7,128 +7,137 @@ using UnityEngine.UI;
 public class LevelCompleteUI : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private CanvasGroup canvasGroup;
-    [SerializeField] private TextMeshProUGUI titleText;
-    [SerializeField] private TextMeshProUGUI scoreText;
-    [SerializeField] private Transform starsContainer;
-    [SerializeField] private Image[] starImages;
-    [SerializeField] private Button nextLevelButton;
+    [Tooltip("CanvasGroup for fading in/out the LevelComplete UI.")]
+    [SerializeField] private CanvasGroup _canvasGroup;
+
+    [Tooltip("Displays the title of the UI (e.g., 'Level Complete').")]
+    [SerializeField] private TextMeshProUGUI _titleText;
+
+    [Tooltip("Displays the player's score.")]
+    [SerializeField] private TextMeshProUGUI _scoreText;
+
+    [Tooltip("Container for the star images.")]
+    [SerializeField] private Transform _starsContainer;
+
+    [Tooltip("Array of images representing stars.")]
+    [SerializeField] private Image[] _starImages;
+
+    [Tooltip("Button to proceed to the next level.")]
+    [SerializeField] private Button _nextLevelButton;
 
     [Header("Animation Settings")]
-    [SerializeField] private float showDelay = 0.5f;
-    [SerializeField] private float fadeInDuration = 0.3f;
-    [SerializeField] private float starAnimDuration = 0.5f;
-    [SerializeField] private float scoreCountDuration = 1f;
+    [Tooltip("Delay before the UI starts showing.")]
+    [SerializeField, Range(0.1f, 1f)] private float _showDelay = 0.5f;
+
+    [Tooltip("Duration for fade-in animations.")]
+    [SerializeField, Range(0.1f, 1f)] private float _fadeInDuration = 0.3f;
+
+    [Tooltip("Duration for star animation.")]
+    [SerializeField, Range(0.1f, 1f)] private float _starAnimDuration = 0.5f;
+
+    [Tooltip("Duration for score counting animation.")]
+    [SerializeField, Range(0.5f, 2f)] private float _scoreCountDuration = 1f;
 
     [Header("Visual Settings")]
-    [SerializeField] private Color starActiveColor = Color.yellow;
-    [SerializeField] private Color starInactiveColor = Color.gray;
+    [Tooltip("Color for active stars.")]
+    [SerializeField] private Color _starActiveColor = Color.yellow;
+
+    [Tooltip("Color for inactive stars.")]
+    [SerializeField] private Color _starInactiveColor = Color.gray;
 
     private void Awake()
     {
-        nextLevelButton.onClick.AddListener(OnNextLevelClicked);
+        _nextLevelButton.onClick.AddListener(OnNextLevelClicked);
         Hide(true);
-
     }
+
+    /// <summary>
+    /// Hides the LevelComplete UI.
+    /// </summary>
     public void Hide(bool instant = false)
     {
         if (instant)
         {
-            canvasGroup.alpha = 0f;
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.interactable = false;
+            _canvasGroup.blocksRaycasts = false;
             gameObject.SetActive(false);
         }
         else
         {
-            canvasGroup.DOFade(0f, 0.3f).OnComplete(() => {
-                canvasGroup.interactable = false;
-                canvasGroup.blocksRaycasts = false;
+            _canvasGroup.DOFade(0f, _fadeInDuration).OnComplete(() =>
+            {
+                _canvasGroup.interactable = false;
+                _canvasGroup.blocksRaycasts = false;
                 gameObject.SetActive(false);
             });
         }
     }
 
+    /// <summary>
+    /// Displays the LevelComplete UI with score and stars.
+    /// </summary>
     public void Show(ScoreData scoreData)
     {
-        Debug.Log($"[LevelCompleteUI] Show called with score: {scoreData.TotalScore}");
-
         gameObject.SetActive(true);
 
-        // CanvasGroup kontrolü
-        if (canvasGroup == null)
+        if (_canvasGroup == null)
         {
-            Debug.LogError("[LevelCompleteUI] CanvasGroup is still null!");
+            Debug.LogError("[LevelCompleteUI] CanvasGroup is missing!");
             return;
         }
 
-        // UI'? göster
-        canvasGroup.alpha = 1f;
-        canvasGroup.interactable = true;
-        canvasGroup.blocksRaycasts = true;
+        _canvasGroup.alpha = 1f;
+        _canvasGroup.interactable = true;
+        _canvasGroup.blocksRaycasts = true;
 
-        // Score'u göster
-        scoreText.text = $"Score: {scoreData.TotalScore}";
+        _scoreText.text = $"Score: {scoreData.TotalScore}";
 
-        // Y?ld?zlar? göster
-        ShowStars(scoreData.Stars);
+        AnimateStars(scoreData.Stars);
 
         AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
     }
-    private void ShowStars(int starCount)
-    {
-        Debug.Log($"[LevelCompleteUI] Showing {starCount} stars");
 
-        for (int i = 0; i < starImages.Length; i++)
-        {
-            if (i < starCount)
-            {
-                starImages[i].color = Color.yellow;
-                starImages[i].transform.DOScale(1f, 0.5f).SetEase(Ease.OutBounce);
-                AudioManager.Instance?.PlayAudio(AudioKeys.STAR_EARNED);
-            }
-            else
-            {
-                starImages[i].color = Color.gray;
-                starImages[i].transform.localScale = Vector3.one * 0.7f;
-            }
-        }
-    }
+    /// <summary>
+    /// Animates stars based on the number of stars earned.
+    /// </summary>
     private void AnimateStars(int starCount)
     {
-        for (int i = 0; i < starImages.Length; i++)
+        for (int i = 0; i < _starImages.Length; i++)
         {
             float delay = 0.2f * i;
-            Image star = starImages[i];
+            Image star = _starImages[i];
 
             if (i < starCount)
             {
-                // Active star animation
-                DOVirtual.DelayedCall(delay, () => {
-                    star.color = starActiveColor;
-                    star.transform.DOScale(1f, starAnimDuration)
+                DOVirtual.DelayedCall(delay, () =>
+                {
+                    star.color = _starActiveColor;
+                    star.transform.DOScale(1f, _starAnimDuration)
                         .SetEase(Ease.OutBack);
-                    AudioManager.Instance.PlayAudio(AudioKeys.STAR_EARNED);
+                    AudioManager.Instance?.PlayAudio(AudioKeys.STAR_EARNED);
                 });
             }
             else
             {
-                // Inactive star
-                star.color = starInactiveColor;
+                star.color = _starInactiveColor;
                 star.transform.localScale = Vector3.one * 0.7f;
             }
         }
     }
 
+    /// <summary>
+    /// Handles the Next Level button click event.
+    /// </summary>
     private void OnNextLevelClicked()
     {
-        AudioManager.Instance.PlayAudio(AudioKeys.UI_CLICK);
+        AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
 
-        // Fade out animation
-        canvasGroup.DOFade(0f, fadeInDuration)
-            .OnComplete(() => {
+        _canvasGroup.DOFade(0f, _fadeInDuration)
+            .OnComplete(() =>
+            {
                 gameObject.SetActive(false);
-                LevelManager.Instance.OnNextLevelButtonClicked();
+                LevelManager.Instance?.OnNextLevelButtonClicked();
             });
     }
 }

@@ -5,69 +5,109 @@ using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class LevelManager : MonoSingleton<LevelManager>
 {
     #region Fields
+
     [Header("Level Settings")]
-    [SerializeField] private List<Level> _levelPrefabs;
-    [SerializeField] private List<LevelDataSO> _levelDataList;
-    [SerializeField] private float _transitionDuration = 1f;
+    [SerializeField, Tooltip("List of level prefabs to be instantiated.")]
+    private List<Level> _levelPrefabs;
+
+    [SerializeField, Tooltip("List of level data scriptable objects.")]
+    private List<LevelDataSO> _levelDataList;
+
+    [SerializeField, Tooltip("Duration of transition animations."), Range(0.1f, 5f)]
+    private float _transitionDuration = 1f;
 
     [Header("UI References")]
-    [SerializeField] private GameplayUI _gameplayUI;
-    [SerializeField] private LevelCompleteUI _levelCompleteUI;
-    [SerializeField] private LevelFailedUI levelFailedUI;
+    [SerializeField, Tooltip("Reference to the Gameplay UI component.")]
+    private GameplayUI _gameplayUI;
+
+    [SerializeField, Tooltip("Reference to the Level Complete UI component.")]
+    private LevelCompleteUI _levelCompleteUI;
+
+    [SerializeField, Tooltip("Reference to the Level Failed UI component.")]
+    private LevelFailedUI _levelFailedUI;
 
     private Level _currentLevel;
     private bool _isLevelInProgress;
     private bool _isTransitioning;
     private int _currentLevelIndex;
+
     #endregion
 
     #region Events
+
     public static event System.Action OnLevelStarted;
     public static event System.Action OnLevelWon;
     public static event System.Action OnLevelLost;
+
     #endregion
 
     #region Unity Lifecycle
+
+    /// <summary>
+    /// Initializes the LevelManager and validates references.
+    /// </summary>
     protected override void Awake()
     {
         base.Awake();
         ValidateReferences();
     }
 
+    /// <summary>
+    /// Starts the first level on game start.
+    /// </summary>
     private void Start()
     {
         InitializeFirstLevel();
     }
 
+    /// <summary>
+    /// Subscribes to level completion and failure events.
+    /// </summary>
     private void OnEnable()
     {
         Level.OnLevelCompleted += HandleLevelWon;
         Level.OnLevelFailed += HandleLevelLost;
     }
 
+    /// <summary>
+    /// Unsubscribes from level completion and failure events.
+    /// </summary>
     private void OnDisable()
     {
         Level.OnLevelCompleted -= HandleLevelWon;
         Level.OnLevelFailed -= HandleLevelLost;
     }
 
+    /// <summary>
+    /// Cleans up resources and kills all DOTween animations on destroy.
+    /// </summary>
     private void OnDestroy()
     {
         UnsubscribeFromEvents();
+        DOTween.KillAll();
     }
+
     #endregion
 
     #region Initialization
+
+    /// <summary>
+    /// Validates critical references and logs errors if any are missing.
+    /// </summary>
     private void ValidateReferences()
     {
         if (_gameplayUI == null) Debug.LogError("[LevelManager] GameplayUI reference is missing!");
         if (_levelCompleteUI == null) Debug.LogError("[LevelManager] LevelCompleteUI reference is missing!");
-        if (levelFailedUI == null) Debug.LogError("[LevelManager] LevelFailedUI reference is missing!");
+        if (_levelFailedUI == null) Debug.LogError("[LevelManager] LevelFailedUI reference is missing!");
     }
 
+    /// <summary>
+    /// Initializes the first level in the level list.
+    /// </summary>
     private void InitializeFirstLevel()
     {
         if (_levelPrefabs != null && _levelPrefabs.Count > 0)
@@ -80,9 +120,15 @@ public class LevelManager : MonoSingleton<LevelManager>
             Debug.LogError("[LevelManager] No level prefabs assigned!");
         }
     }
+
     #endregion
 
     #region Level Management
+
+    /// <summary>
+    /// Starts the level with the specified index.
+    /// </summary>
+    /// <param name="levelIndex">The index of the level to start.</param>
     private void StartLevel(int levelIndex)
     {
         if (!ValidateLevelIndex(levelIndex))
@@ -99,6 +145,11 @@ public class LevelManager : MonoSingleton<LevelManager>
         StartCoroutine(LoadLevelSequence(levelIndex));
     }
 
+    /// <summary>
+    /// Loads the level sequence for the specified level index.
+    /// </summary>
+    /// <param name="levelIndex">The index of the level to load.</param>
+    /// <returns>An IEnumerator for coroutine handling.</returns>
     private IEnumerator LoadLevelSequence(int levelIndex)
     {
         Debug.Log($"[LevelManager] Starting level sequence for level {levelIndex}");
@@ -119,6 +170,10 @@ public class LevelManager : MonoSingleton<LevelManager>
             });
     }
 
+    /// <summary>
+    /// Cleans up the current level instance.
+    /// </summary>
+    /// <returns>An IEnumerator for coroutine handling.</returns>
     private IEnumerator CleanupCurrentLevel()
     {
         if (_currentLevel != null)
@@ -129,6 +184,11 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
     }
 
+    /// <summary>
+    /// Instantiates a new level prefab for the specified level index.
+    /// </summary>
+    /// <param name="levelIndex">The index of the level to create.</param>
+    /// <returns>An IEnumerator for coroutine handling.</returns>
     private IEnumerator CreateNewLevel(int levelIndex)
     {
         Level levelPrefab = _levelPrefabs[levelIndex];
@@ -137,6 +197,11 @@ public class LevelManager : MonoSingleton<LevelManager>
         yield return null;
     }
 
+    /// <summary>
+    /// Initializes the new level with the specified level data.
+    /// </summary>
+    /// <param name="levelIndex">The index of the level to initialize.</param>
+    /// <returns>An IEnumerator for coroutine handling.</returns>
     private IEnumerator InitializeNewLevel(int levelIndex)
     {
         LevelDataSO levelData = _levelDataList[levelIndex];
@@ -159,9 +224,14 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         SubscribeToEvents();
     }
+
     #endregion
 
     #region Win/Lose Handling
+
+    /// <summary>
+    /// Handles the level won event.
+    /// </summary>
     private void HandleLevelWon()
     {
         if (!_isLevelInProgress || _isTransitioning)
@@ -189,6 +259,10 @@ public class LevelManager : MonoSingleton<LevelManager>
         OnLevelWon?.Invoke();
     }
 
+    /// <summary>
+    /// Displays the level complete UI with the provided score data.
+    /// </summary>
+    /// <param name="scoreData">The score data to display.</param>
     private void ShowLevelCompleteUI(ScoreData scoreData)
     {
         if (_levelCompleteUI != null)
@@ -210,6 +284,9 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
     }
 
+    /// <summary>
+    /// Handles the level lost event.
+    /// </summary>
     private void HandleLevelLost()
     {
         if (!_isLevelInProgress)
@@ -224,10 +301,10 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         _gameplayUI?.Hide();
 
-        if (levelFailedUI != null)
+        if (_levelFailedUI != null)
         {
-            levelFailedUI.gameObject.SetActive(true);
-            levelFailedUI.Show();
+            _levelFailedUI.gameObject.SetActive(true);
+            _levelFailedUI.Show();
         }
 
         _currentLevel.transform.DOScale(Vector3.one * 0.9f, 0.5f)
@@ -238,29 +315,45 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_LOSE);
     }
+
     #endregion
 
     #region Public Methods
+
+    /// <summary>
+    /// Loads the next level in the level list.
+    /// </summary>
     public void LoadNextLevel()
     {
         _currentLevelIndex = (_currentLevelIndex + 1) % _levelPrefabs.Count;
         StartLevel(_currentLevelIndex);
     }
 
+    /// <summary>
+    /// Restarts the current level.
+    /// </summary>
     public void RestartLevel()
     {
         StartLevel(_currentLevelIndex);
     }
 
+    /// <summary>
+    /// Handles the next level button click event.
+    /// </summary>
     public void OnNextLevelButtonClicked()
     {
         if (!_isTransitioning) return;
         _isTransitioning = false;
         LoadNextLevel();
     }
+
     #endregion
 
     #region Utility Methods
+
+    /// <summary>
+    /// Subscribes to level-specific events.
+    /// </summary>
     private void SubscribeToEvents()
     {
         if (_currentLevel != null)
@@ -270,6 +363,9 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
     }
 
+    /// <summary>
+    /// Unsubscribes from level-specific events.
+    /// </summary>
     private void UnsubscribeFromEvents()
     {
         if (_currentLevel != null)
@@ -279,6 +375,11 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
     }
 
+    /// <summary>
+    /// Validates the level index to ensure it is within bounds.
+    /// </summary>
+    /// <param name="levelIndex">The index to validate.</param>
+    /// <returns>True if the index is valid, otherwise false.</returns>
     private bool ValidateLevelIndex(int levelIndex)
     {
         if (_levelPrefabs == null || _levelPrefabs.Count == 0)
@@ -314,6 +415,10 @@ public class LevelManager : MonoSingleton<LevelManager>
         return true;
     }
 
+    /// <summary>
+    /// Validates the components of the current level.
+    /// </summary>
+    /// <returns>True if all components are valid, otherwise false.</returns>
     private bool ValidateLevelComponents()
     {
         if (_currentLevel == null) return false;
@@ -346,9 +451,14 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         return isValid;
     }
+
     #endregion
 
     #region Debug
+
+    /// <summary>
+    /// Handles debug input for testing purposes.
+    /// </summary>
     private void Update()
     {
 #if UNITY_EDITOR
@@ -362,5 +472,6 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
 #endif
     }
+
     #endregion
 }

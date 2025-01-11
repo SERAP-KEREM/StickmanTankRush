@@ -27,17 +27,27 @@ public class Level : MonoSingleton<Level>
     private bool _isInitialized = false;
 
     #endregion
+
     #region Events
     public static event System.Action OnLevelCompleted;
     public static event System.Action OnLevelFailed;
     #endregion
+
     #region Unity Lifecycle
+    /// <summary>
+    /// Called when the script instance is being loaded.
+    /// Finds references for necessary components and subscribes to relevant events.
+    /// </summary>
     protected override void Awake()
     {
         base.Awake();
         FindReferences();
         SubscribeToEvents();
     }
+
+    /// <summary>
+    /// Subscribes to events from the TankManager.
+    /// </summary>
     private void SubscribeToEvents()
     {
         if (tankManager != null)
@@ -46,6 +56,10 @@ public class Level : MonoSingleton<Level>
             tankManager.OnAllTanksLeft += OnTankManagerCompleted;
         }
     }
+
+    /// <summary>
+    /// Unsubscribes from events when no longer needed.
+    /// </summary>
     private void UnsubscribeFromEvents()
     {
         if (tankManager != null)
@@ -53,12 +67,19 @@ public class Level : MonoSingleton<Level>
             tankManager.OnAllTanksLeft -= OnTankManagerCompleted;
         }
     }
+
+    /// <summary>
+    /// Callback when all tanks have completed their tasks, triggering the level to complete.
+    /// </summary>
     private void OnTankManagerCompleted()
     {
         Debug.Log("[Level] All tanks completed, triggering level complete!");
         CompleteLevel();
     }
 
+    /// <summary>
+    /// Called when the object is initialized. Ensures components are initialized if not already.
+    /// </summary>
     private void Start()
     {
         if (!_isInitialized)
@@ -69,6 +90,9 @@ public class Level : MonoSingleton<Level>
     #endregion
 
     #region Initialization
+    /// <summary>
+    /// Finds references for all required components (TileGrid, TankManager, StickmanGrid, HolderManager).
+    /// </summary>
     private void FindReferences()
     {
         if (tileGrid == null)
@@ -87,7 +111,8 @@ public class Level : MonoSingleton<Level>
         {
             stickmanGrid = GetComponentInChildren<StickmanGrid>(true);
             Debug.Log($"Found StickmanGrid: {stickmanGrid != null}");
-        } 
+        }
+
         if (holderManager == null)
         {
             holderManager = GetComponentInChildren<HolderManager>(true);
@@ -95,6 +120,10 @@ public class Level : MonoSingleton<Level>
         }
     }
 
+    /// <summary>
+    /// Initializes the level with the provided LevelDataSO object.
+    /// </summary>
+    /// <param name="data">Level data to initialize the level with.</param>
     public void InitializeLevel(LevelDataSO data)
     {
         if (data == null)
@@ -109,20 +138,26 @@ public class Level : MonoSingleton<Level>
         StartCoroutine(DelayedInitialization());
     }
 
+    /// <summary>
+    /// Delays the initialization process to allow references to be found first.
+    /// </summary>
+    /// <returns>Enumerator for coroutine.</returns>
     private IEnumerator DelayedInitialization()
     {
         yield return null;
 
-        FindReferences(); 
+        FindReferences();
         InitializeComponents();
     }
 
+    /// <summary>
+    /// Initializes the level components (StickmanGrid, TileGrid, TankManager, HolderManager).
+    /// </summary>
     private void InitializeComponents()
     {
         if (!ValidateReferences()) return;
 
-      //  Debug.Log("Initializing Level Components...");
-
+        // Initialize components
         if (stickmanGrid != null)
         {
             stickmanGrid.SetLevelDataSO(_levelDataSO);
@@ -138,13 +173,13 @@ public class Level : MonoSingleton<Level>
         if (tankManager != null)
         {
             tankManager.SetLevelDataSO(_levelDataSO);
-           // Debug.Log("TankManager initialized");
-        } 
+            // Debug.Log("TankManager initialized");
+        }
+
         if (holderManager != null)
         {
-
             holderManager.InitializeWaitingRow();
-           // Debug.Log("TankManager initialized");
+            // Debug.Log("TankManager initialized");
         }
 
         _isInitialized = true;
@@ -157,6 +192,10 @@ public class Level : MonoSingleton<Level>
     #endregion
 
     #region Validation
+    /// <summary>
+    /// Validates that all necessary references are set and not null.
+    /// </summary>
+    /// <returns>True if all references are valid, otherwise false.</returns>
     private bool ValidateReferences()
     {
         bool isValid = true;
@@ -184,6 +223,7 @@ public class Level : MonoSingleton<Level>
             Debug.LogError("StickmanGrid reference is missing!");
             isValid = false;
         }
+
         if (holderManager == null)
         {
             Debug.LogError("HolderManager reference is missing!");
@@ -195,6 +235,9 @@ public class Level : MonoSingleton<Level>
     #endregion
 
     #region Level State
+    /// <summary>
+    /// Completes the current level and triggers the level completion event.
+    /// </summary>
     public void CompleteLevel()
     {
         if (!_isInitialized)
@@ -206,11 +249,14 @@ public class Level : MonoSingleton<Level>
         Debug.Log("[Level] Level completed! Triggering OnLevelCompleted event");
         OnLevelCompleted?.Invoke();
 
-        // Level animasyonu
+        // Level animation
         transform.DOScale(Vector3.one * 1.1f, 0.5f)
             .SetEase(Ease.OutBounce);
     }
 
+    /// <summary>
+    /// Fails the current level and triggers the level failure event.
+    /// </summary>
     public void FailLevel()
     {
         if (!_isInitialized) return;
@@ -218,7 +264,7 @@ public class Level : MonoSingleton<Level>
         Debug.Log("[Level] Level failed! Triggering OnLevelFailed event");
         OnLevelFailed?.Invoke();
 
-        // Level animasyonu
+        // Level animation
         transform.DOScale(Vector3.one * 0.9f, 0.5f)
             .SetEase(Ease.InBounce);
     }

@@ -1,15 +1,27 @@
+using UnityEngine;
+
 public struct ScoreData
 {
-    public int TankBonus;      // Tank doldurma bonusu
-    public int QuickBonus;     // H?zl? e?le?tirme bonusu
-    public int TimeBonus;      // Süre bonusu
-    public int HolderPenalty;  // Holder kullan?m cezas?
-    public int Stars;          // Kazan?lan y?ld?z say?s?
+    [Header("Bonuses")]
+    [Tooltip("Bonus for filling the tank")]
+    public int TankFillBonus;  // Tank fill bonus
 
-    public int TotalScore => TankBonus + QuickBonus + TimeBonus + HolderPenalty;
+    [Tooltip("Bonus for quick matching")]
+    public int QuickMatchBonus; // Quick match bonus
 
-    public override string ToString()
-    {
-        return $"Score: {TotalScore} (Tank: {TankBonus}, Quick: {QuickBonus}, Time: {TimeBonus}, Penalty: {HolderPenalty})";
-    }
+    [Tooltip("Bonus based on time")]
+    public int TimeBonus;      // Time bonus
+
+    [Header("Penalties")]
+    [Tooltip("Penalty for using the holder")]
+    public int HolderPenalty;  // Holder usage penalty
+
+    [Header("Stars")]
+    [Tooltip("Number of stars earned")]
+    public int Stars;          // Number of stars earned
+
+    /// <summary>
+    /// Calculates the total score, taking penalties as negative values.
+    /// </summary>
+    public int TotalScore => TankFillBonus + QuickMatchBonus + TimeBonus - HolderPenalty;
 }

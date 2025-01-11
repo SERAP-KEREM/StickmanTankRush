@@ -1574,6 +1574,7 @@ GameObject:
   m_Component:
   - component: {fileID: 713509040}
   - component: {fileID: 713509042}
+  - component: {fileID: 713509043}
   m_Layer: 5
   m_Name: LevelCompleteUI
   m_TagString: Untagged
@@ -1614,21 +1615,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c357b1536f1438e4d8cacac2c45780fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvasGroup: {fileID: 1365156755}
-  titleText: {fileID: 770028381}
-  scoreText: {fileID: 1382007533}
-  starsContainer: {fileID: 564356763}
-  starImages:
+  _canvasGroup: {fileID: 713509043}
+  _titleText: {fileID: 770028381}
+  _scoreText: {fileID: 1382007533}
+  _starsContainer: {fileID: 564356763}
+  _starImages:
   - {fileID: 1466694000}
   - {fileID: 1449718782}
   - {fileID: 155173728}
-  nextLevelButton: {fileID: 465310682}
-  showDelay: 0.5
-  fadeInDuration: 0.3
-  starAnimDuration: 0.5
-  scoreCountDuration: 1
-  starActiveColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  starInactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  _nextLevelButton: {fileID: 465310682}
+  _showDelay: 0.5
+  _fadeInDuration: 0.3
+  _starAnimDuration: 0.5
+  _scoreCountDuration: 1
+  _starActiveColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _starInactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+--- !u!225 &713509043
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713509039}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &727036122
 GameObject:
   m_ObjectHideFlags: 0
@@ -2336,6 +2349,7 @@ GameObject:
   m_Component:
   - component: {fileID: 832460670}
   - component: {fileID: 832460671}
+  - component: {fileID: 832460672}
   m_Layer: 5
   m_Name: SettingsUI
   m_TagString: Untagged
@@ -2376,18 +2390,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 426b6453b1570ea43ab0fdbbe251d3ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settingsPanel: {fileID: 1936501723}
-  contentPanel: {fileID: 959189823}
-  musicSlider: {fileID: 2114961177}
-  musicValueText: {fileID: 75141167}
-  closeButton: {fileID: 11624808}
-  restartButton: {fileID: 1284262854}
-  mainMenuButton: {fileID: 1490462882}
-  fadeInDuration: 0.3
-  panelAnimDuration: 0.5
-  slideDistance: 400
-  buttonHoverScale: 1.1
-  buttonHoverDuration: 0.2
+  _settingsPanel: {fileID: 832460672}
+  _contentPanel: {fileID: 959189823}
+  _musicSlider: {fileID: 2114961177}
+  _musicValueText: {fileID: 75141167}
+  _closeButton: {fileID: 11624808}
+  _restartButton: {fileID: 1284262854}
+  _mainMenuButton: {fileID: 1490462882}
+  _fadeInDuration: 0.3
+  _panelAnimDuration: 0.5
+  _slideDistance: 400
+  _buttonHoverScale: 1.1
+  _buttonHoverDuration: 0.2
+--- !u!225 &832460672
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832460669}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &907259561
 GameObject:
   m_ObjectHideFlags: 0
@@ -2954,6 +2980,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1076344384}
   - component: {fileID: 1076344385}
+  - component: {fileID: 1076344386}
   m_Layer: 5
   m_Name: GameplayUI
   m_TagString: Untagged
@@ -2995,17 +3022,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14845f173367cfb44a01b5f28eafbb8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelText: {fileID: 1228865330}
-  tankProgressSlider: {fileID: 10843858}
-  tankProgressText: {fileID: 2142827434}
-  tankProgressFillImage: {fileID: 681068728}
-  settingsButton: {fileID: 1652954696}
-  settingsUI: {fileID: 832460671}
-  fadeInDuration: 0.5
-  buttonClickScale: 0.9
-  buttonAnimDuration: 0.1
-  levelTextScaleDuration: 0.2
-  progressBarDuration: 0.3
+  _levelText: {fileID: 1228865330}
+  _tankProgressSlider: {fileID: 10843858}
+  _tankProgressText: {fileID: 2142827434}
+  _tankProgressFillImage: {fileID: 681068728}
+  _settingsButton: {fileID: 1652954696}
+  _settingsUI: {fileID: 832460671}
+  _fadeInDuration: 0.5
+  _buttonClickScale: 0.9
+  _buttonAnimDuration: 0.1
+  _levelTextScaleDuration: 0.2
+  _progressBarDuration: 0.3
+--- !u!225 &1076344386
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1076344383}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1108780328
 GameObject:
   m_ObjectHideFlags: 0
@@ -3180,7 +3219,7 @@ MonoBehaviour:
   _transitionDuration: 1
   _gameplayUI: {fileID: 1076344385}
   _levelCompleteUI: {fileID: 713509042}
-  levelFailedUI: {fileID: 1610711117}
+  _levelFailedUI: {fileID: 1610711117}
 --- !u!4 &1175818111
 Transform:
   m_ObjectHideFlags: 0
@@ -3686,7 +3725,6 @@ GameObject:
   - component: {fileID: 1365156752}
   - component: {fileID: 1365156754}
   - component: {fileID: 1365156753}
-  - component: {fileID: 1365156755}
   m_Layer: 5
   m_Name: CompletePanel
   m_TagString: Untagged
@@ -3754,18 +3792,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1365156751}
   m_CullTransparentMesh: 1
---- !u!225 &1365156755
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1365156751}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!1 &1382007531
 GameObject:
   m_ObjectHideFlags: 0
@@ -4634,13 +4660,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b25fa657f33e7a14ca501e1ca1a3e178, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvasGroup: {fileID: 1675866783}
-  titleText: {fileID: 580164140}
-  retryButton: {fileID: 627153125}
-  mainMenuButton: {fileID: 1847980657}
-  showDelay: 0.5
-  fadeInDuration: 0.3
-  buttonAnimDelay: 0.2
+  _canvasGroup: {fileID: 1675866783}
+  _titleText: {fileID: 580164140}
+  _retryButton: {fileID: 627153125}
+  _mainMenuButton: {fileID: 1847980657}
+  _showDelay: 0.5
+  _fadeInDuration: 0.3
+  _buttonAnimDelay: 0.2
 --- !u!1 &1652954694
 GameObject:
   m_ObjectHideFlags: 0
@@ -5238,7 +5264,6 @@ GameObject:
   - component: {fileID: 1936501720}
   - component: {fileID: 1936501722}
   - component: {fileID: 1936501721}
-  - component: {fileID: 1936501723}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -5303,18 +5328,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1936501719}
   m_CullTransparentMesh: 1
---- !u!225 &1936501723
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1936501719}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 1
-  m_IgnoreParentGroups: 0
 --- !u!1 &1985917755
 GameObject:
   m_ObjectHideFlags: 0

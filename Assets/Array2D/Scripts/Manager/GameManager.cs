@@ -90,27 +90,6 @@ namespace _Main
             AudioManager.Instance.PlayAudio(AudioKeys.GAME_START);
         }
         #endregion
-        #region UI Methods
-        public void PauseGame()
-        {
-            if (_isPaused) return;
-
-            _isPaused = true;
-            Time.timeScale = 0f;
-            AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
-            _gameplayUI?.Hide();
-        }
-
-        public void ResumeGame()
-        {
-            if (!_isPaused) return;
-
-            _isPaused = false;
-            Time.timeScale = 1f;
-            AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
-            _gameplayUI?.Show();
-        }
-        #endregion
 
         #region Tank Progress Updates
         private void UpdateTankProgress(Tank tank)

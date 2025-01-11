@@ -4,184 +4,221 @@ using TMPro;
 using DG.Tweening;
 using SerapKeremGameTools._Game._AudioSystem;
 
+/// <summary>
+/// Manages the Settings UI, including animations, sound settings, and button interactions.
+/// </summary>
 public class SettingsUI : MonoBehaviour
 {
     [Header("Panel References")]
-    [SerializeField] private CanvasGroup settingsPanel;
-    [SerializeField] private RectTransform contentPanel;
+    [Tooltip("The main canvas group for controlling UI visibility.")]
+    [SerializeField] private CanvasGroup _settingsPanel;
+
+    [Tooltip("The content panel for animating slide-in and slide-out effects.")]
+    [SerializeField] private RectTransform _contentPanel;
 
     [Header("Sound Settings")]
-    [SerializeField] private Slider musicSlider;
-    [SerializeField] private TextMeshProUGUI musicValueText;
+    [Tooltip("The slider for adjusting music volume.")]
+    [SerializeField] private Slider _musicSlider;
+
+    [Tooltip("The text displaying the current music volume percentage.")]
+    [SerializeField] private TextMeshProUGUI _musicValueText;
 
     [Header("Buttons")]
-    [SerializeField] private Button closeButton;
-    [SerializeField] private Button restartButton;
-    [SerializeField] private Button mainMenuButton;
+    [Tooltip("The button for closing the settings panel.")]
+    [SerializeField] private Button _closeButton;
+
+    [Tooltip("The button for restarting the level.")]
+    [SerializeField] private Button _restartButton;
+
+    [Tooltip("The button for navigating back to the main menu.")]
+    [SerializeField] private Button _mainMenuButton;
 
     [Header("Animation Settings")]
-    [SerializeField] private float fadeInDuration = 0.3f;
-    [SerializeField] private float panelAnimDuration = 0.5f;
-    [SerializeField] private float slideDistance = 400f;
-    [SerializeField] private float buttonHoverScale = 1.1f;
-    [SerializeField] private float buttonHoverDuration = 0.2f;
+    [Tooltip("Duration for fading in and out the panel.")]
+    [SerializeField, Range(0f, 1f)] private float _fadeInDuration = 0.3f;
 
-    private bool isOpen;
+    [Tooltip("Duration for sliding the panel content.")]
+    [SerializeField, Range(0f, 1f)] private float _panelAnimDuration = 0.5f;
+
+    [Tooltip("The horizontal distance for sliding the panel.")]
+    [SerializeField] private float _slideDistance = 400f;
+
+    [Tooltip("Scale factor for button hover animation.")]
+    [SerializeField] private float _buttonHoverScale = 1.1f;
+
+    [Tooltip("Duration for button hover animation.")]
+    [SerializeField] private float _buttonHoverDuration = 0.2f;
 
     private void Awake()
     {
-        if (settingsPanel == null)
-            settingsPanel = GetComponent<CanvasGroup>();
+        if (_settingsPanel == null)
+        {
+            Debug.LogError("[SettingsUI] SettingsPanel reference is missing!");
+            _settingsPanel = GetComponent<CanvasGroup>();
+        }
+
         InitializeUI();
-        HidePanel(true);
-        gameObject.SetActive(false);
+
     }
 
+    /// <summary>
+    /// Initializes the UI components, validates references, and sets up listeners.
+    /// </summary>
     private void InitializeUI()
     {
-        // Validate references
         ValidateReferences();
 
-        // Button listeners
-        closeButton.onClick.AddListener(() => HidePanel());
-        restartButton.onClick.AddListener(OnRestartClicked);
-        mainMenuButton.onClick.AddListener(OnMainMenuClicked);
+        _closeButton.onClick.AddListener(() => HidePanel());
+        _restartButton.onClick.AddListener(OnRestartClicked);
+        _mainMenuButton.onClick.AddListener(OnMainMenuClicked);
 
-        // Slider listeners
-        musicSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+        _musicSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
 
-        // Initialize slider values
         InitializeSliderValues();
-
-        // Setup button animations
         SetupButtonAnimations();
     }
 
+    /// <summary>
+    /// Validates that all necessary references are assigned.
+    /// </summary>
     private void ValidateReferences()
     {
-        if (settingsPanel == null) Debug.LogError("[SettingsUI] SettingsPanel reference is missing!");
-        if (contentPanel == null) Debug.LogError("[SettingsUI] ContentPanel reference is missing!");
-        if (musicSlider == null) Debug.LogError("[SettingsUI] MusicSlider reference is missing!");
-        if (closeButton == null) Debug.LogError("[SettingsUI] CloseButton reference is missing!");
-        if (restartButton == null) Debug.LogError("[SettingsUI] RestartButton reference is missing!");
-        if (mainMenuButton == null) Debug.LogError("[SettingsUI] MainMenuButton reference is missing!");
+        if (_contentPanel == null) Debug.LogError("[SettingsUI] ContentPanel reference is missing!");
+        if (_musicSlider == null) Debug.LogError("[SettingsUI] MusicSlider reference is missing!");
+        if (_closeButton == null) Debug.LogError("[SettingsUI] CloseButton reference is missing!");
+        if (_restartButton == null) Debug.LogError("[SettingsUI] RestartButton reference is missing!");
+        if (_mainMenuButton == null) Debug.LogError("[SettingsUI] MainMenuButton reference is missing!");
     }
 
+    /// <summary>
+    /// Initializes the slider values based on the current music volume.
+    /// </summary>
     private void InitializeSliderValues()
     {
-        // Set initial slider values
-        musicSlider.value = AudioManager.Instance?.MusicVolume ?? 1f;
-
-        // Update texts
+        _musicSlider.value = AudioManager.Instance?.MusicVolume ?? 1f;
         UpdateVolumeTexts();
     }
 
+    /// <summary>
+    /// Updates the text displaying the current music volume.
+    /// </summary>
     private void UpdateVolumeTexts()
     {
-        musicValueText.text = $"{(int)(musicSlider.value * 100)}%";
+        _musicValueText.text = $"{(int)(_musicSlider.value * 100)}%";
     }
 
+    /// <summary>
+    /// Sets up hover and click animations for buttons.
+    /// </summary>
     private void SetupButtonAnimations()
     {
-        SetupButtonAnimation(closeButton);
-        SetupButtonAnimation(restartButton);
-        SetupButtonAnimation(mainMenuButton);
+        SetupButtonAnimation(_closeButton);
+        SetupButtonAnimation(_restartButton);
+        SetupButtonAnimation(_mainMenuButton);
     }
 
+    /// <summary>
+    /// Configures hover and click animations for a button.
+    /// </summary>
+    /// <param name="button">The button to configure animations for.</param>
     private void SetupButtonAnimation(Button button)
     {
-        button.transform.DOScale(1f, 0f);  // Reset scale
+        button.transform.DOScale(1f, 0f); // Reset scale
 
-        // Button'a bas?ld???nda ve b?rak?ld???nda scale animasyonu
-        button.onClick.AddListener(() => {
-            button.transform.DOScale(0.95f, buttonHoverDuration).SetUpdate(true)
-                .OnComplete(() => {
-                    button.transform.DOScale(1f, buttonHoverDuration).SetUpdate(true);
-                });
+        button.onClick.AddListener(() =>
+        {
+            button.transform.DOScale(0.95f, _buttonHoverDuration).SetUpdate(true)
+                .OnComplete(() => button.transform.DOScale(1f, _buttonHoverDuration).SetUpdate(true));
         });
     }
 
+    /// <summary>
+    /// Displays the settings panel with animations.
+    /// </summary>
     public void Show()
     {
-        if (isOpen) return;
-        isOpen = true;
+      
 
         gameObject.SetActive(true);
 
-        // Reset positions and alpha
-        settingsPanel.alpha = 0f;
-        contentPanel.anchoredPosition = new Vector2(slideDistance, 0f);
+        _settingsPanel.alpha = 0f;
+        _contentPanel.anchoredPosition = new Vector2(_slideDistance, 0f);
 
-        // Panel fade in
-        settingsPanel.DOFade(1f, fadeInDuration).SetUpdate(true);
+        _settingsPanel.DOFade(1f, _fadeInDuration).SetUpdate(true);
+        _contentPanel.DOAnchorPosX(0f, _panelAnimDuration).SetEase(Ease.OutBack).SetUpdate(true);
 
-        // Panel slide in
-        contentPanel.DOAnchorPosX(0f, panelAnimDuration)
-            .SetEase(Ease.OutBack)
-            .SetUpdate(true);
-
-        // Enable interaction
-        settingsPanel.interactable = true;
-        settingsPanel.blocksRaycasts = true;
+        _settingsPanel.interactable = true;
+        _settingsPanel.blocksRaycasts = true;
     }
 
+    /// <summary>
+    /// Hides the settings panel with optional instant effect.
+    /// </summary>
+    /// <param name="instant">Whether to hide the panel instantly or with animation.</param>
     public void HidePanel(bool instant = false)
     {
-        if (!isOpen) return;
-        isOpen = false;
+
+        gameObject.SetActive(false);
 
         if (instant)
         {
-            // Instant hide
-            settingsPanel.alpha = 0f;
-            settingsPanel.interactable = false;
-            settingsPanel.blocksRaycasts = false;
+            _settingsPanel.alpha = 0f;
+            _settingsPanel.interactable = false;
+            _settingsPanel.blocksRaycasts = false;
             gameObject.SetActive(false);
         }
         else
         {
-            // Animated hide
-            settingsPanel.DOFade(0f, fadeInDuration).SetUpdate(true);
-            contentPanel.DOAnchorPosX(slideDistance, panelAnimDuration)
-                .SetEase(Ease.InBack)
-                .SetUpdate(true)
-                .OnComplete(() => {
-                    settingsPanel.interactable = false;
-                    settingsPanel.blocksRaycasts = false;
+            _settingsPanel.DOFade(0f, _fadeInDuration).SetUpdate(true);
+            _contentPanel.DOAnchorPosX(_slideDistance, _panelAnimDuration).SetEase(Ease.InBack).SetUpdate(true)
+                .OnComplete(() =>
+                {
+                    _settingsPanel.interactable = false;
+                    _settingsPanel.blocksRaycasts = false;
                     gameObject.SetActive(false);
                 });
         }
     }
 
-
+    /// <summary>
+    /// Updates the music volume when the slider value changes.
+    /// </summary>
+    /// <param name="value">The new volume value.</param>
     private void OnMusicVolumeChanged(float value)
     {
         AudioManager.Instance?.SetMusicVolume(value);
 
-        // Smooth text update
-        DOTween.To(() => float.Parse(musicValueText.text.Replace("%", "")),
-            x => musicValueText.text = $"{Mathf.RoundToInt(x)}%",
+        DOTween.To(() => float.Parse(_musicValueText.text.Replace("%", "")),
+            x => _musicValueText.text = $"{Mathf.RoundToInt(x)}%",
             value * 100f, 0.2f).SetUpdate(true);
     }
 
+    /// <summary>
+    /// Handles the restart button click event.
+    /// </summary>
     private void OnRestartClicked()
     {
         HidePanel();
         LevelManager.Instance.RestartLevel();
     }
 
+    /// <summary>
+    /// Handles the main menu button click event.
+    /// </summary>
     private void OnMainMenuClicked()
     {
         HidePanel();
-        // TODO: Ana menüye dön
+        // TODO: Implement main menu navigation.
         // SceneManager.LoadScene("MainMenu");
     }
 
+    /// <summary>
+    /// Cleans up DOTween animations when the object is destroyed.
+    /// </summary>
     private void OnDestroy()
     {
-        // Kill all tweens
-        DOTween.Kill(settingsPanel);
-        DOTween.Kill(contentPanel);
-        DOTween.Kill(musicValueText);
+        DOTween.Kill(_settingsPanel);
+        DOTween.Kill(_contentPanel);
+        DOTween.Kill(_musicValueText);
     }
 }
