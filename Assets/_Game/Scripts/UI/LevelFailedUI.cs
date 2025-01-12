@@ -32,6 +32,7 @@ public class LevelFailedUI : MonoBehaviour
 
     [Tooltip("Delay between button animations.")]
     [SerializeField, Range(0f, 1f)] private float _buttonAnimDelay = 0.2f;
+    //[SerializeField] private LevelManager _levelManager;
 
     private void Awake()
     {
@@ -40,6 +41,7 @@ public class LevelFailedUI : MonoBehaviour
             Debug.LogWarning("[LevelFailedUI] CanvasGroup is not assigned. Attempting to find it.");
             _canvasGroup = GetComponent<CanvasGroup>();
         }
+      //  _levelManager = GetComponent<LevelManager>();
 
         InitializeButtons();
         Hide(true);

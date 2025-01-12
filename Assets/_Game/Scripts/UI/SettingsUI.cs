@@ -48,6 +48,7 @@ public class SettingsUI : MonoBehaviour
 
     [Tooltip("Duration for button hover animation.")]
     [SerializeField] private float _buttonHoverDuration = 0.2f;
+   // [SerializeField] private LevelManager _levelManager;
 
     private void Awake()
     {
@@ -56,6 +57,7 @@ public class SettingsUI : MonoBehaviour
             Debug.LogError("[SettingsUI] SettingsPanel reference is missing!");
             _settingsPanel = GetComponent<CanvasGroup>();
         }
+       // _levelManager = GetComponent<LevelManager>();
 
         InitializeUI();
 

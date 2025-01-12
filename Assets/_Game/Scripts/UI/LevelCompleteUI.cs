@@ -44,9 +44,10 @@ public class LevelCompleteUI : MonoBehaviour
 
     [Tooltip("Color for inactive stars.")]
     [SerializeField] private Color _starInactiveColor = Color.gray;
-
+  //  [SerializeField] private LevelManager _levelManager;
     private void Awake()
     {
+       // _levelManager = GetComponent<LevelManager>();    
         _nextLevelButton.onClick.AddListener(OnNextLevelClicked);
         Hide(true);
     }

@@ -6,7 +6,7 @@ using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
 using UnityEngine;
 
-public class Level : MonoSingleton<Level>
+public class Level : MonoBehaviour
 {
     #region Fields
 
@@ -38,9 +38,8 @@ public class Level : MonoSingleton<Level>
     /// Called when the script instance is being loaded.
     /// Finds references for necessary components and subscribes to relevant events.
     /// </summary>
-    protected override void Awake()
+    private void Awake()
     {
-        base.Awake();
         FindReferences();
         SubscribeToEvents();
     }

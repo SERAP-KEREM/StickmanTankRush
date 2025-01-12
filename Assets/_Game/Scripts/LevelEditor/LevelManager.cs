@@ -35,6 +35,14 @@ public class LevelManager : MonoSingleton<LevelManager>
     private bool _isTransitioning;
     private int _currentLevelIndex;
 
+    /// <summary>
+    /// Gets or sets the current level instance.
+    /// </summary>
+    public Level CurrentLevel
+    {
+        get => _currentLevel;
+        private set => _currentLevel = value;
+    }
     #endregion
 
     #region Events
@@ -50,7 +58,7 @@ public class LevelManager : MonoSingleton<LevelManager>
     /// <summary>
     /// Initializes the LevelManager and validates references.
     /// </summary>
-    protected override void Awake()
+     protected override void Awake()
     {
         base.Awake();
         ValidateReferences();

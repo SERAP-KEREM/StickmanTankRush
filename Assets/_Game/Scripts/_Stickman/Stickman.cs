@@ -1,7 +1,8 @@
 using _Main._Enums;
 using UnityEngine;
 using DG.Tweening;
-using SerapKeremGameTools.Game._Interfaces; 
+using SerapKeremGameTools.Game._Interfaces;
+using UnityEngine.AI;
 
 namespace _Main._Stickman.StickmanGrid
 {
@@ -24,6 +25,8 @@ namespace _Main._Stickman.StickmanGrid
         private float _moveSpeed = 1f;
 
         private StickmanGrid _stickmanGrid;
+
+        private NavMeshAgent _navMeshAgent;
 
         #endregion
 
@@ -84,6 +87,7 @@ namespace _Main._Stickman.StickmanGrid
             {
                 Debug.LogError("No StickmanGrid instance found in the scene.");
             }
+            _navMeshAgent=GetComponent<NavMeshAgent>();
         }
 
         #endregion
@@ -154,16 +158,18 @@ namespace _Main._Stickman.StickmanGrid
         /// <param name="tankTransform">Optional: The tank's transform to attach the Stickman to after movement.</param>
         private void MoveToPosition(Vector3 targetPosition, Transform tankTransform = null)
         {
-            transform.DOMove(targetPosition, _moveSpeed)
-                .SetEase(Ease.Linear)
-                .OnComplete(() =>
-                {
-                    if (tankTransform != null)
-                    {
-                        transform.SetParent(tankTransform);
-                        IsSelectable = false;
-                    }
-                });
+            //transform.DOMove(targetPosition, _moveSpeed)
+            //    .SetEase(Ease.Linear)
+            //    .OnComplete(() =>
+            //    {
+            //        if (tankTransform != null)
+            //        {
+            //            transform.SetParent(tankTransform);
+            //            IsSelectable = false;
+            //        }
+            //    });
+
+             _navMeshAgent.SetDestination(targetPosition);
         }
 
         #endregion
