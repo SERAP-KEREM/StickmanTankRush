@@ -7,6 +7,8 @@ using DG.Tweening;
 using SerapKeremGameTools._Game._Singleton;
 using SerapKeremGameTools._Game._AudioSystem;
 using System.Collections;
+using _Main._Stickman.PathSystem;
+using UnityEngine.AI;
 
 namespace _Main
 {
@@ -155,62 +157,88 @@ namespace _Main
             _stickmanGrid?.Initialize();
             _tileGrid?.Initialize();
         }
-
-        /// <summary>
-        /// Handles the selection of a Stickman by the player.
-        /// </summary>
-        /// <param name="stickman">The selected Stickman instance.</param>
-        public void HandleStickmanSelection(Stickman stickman)
+        private bool CanMoveToTarget(Stickman stickman, Tank tank)
         {
-            if (_holderManager == null)
-            {
-               // Debug.LogError("HolderManager is null!");
-                return;
-            }
+            if (stickman == null || tank == null) return false;
+            if (tank.IsFull || tank.UnitColorType != stickman.UnitColorType) return false;
 
-            if (stickman == null || !stickman.IsSelectable)
+            NavMeshPath path = new NavMeshPath();
+            Vector3 targetPos = tank.GetStickmanTargetPosition();
+
+            return NavMesh.CalculatePath(stickman.transform.position, targetPos, NavMesh.AllAreas, path);
+        }
+
+        public NavMeshPath GetPath(Vector3 start, Vector3 end)
+        {
+            NavMeshPath path = new NavMeshPath();
+            if (NavMesh.CalculatePath(start, end, NavMesh.AllAreas, path))
             {
-               // Debug.Log("Stickman is null or not selectable");
-                return;
+                return path;
             }
+            return null;
+        }
+    
+    /// <summary>
+    /// Handles the selection of a Stickman by the player.
+    /// </summary>
+    /// <param name="stickman">The selected Stickman instance.</param>
+    public void HandleStickmanSelection(Stickman stickman)
+        {
+            if (!ValidateStickmanSelection(stickman)) return;
+
             AudioManager.Instance.PlayAudio(AudioKeys.STICKMAN_CLICK);
             _selectedStickman = stickman;
-            //Debug.Log($"Selected Stickman: {stickman.name}, Color: {stickman.UnitColorType}");
-
-            // Check for available neighbors
-            if (!_tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
-            {
-              //  Debug.Log($"No empty neighbors for stickman at ({stickman.GridX}, {stickman.GridY})");
-                return;
-            }
 
             Tank currentTank = _tankManager.CurrentTank;
-            if (currentTank == null)
-            {
-               // Debug.LogWarning("No active tank available.");
-                return;
-            }
+            if (currentTank == null) return;
 
-            // Handle color match and movement
-            if (currentTank.UnitColorType == stickman.UnitColorType)
+            if (CanMoveToTarget(stickman, currentTank))
             {
-                if (!currentTank.IsFull)
-                {
-                   // Debug.Log($"Moving matching color stickman to tank. Stickman: {stickman.UnitColorType}, Tank: {currentTank.UnitColorType}");
-                    MoveStickmanToTank(stickman, currentTank);
-                }
-                else
-                {
-                    //Debug.Log("Tank is full!");
-                }
+                MoveStickmanToTank(stickman, currentTank);
             }
             else
             {
-               // Debug.Log($"Color mismatch! Stickman: {stickman.UnitColorType}, Tank: {currentTank.UnitColorType}");
                 HandleColorMismatch(stickman);
             }
         }
 
+        private bool ValidateStickmanSelection(Stickman stickman)
+        {
+            // Check if components are valid
+            if (_holderManager == null)
+            {
+                Debug.LogWarning("[GameManager] HolderManager is null!");
+                return false;
+            }
+
+            if (stickman == null)
+            {
+                Debug.LogWarning("[GameManager] Selected stickman is null!");
+                return false;
+            }
+
+            if (!stickman.IsSelectable)
+            {
+                Debug.LogWarning("[GameManager] Stickman is not selectable!");
+                return false;
+            }
+
+            // Check if tile grid is valid
+            if (_tileGrid == null)
+            {
+                Debug.LogWarning("[GameManager] TileGrid is null!");
+                return false;
+            }
+
+            // Check if neighbors are empty (optional, based on your game rules)
+            if (!_tileGrid.AreNeighborsEmpty(stickman.GridX, stickman.GridY))
+            {
+                Debug.LogWarning("[GameManager] No empty neighbors for stickman!");
+                return false;
+            }
+
+            return true;
+        }
         /// <summary>
         /// Handles the color mismatch situation and moves the Stickman to the nearest available holder.
         /// </summary>

@@ -1,9 +1,11 @@
 using _Main;
+using _Main._Stickman.PathSystem;
 using _Main._Stickman.StickmanGrid;
 using DG.Tweening;
 using LevelEditor;
 using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
+using Unity.AI.Navigation;
 using UnityEngine;
 
 public class Level : MonoBehaviour
@@ -25,7 +27,9 @@ public class Level : MonoBehaviour
     public HolderManager HolderManager => holderManager;
 
     private bool _isInitialized = false;
-
+    [Header("Path System")]
+    [SerializeField] private PathFinder _pathFinder;
+    [SerializeField] private NavMeshSurface _navMeshSurface;
     #endregion
 
     #region Events
@@ -186,6 +190,18 @@ public class Level : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnLevelCreated(this);
+        }
+
+        if (_pathFinder == null)
+        {
+            var pathFinderObj = new GameObject("PathFinder");
+            _pathFinder = pathFinderObj.AddComponent<PathFinder>();
+            pathFinderObj.transform.SetParent(transform);
+        }
+
+        if (_navMeshSurface != null)
+        {
+            _navMeshSurface.BuildNavMesh();
         }
     }
     #endregion

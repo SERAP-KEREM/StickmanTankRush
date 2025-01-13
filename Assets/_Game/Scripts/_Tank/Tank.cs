@@ -38,6 +38,11 @@ namespace _Main._Tank
         [SerializeField]
         [Tooltip("Height at which stickmen should stay")]
         private float _stickmanHeight = 0f;
+
+        [Header("Debug Visualization")]
+        [SerializeField] private bool _showTargetPosition = true;
+        [SerializeField] private Color _targetPositionColor = Color.green;
+
         /// <summary>
         /// Gets whether the tank is full based on the current stickman count.
         /// </summary>
@@ -58,7 +63,15 @@ namespace _Main._Tank
                 }
             }
         }
+        private void OnDrawGizmos()
+        {
+            if (!_showTargetPosition) return;
 
+            Gizmos.color = _targetPositionColor;
+            Vector3 targetPos = GetStickmanTargetPosition();
+            Gizmos.DrawWireSphere(targetPos, 0.3f);
+            Gizmos.DrawLine(transform.position, targetPos);
+        }
         [Tooltip("Current number of stickmen in the tank.")]
         private int _stickmanCount;
 

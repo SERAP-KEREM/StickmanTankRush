@@ -3,6 +3,7 @@ using UnityEngine;
 using DG.Tweening;
 using SerapKeremGameTools.Game._Interfaces;
 using UnityEngine.AI;
+using System.Collections;
 
 namespace _Main._Stickman.StickmanGrid
 {
@@ -27,7 +28,17 @@ namespace _Main._Stickman.StickmanGrid
         private StickmanGrid _stickmanGrid;
 
         private NavMeshAgent _navMeshAgent;
+        [Header("Movement")]
+        
+        [SerializeField] private float _stoppingDistance = 0.1f;
 
+        [Header("Path Finding")]
+        [SerializeField] private float _pathUpdateInterval = 0.1f;
+        [SerializeField] private float _pathEndThreshold = 0.1f;
+        [SerializeField] private float _rotationSpeed = 720f;
+        private bool _isMoving;
+        private Vector3 _currentTargetPosition;
+        private Transform _targetParent;
         #endregion
 
         #region Properties
@@ -87,7 +98,57 @@ namespace _Main._Stickman.StickmanGrid
             {
                 Debug.LogError("No StickmanGrid instance found in the scene.");
             }
-            _navMeshAgent=GetComponent<NavMeshAgent>();
+           
+        }
+        private void Start()
+        {
+            SetupNavMeshAgent();
+        }
+        private void SetupNavMeshAgent()
+        {
+            _navMeshAgent = GetComponent<NavMeshAgent>();
+            if (_navMeshAgent == null)
+                _navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
+
+            _navMeshAgent.speed = _moveSpeed;
+            _navMeshAgent.stoppingDistance = _stoppingDistance;
+            _navMeshAgent.acceleration = 8f;
+            _navMeshAgent.angularSpeed = _rotationSpeed;
+            _navMeshAgent.updateRotation = false;
+        }
+            private void Update()
+        {
+            if (_isMoving && _navMeshAgent.enabled)
+            {
+                // Hedefe ula??ld? m? kontrol et
+                if (Vector3.Distance(transform.position, _currentTargetPosition) <= _pathEndThreshold)
+                {
+                    OnReachedDestination();
+                }
+            }
+        }
+        private void OnReachedDestination()
+        {
+            if (_isMoving && _navMeshAgent.velocity.magnitude > 0.1f)
+            {
+                // Hareket yönüne do?ru yumu?ak dönü?
+                Vector3 direction = _navMeshAgent.velocity.normalized;
+                if (direction != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(direction);
+                    transform.rotation = Quaternion.RotateTowards(
+                        transform.rotation,
+                        targetRotation,
+                        _rotationSpeed * Time.deltaTime
+                    );
+                }
+            }
+
+            if (_targetParent != null)
+            {
+                transform.SetParent(_targetParent);
+                IsSelectable = false;
+            }
         }
 
         #endregion
@@ -168,10 +229,28 @@ namespace _Main._Stickman.StickmanGrid
             //            IsSelectable = false;
             //        }
             //    });
+            if (_navMeshAgent == null) return;
 
-             _navMeshAgent.SetDestination(targetPosition);
+            _isMoving = true;
+            _navMeshAgent.SetDestination(targetPosition);
+            StartCoroutine(WaitForDestination(targetPosition, tankTransform));
         }
+        private IEnumerator WaitForDestination(Vector3 targetPosition, Transform tankTransform)
+        {
+            while (_navMeshAgent.pathStatus == NavMeshPathStatus.PathPartial ||
+                   Vector3.Distance(transform.position, targetPosition) > _stoppingDistance)
+            {
+                yield return null;
+            }
 
+            _isMoving = false;
+
+            if (tankTransform != null)
+            {
+                transform.SetParent(tankTransform);
+                IsSelectable = false;
+            }
+        }
         #endregion
     }
 }

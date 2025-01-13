@@ -333,6 +333,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 11624806}
   m_CullTransparentMesh: 1
+--- !u!1 &26706494
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 26706495}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &26706495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 26706494}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &74280522
 GameObject:
   m_ObjectHideFlags: 0
@@ -1652,6 +1683,7 @@ GameObject:
   m_Component:
   - component: {fileID: 727036124}
   - component: {fileID: 727036123}
+  - component: {fileID: 727036125}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1688,6 +1720,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &727036125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 727036122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e907d88dd8b625d4bb889bdeba8c05cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _maxPathDistance: 100
+  _pathCheckRadius: 0.4
+  _obstacleLayer:
+    m_Bits: 0
+  _showDebugPath: 0
+  _gridPath: []
 --- !u!1 &748443737
 GameObject:
   m_ObjectHideFlags: 0
@@ -3209,10 +3259,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelPrefabs:
+  - {fileID: 6813787926016471130, guid: 49e1d637900da67409b745a51fa22071, type: 3}
   - {fileID: 6813787926016471130, guid: 6571ddee3529436409287ecef2225725, type: 3}
   - {fileID: 6813787926016471130, guid: 4497b49173482a54ea4aab6fbeed41d5, type: 3}
   - {fileID: 6813787926016471130, guid: c58003ad800641d4abbf325eca869868, type: 3}
   _levelDataList:
+  - {fileID: 11400000, guid: 9fbe2e604cb17cc499ef1de5c6678ae1, type: 2}
   - {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
   - {fileID: 11400000, guid: 1f9e90535eb5e7c40a0ee483fdc58c3e, type: 2}
   - {fileID: 11400000, guid: 91b14b347ecb68b4eb55ef7614391413, type: 2}
@@ -5617,13 +5669,13 @@ GameObject:
   - component: {fileID: 2131766645}
   - component: {fileID: 2131766644}
   - component: {fileID: 2131766643}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2131766643
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6053,6 +6105,8 @@ MonoBehaviour:
   tankManager: {fileID: 0}
   stickmanGrid: {fileID: 0}
   holderManager: {fileID: 0}
+  _pathFinder: {fileID: 0}
+  _navMeshSurface: {fileID: 0}
 --- !u!4 &7501899444571030534
 Transform:
   m_ObjectHideFlags: 0
@@ -6133,3 +6187,4 @@ SceneRoots:
   - {fileID: 763252243}
   - {fileID: 748443740}
   - {fileID: 2131766647}
+  - {fileID: 26706495}

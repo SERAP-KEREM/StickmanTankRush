@@ -58,7 +58,7 @@ GameObject:
   - component: {fileID: 6813787926016471130}
   - component: {fileID: -531216718374260870}
   m_Layer: 0
-  m_Name: Level
+  m_Name: Level 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56c67d5734aa07549bb04bb20e4de28c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
+  _levelDataSO: {fileID: 11400000, guid: 9fbe2e604cb17cc499ef1de5c6678ae1, type: 2}
   tileGrid: {fileID: 8233481212163296266}
   tankManager: {fileID: 4400155607343758349}
   stickmanGrid: {fileID: 5289277413121498745}
