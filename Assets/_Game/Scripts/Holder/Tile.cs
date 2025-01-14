@@ -17,6 +17,16 @@ namespace _Main._Stickman.StickmanGrid
 
         #endregion
 
+        #region Pathfinding Properties
+        public int gCost;
+        public int hCost;
+        public int fCost { get; private set; }
+        public Tile parent;
+        public int x { get; private set; }
+        public int y { get; private set; }
+        public bool hasObstacle => IsOccupied; // Tile dolu ise engel vard?r
+        #endregion
+
         #region Properties
 
         /// <summary>
@@ -39,11 +49,15 @@ namespace _Main._Stickman.StickmanGrid
         public void Initialize(Vector3 position)
         {
             Position = position;
-
+            x = Mathf.RoundToInt(position.x);
+            y = Mathf.RoundToInt(position.z);
             // Reset the Stickman assigned to this tile
             CurrentStickman = null;
         }
-
+        public void CalculateFCost()
+        {
+            fCost = gCost + hCost;
+        }
         #endregion
     }
 }

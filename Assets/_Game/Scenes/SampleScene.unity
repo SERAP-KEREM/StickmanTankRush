@@ -1683,7 +1683,6 @@ GameObject:
   m_Component:
   - component: {fileID: 727036124}
   - component: {fileID: 727036123}
-  - component: {fileID: 727036125}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1720,24 +1719,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &727036125
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 727036122}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e907d88dd8b625d4bb889bdeba8c05cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _maxPathDistance: 100
-  _pathCheckRadius: 0.4
-  _obstacleLayer:
-    m_Bits: 0
-  _showDebugPath: 0
-  _gridPath: []
 --- !u!1 &748443737
 GameObject:
   m_ObjectHideFlags: 0
@@ -6105,6 +6086,7 @@ MonoBehaviour:
   tankManager: {fileID: 0}
   stickmanGrid: {fileID: 0}
   holderManager: {fileID: 0}
+  _gridPathFinder: {fileID: 0}
   _pathFinder: {fileID: 0}
   _navMeshSurface: {fileID: 0}
 --- !u!4 &7501899444571030534

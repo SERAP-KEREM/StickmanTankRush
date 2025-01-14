@@ -4,6 +4,9 @@ using DG.Tweening;
 using SerapKeremGameTools.Game._Interfaces;
 using UnityEngine.AI;
 using System.Collections;
+using System.Collections.Generic;
+using _Main._Stickman.PathSystem;
+using _Main._Tank;
 
 namespace _Main._Stickman.StickmanGrid
 {
@@ -39,6 +42,7 @@ namespace _Main._Stickman.StickmanGrid
         private bool _isMoving;
         private Vector3 _currentTargetPosition;
         private Transform _targetParent;
+        private GridPathFinder _gridPathFinder;
         #endregion
 
         #region Properties
@@ -94,11 +98,19 @@ namespace _Main._Stickman.StickmanGrid
         {
             // Cache StickmanGrid reference for performance optimization
             _stickmanGrid = FindObjectOfType<StickmanGrid>();
+            _gridPathFinder = FindObjectOfType<GridPathFinder>();
+
             if (_stickmanGrid == null)
             {
                 Debug.LogError("No StickmanGrid instance found in the scene.");
             }
-           
+
+
+            if (_gridPathFinder == null)
+            {
+                Debug.LogError("[Stickman] No GridPathFinder instance found in the scene.");
+            }
+
         }
         private void Start()
         {
@@ -190,10 +202,20 @@ namespace _Main._Stickman.StickmanGrid
         /// <param name="tankTransform">The tank's transform to attach the Stickman to after movement.</param>
         public void MoveToTank(Vector3 targetPosition, Transform tankTransform)
         {
-            if (_stickmanGrid != null)
+            if (_gridPathFinder == null)
             {
-                targetPosition.z = -targetPosition.z; // Ensure the z-axis is flipped (if necessary for your setup)
+                _gridPathFinder = FindObjectOfType<GridPathFinder>();
+            }
+
+            // Yol kontrolü
+            if (_gridPathFinder.HasValidPathToTank(this, tankTransform.GetComponent<Tank>()))
+            {
                 MoveToPosition(targetPosition, tankTransform);
+            }
+            else
+            {
+                Debug.LogWarning($"[Stickman] Cannot move to tank: No valid path found!");
+                return;
             }
         }
 
@@ -203,9 +225,26 @@ namespace _Main._Stickman.StickmanGrid
         /// <param name="holderPosition">The target holder position.</param>
         public void MoveToHolder(Vector3 holderPosition)
         {
-            Vector3 targetPosition = holderPosition;
-            targetPosition.y = transform.position.y; // Maintain current Y position
-            MoveToPosition(targetPosition);
+            if (_gridPathFinder == null)
+            {
+                _gridPathFinder = FindObjectOfType<GridPathFinder>();
+            }
+
+            // Holder'a giden yol kontrolü
+            Vector2Int targetGridPos = new Vector2Int(
+                Mathf.RoundToInt(holderPosition.x),
+                Mathf.RoundToInt(holderPosition.z)
+            );
+
+            if (_gridPathFinder.HasValidPathToPosition(this, targetGridPos))
+            {
+                MoveToPosition(holderPosition);
+            }
+            else
+            {
+                Debug.LogWarning($"[Stickman] Cannot move to holder: No valid path found!");
+                return;
+            }
         }
 
         #endregion
@@ -232,25 +271,48 @@ namespace _Main._Stickman.StickmanGrid
             if (_navMeshAgent == null) return;
 
             _isMoving = true;
-            _navMeshAgent.SetDestination(targetPosition);
-            StartCoroutine(WaitForDestination(targetPosition, tankTransform));
+            _currentTargetPosition = targetPosition;
+            _targetParent = tankTransform;
+
+            // NavMeshAgent'? geçici olarak devre d??? b?rak
+            _navMeshAgent.enabled = false;
+
+            // Grid üzerinde hareket et
+            StartCoroutine(MoveAlongPath(targetPosition));
         }
-        private IEnumerator WaitForDestination(Vector3 targetPosition, Transform tankTransform)
+        private IEnumerator MoveAlongPath(Vector3 finalTarget)
         {
-            while (_navMeshAgent.pathStatus == NavMeshPathStatus.PathPartial ||
-                   Vector3.Distance(transform.position, targetPosition) > _stoppingDistance)
+            List<Vector3> pathPositions = _gridPathFinder.GetPathPositions(this, finalTarget);
+
+            if (pathPositions == null || pathPositions.Count == 0)
             {
-                yield return null;
+                Debug.LogError("[Stickman] No path positions found!");
+                yield break;
             }
 
-            _isMoving = false;
-
-            if (tankTransform != null)
+            foreach (Vector3 position in pathPositions)
             {
-                transform.SetParent(tankTransform);
-                IsSelectable = false;
+                // Her grid noktas?na s?rayla hareket et
+                transform.DOMove(position, _moveSpeed)
+                    .SetEase(Ease.Linear);
+
+                yield return new WaitForSeconds(_moveSpeed);
             }
+
+            // Son hedef noktas?na hareket et
+            transform.DOMove(finalTarget, _moveSpeed)
+                .SetEase(Ease.Linear)
+                .OnComplete(() =>
+                {
+                    _isMoving = false;
+                    if (_targetParent != null)
+                    {
+                        transform.SetParent(_targetParent);
+                        IsSelectable = false;
+                    }
+                });
         }
-        #endregion
     }
+    #endregion
 }
+

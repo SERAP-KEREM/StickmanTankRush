@@ -1,5 +1,4 @@
-﻿using _Main._Stickman;
-using _Main._Stickman.StickmanGrid;
+﻿using _Main._Stickman.StickmanGrid;
 using _Main._Tank;
 using System.Collections.Generic;
 using UnityEngine;
@@ -50,9 +49,12 @@ namespace _Main
         #region Game State
         private bool _isPaused;
         #endregion
+
+        GridPathFinder _gridPathFinder;
         protected override void Awake()
         {
             base.Awake();
+          
             InitializeAudioManager();
         }
         private void InitializeAudioManager()
@@ -118,8 +120,8 @@ namespace _Main
             if (_stickmanGrid == null) { Debug.LogError("StickmanGrid is not assigned!"); return; }
             if (_tileGrid == null) { Debug.LogError("TileGrid is not assigned!"); return; }
             if (_holderManager == null) { Debug.LogError("HolderManager is not assigned!"); return; }
-
-          //  Debug.Log("References validated.");
+            if (_gridPathFinder == null) { Debug.LogError("GridPathFinder is not assigned!"); return; }
+            //  Debug.Log("References validated.");
         }
 
         #endregion
@@ -143,11 +145,15 @@ namespace _Main
             _stickmanGrid = level.StickmanGrid;
             _tileGrid = level.TileGrid;
             _holderManager = level.HolderManager;
-
+            _gridPathFinder = level.GetComponent<GridPathFinder>();
             if (_gameplayUI != null)
             {
                 _gameplayUI.Show();
                 _gameplayUI.ResetProgress();
+            }
+            if (_gridPathFinder == null)
+            {
+                _gridPathFinder = level.gameObject.AddComponent<GridPathFinder>();
             }
 
             // Validate references
@@ -192,13 +198,31 @@ namespace _Main
             Tank currentTank = _tankManager.CurrentTank;
             if (currentTank == null) return;
 
-            if (CanMoveToTarget(stickman, currentTank))
-            {
-                MoveStickmanToTank(stickman, currentTank);
-            }
-            else
+            if (currentTank.UnitColorType != stickman.UnitColorType)
             {
                 HandleColorMismatch(stickman);
+                return;
+            }
+
+            // Tank dolu mu?
+            if (currentTank.IsFull)
+            {
+                Debug.Log("Tank is full!");
+                return;
+            }
+            if (_gridPathFinder == null)
+            {
+                Debug.LogError("[GameManager] GridPathFinder is null!");
+                return;
+            }
+            // Grid üzerinde geçerli bir yol var mı?
+            //if (_gridPathFinder.HasValidPathToTarget(stickman, currentTank))
+            //{
+            //    MoveStickmanToTank(stickman, currentTank);
+            //}
+            else
+            {
+                Debug.Log("No valid path to tank!");
             }
         }
 

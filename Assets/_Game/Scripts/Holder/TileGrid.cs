@@ -15,6 +15,7 @@ public class TileGrid : MonoBehaviour
     private Tile[,] _tileGrid;
     private Vector2Int _gridSize;
     private bool _isInitialized;
+    public Vector2Int GridSize => _gridSize;
     #endregion
 
 
@@ -121,6 +122,7 @@ public class TileGrid : MonoBehaviour
             if (stickman != null)
             {
                 tile.AssignStickman(stickman);
+                
             }
         }
 

@@ -20,11 +20,13 @@ public class Level : MonoBehaviour
     [SerializeField] private TankManager tankManager;
     [SerializeField] private StickmanGrid stickmanGrid;
     [SerializeField] private HolderManager holderManager;
-
+    [SerializeField] private GridPathFinder _gridPathFinder;
     public TileGrid TileGrid => tileGrid;
     public TankManager TankManager => tankManager;
     public StickmanGrid StickmanGrid => stickmanGrid;
     public HolderManager HolderManager => holderManager;
+    public GridPathFinder GridPathFinder => _gridPathFinder;
+
 
     private bool _isInitialized = false;
     [Header("Path System")]
@@ -119,7 +121,12 @@ public class Level : MonoBehaviour
         if (holderManager == null)
         {
             holderManager = GetComponentInChildren<HolderManager>(true);
-            Debug.Log($"Found StickmanGrid: {holderManager != null}");
+            Debug.Log($"Found HolderManager: {holderManager != null}");
+        }
+        if (_gridPathFinder == null)
+        {
+            _gridPathFinder = GetComponentInChildren<GridPathFinder>(true);
+            Debug.Log($"Found GridPathFinder: {_gridPathFinder != null}");
         }
     }
 
@@ -192,13 +199,18 @@ public class Level : MonoBehaviour
             GameManager.Instance.OnLevelCreated(this);
         }
 
-        if (_pathFinder == null)
+        //if (_pathFinder == null)
+        //{
+        //    var pathFinderObj = new GameObject("PathFinder");
+        //    _pathFinder = pathFinderObj.AddComponent<PathFinder>();
+        //    pathFinderObj.transform.SetParent(transform);
+        //}
+        if (_gridPathFinder == null)
         {
-            var pathFinderObj = new GameObject("PathFinder");
-            _pathFinder = pathFinderObj.AddComponent<PathFinder>();
-            pathFinderObj.transform.SetParent(transform);
+            _gridPathFinder = gameObject.AddComponent<GridPathFinder>();
         }
-
+        _gridPathFinder.Initialize(tileGrid);
+       
         if (_navMeshSurface != null)
         {
             _navMeshSurface.BuildNavMesh();
