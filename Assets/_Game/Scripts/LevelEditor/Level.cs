@@ -1,5 +1,4 @@
 using _Main;
-using _Main._Stickman.PathSystem;
 using _Main._Stickman.StickmanGrid;
 using DG.Tweening;
 using LevelEditor;
@@ -30,7 +29,6 @@ public class Level : MonoBehaviour
 
     private bool _isInitialized = false;
     [Header("Path System")]
-    [SerializeField] private PathFinder _pathFinder;
     [SerializeField] private NavMeshSurface _navMeshSurface;
     #endregion
 
@@ -123,13 +121,20 @@ public class Level : MonoBehaviour
             holderManager = GetComponentInChildren<HolderManager>(true);
             Debug.Log($"Found HolderManager: {holderManager != null}");
         }
+
+        // GridPathFinder kontrolü
         if (_gridPathFinder == null)
         {
-            _gridPathFinder = GetComponentInChildren<GridPathFinder>(true);
-            Debug.Log($"Found GridPathFinder: {_gridPathFinder != null}");
+            _gridPathFinder = GetComponent<GridPathFinder>();
+            if (_gridPathFinder == null)
+            {
+                Debug.Log("[Level] Adding GridPathFinder component");
+                _gridPathFinder = gameObject.AddComponent<GridPathFinder>();
+            }
         }
-    }
 
+        Debug.Log($"[Level] GridPathFinder status: {_gridPathFinder != null}");
+    }
     /// <summary>
     /// Initializes the level with the provided LevelDataSO object.
     /// </summary>
@@ -141,10 +146,12 @@ public class Level : MonoBehaviour
             Debug.LogError("Trying to initialize level with null data!");
             return;
         }
-
+        if (_gridPathFinder != null)
+        {
+            _gridPathFinder.Initialize(tileGrid);
+        }
         _levelDataSO = data;
         _isInitialized = false; // Reset initialization flag
-
         StartCoroutine(DelayedInitialization());
     }
 
@@ -171,46 +178,45 @@ public class Level : MonoBehaviour
         if (stickmanGrid != null)
         {
             stickmanGrid.SetLevelDataSO(_levelDataSO);
-            //Debug.Log("StickmanGrid initialized");
         }
 
         if (tileGrid != null)
         {
             tileGrid.SetLevelDataSO(_levelDataSO);
-            //Debug.Log("TileGrid initialized");
         }
 
         if (tankManager != null)
         {
             tankManager.SetLevelDataSO(_levelDataSO);
-            // Debug.Log("TankManager initialized");
         }
 
         if (holderManager != null)
         {
-            holderManager.InitializeWaitingRow();
-            // Debug.Log("TankManager initialized");
+            holderManager.Initialize();
+        }
+
+        // GridPathFinder kontrolü ve initialize
+        if (_gridPathFinder == null)
+        {
+            Debug.Log("[Level] Creating GridPathFinder");
+            _gridPathFinder = gameObject.AddComponent<GridPathFinder>();
+        }
+
+        if (tileGrid != null)
+        {
+            Debug.Log("[Level] Initializing GridPathFinder");
+            _gridPathFinder.Initialize(tileGrid);
         }
 
         _isInitialized = true;
 
+        // GameManager'a bildirme
         if (GameManager.Instance != null)
         {
+            Debug.Log("[Level] Notifying GameManager of level creation");
             GameManager.Instance.OnLevelCreated(this);
         }
 
-        //if (_pathFinder == null)
-        //{
-        //    var pathFinderObj = new GameObject("PathFinder");
-        //    _pathFinder = pathFinderObj.AddComponent<PathFinder>();
-        //    pathFinderObj.transform.SetParent(transform);
-        //}
-        if (_gridPathFinder == null)
-        {
-            _gridPathFinder = gameObject.AddComponent<GridPathFinder>();
-        }
-        _gridPathFinder.Initialize(tileGrid);
-       
         if (_navMeshSurface != null)
         {
             _navMeshSurface.BuildNavMesh();
@@ -254,6 +260,11 @@ public class Level : MonoBehaviour
         if (holderManager == null)
         {
             Debug.LogError("HolderManager reference is missing!");
+            isValid = false;
+        }
+        if (_gridPathFinder == null)
+        {
+            Debug.LogError("GridPathFinder reference is missing!");
             isValid = false;
         }
 

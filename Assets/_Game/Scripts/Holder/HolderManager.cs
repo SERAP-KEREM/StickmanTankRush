@@ -26,9 +26,14 @@ public class HolderManager : MonoBehaviour
     private List<Holder> _availableHolders = new List<Holder>();
     #endregion
     public event System.Action OnAllHoldersFull;
-    
+
 
     #region Initialization
+    public void Initialize()
+    {
+
+        InitializeWaitingRow();
+    }
     public void InitializeWaitingRow()
     {
         if (!ValidateSetup()) return;
@@ -139,29 +144,65 @@ public class HolderManager : MonoBehaviour
     {
         if (stickman == null)
         {
-           // Debug.LogError("Cannot move null stickman to holder!");
+            Debug.LogError("[HolderManager] Cannot move null stickman!");
             return null;
         }
 
+        // GridPathFinder kontrolü
+        var gridPathFinder = FindObjectOfType<GridPathFinder>();
+        if (gridPathFinder == null)
+        {
+            Debug.LogError("[HolderManager] GridPathFinder not found!");
+            return null;
+        }
+
+        // z=0 kontrolü
+        if (stickman.GridY == 0)
+        {
+            foreach (Holder holder in _availableHolders)
+            {
+                if (holder != null && !holder.IsOccupied)
+                {
+                    bool success = holder.AssignStickman(stickman);
+                    if (success)
+                    {
+                        Debug.Log($"[HolderManager] Direct move to holder {holder.name} (z=0)");
+                        AreAllHoldersFull();
+                        return holder;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Yol kontrolü ve hareket
         foreach (Holder holder in _availableHolders)
         {
             if (holder != null && !holder.IsOccupied)
             {
-                bool success = holder.AssignStickman(stickman);
-                if (success)
+                // Önce yol kontrolü yap
+                if (gridPathFinder.HasValidPathToTarget(stickman))
                 {
-                    //Debug.Log($"Successfully moved {stickman.name} to {holder.name}");
-                    AreAllHoldersFull();
-                    return holder;
+                    bool success = holder.AssignStickman(stickman);
+                    if (success)
+                    {
+                        Debug.Log($"[HolderManager] Moved stickman to holder {holder.name}");
+                        AreAllHoldersFull();
+                        return holder;
+                    }
+                }
+                else
+                {
+                    Debug.Log($"[HolderManager] No valid path to holder {holder.name}");
                 }
             }
         }
 
-       // Debug.LogWarning("No available holder found for stickman");
+        Debug.LogWarning("[HolderManager] No available holder or valid path found");
         return null;
     }
 
-    
+
     #endregion
 
     #region Helper Methods

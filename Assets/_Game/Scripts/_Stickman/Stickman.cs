@@ -1,318 +1,260 @@
+using _Main;
 using _Main._Enums;
-using UnityEngine;
+using _Main._Tank;
 using DG.Tweening;
 using SerapKeremGameTools.Game._Interfaces;
-using UnityEngine.AI;
-using System.Collections;
 using System.Collections.Generic;
-using _Main._Stickman.PathSystem;
-using _Main._Tank;
+using UnityEngine;
 
-namespace _Main._Stickman.StickmanGrid
+public class Stickman : MonoBehaviour, ISelectable
 {
-    /// <summary>
-    /// Represents a Stickman character that can move and interact within the grid.
-    /// </summary>
-    public class Stickman : MonoBehaviour, ISelectable
+    #region Fields
+    [Header("Stickman Configuration")]
+    [SerializeField] private ColorType _colorType;
+    [SerializeField] private bool _isSelectable = true;
+    [SerializeField] private float _moveSpeed = 2f;
+    [SerializeField] private float _rotationSpeed = 360f;
+
+    [Header("Movement")]
+    [SerializeField] private float _pathPointThreshold = 0.1f;
+
+    private TileGrid _tileGrid;
+    private GridPathFinder _gridPathFinder;
+    private bool _isMoving;
+    private List<Vector3> _currentPath;
+    private int _currentPathIndex;
+    private Transform _targetParent;
+    #endregion
+
+    #region Properties
+    public ColorType UnitColorType
     {
-    
-        #region Fields & Properties
+        get => _colorType;
+        set => _colorType = value;
+    }
+    public bool IsSelectable
+    {
+        get => _isSelectable;
+        set => _isSelectable = value;
+    }
+    public int GridX { get; private set; }
+    public int GridY { get; private set; }
+    #endregion
 
-        [Header("Stickman Configuration")]
-        [SerializeField, Tooltip("Determines the color type of the Stickman.")]
-        private ColorType _colorType;
 
-        [SerializeField, Tooltip("Indicates if the Stickman is selectable.")]
-        private bool _isSelectable = true;
+    #region Unity Methods
+    private void Awake()
+    {
+        _tileGrid = FindObjectOfType<TileGrid>();
+        _gridPathFinder = FindObjectOfType<GridPathFinder>();
 
-        [SerializeField, Range(0.1f, 5f), Tooltip("Move speed of the Stickman.")]
-        private float _moveSpeed = 1f;
+        if (_tileGrid == null)
+            Debug.LogError("[Stickman] TileGrid not found!");
+        if (_gridPathFinder == null)
+            Debug.LogError("[Stickman] GridPathFinder not found!");
+    }
 
-        private StickmanGrid _stickmanGrid;
-
-        private NavMeshAgent _navMeshAgent;
-        [Header("Movement")]
-        
-        [SerializeField] private float _stoppingDistance = 0.1f;
-
-        [Header("Path Finding")]
-        [SerializeField] private float _pathUpdateInterval = 0.1f;
-        [SerializeField] private float _pathEndThreshold = 0.1f;
-        [SerializeField] private float _rotationSpeed = 720f;
-        private bool _isMoving;
-        private Vector3 _currentTargetPosition;
-        private Transform _targetParent;
-        private GridPathFinder _gridPathFinder;
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Gets or sets the color type of the Stickman.
-        /// </summary>
-        public ColorType UnitColorType
+    private void Update()
+    {
+        if (_isMoving && _currentPath != null)
         {
-            get => _colorType;
-            set => _colorType = value;
+            UpdateMovement();
+        }
+    }
+    #endregion
+
+    #region Public Methods
+    public void Initialize()
+    {
+        IsSelectable = true;
+        UpdateColor();
+    }
+
+    public void SetGridPosition(int x, int y)
+    {
+        GridX = x;
+        GridY = y;
+        Debug.Log($"[Stickman] Position set to [{x},{y}]");
+    }
+
+    public void Select()
+    {
+        if (!IsSelectable) return;
+        GameManager.Instance.HandleStickmanSelection(this);
+    }
+
+    public void DeSelect()
+    {
+        IsSelectable = false;
+    }
+
+    public void MoveToTank(Vector3 targetPosition, Transform tankTransform)
+    {
+        if (_isMoving)
+        {
+            Debug.LogWarning("[Stickman] Already moving!");
+            return;
         }
 
-        /// <summary>
-        /// Gets or sets whether the Stickman is selectable.
-        /// </summary>
-        public bool IsSelectable
+        // z=0 kontrolü
+        if (GridY == 0)
         {
-            get => _isSelectable;
-            set => _isSelectable = value;
+            DirectMove(targetPosition, tankTransform);
+            return;
         }
 
-        /// <summary>
-        /// Gets the current grid X position of the Stickman.
-        /// </summary>
-        public int GridX { get; private set; }
-
-        /// <summary>
-        /// Gets the current grid Y position of the Stickman.
-        /// </summary>
-        public int GridY { get; private set; }
-
-        #endregion
-        #region ISelectable Implementation
-        public void Select()
+        if (_gridPathFinder.HasValidPathToTarget(this))
         {
-            if (!IsSelectable) return;
-
-            _isSelectable = true;
-            GameManager.Instance.HandleStickmanSelection(this);
-            Debug.Log($"[Stickman] Selected: {name}");
-        }
-
-        public void DeSelect()
-        {
-            _isSelectable = false;
-            Debug.Log($"[Stickman] Deselected: {name}");
-        }
-        #endregion
-        #region Unity Methods
-
-        private void Awake()
-        {
-            // Cache StickmanGrid reference for performance optimization
-            _stickmanGrid = FindObjectOfType<StickmanGrid>();
-            _gridPathFinder = FindObjectOfType<GridPathFinder>();
-
-            if (_stickmanGrid == null)
+            _currentPath = _gridPathFinder.GetPathPositions();
+            if (_currentPath != null && _currentPath.Count > 0)
             {
-                Debug.LogError("No StickmanGrid instance found in the scene.");
+                StartMovement(targetPosition, tankTransform);
             }
+        }
+        else
+        {
+            Debug.LogWarning("[Stickman] No valid path to tank!");
+        }
+    }
+    public void MoveToHolder(Vector3 holderPosition)
+    {
+        if (_isMoving)
+        {
+            Debug.LogWarning("[Stickman] Already moving!");
+            return;
+        }
 
+        // z=0 kontrolü
+        if (GridY == 0)
+        {
+            DirectMove(holderPosition);
+            return;
+        }
 
-            if (_gridPathFinder == null)
+        if (_gridPathFinder.HasValidPathToTarget(this))
+        {
+            _currentPath = _gridPathFinder.GetPathPositions();
+            if (_currentPath != null && _currentPath.Count > 0)
             {
-                Debug.LogError("[Stickman] No GridPathFinder instance found in the scene.");
+                StartMovement(holderPosition);
             }
+        }
+        else
+        {
+            Debug.LogWarning("[Stickman] No valid path to holder!");
+        }
+    }
+    #endregion
 
-        }
-        private void Start()
+    #region Private Methods
+    private void DirectMove(Vector3 targetPosition, Transform newParent = null)
+    {
+        // Mevcut tile'dan ayr?l
+        var currentTile = _tileGrid.GetTileAt(GridX, GridY);
+        if (currentTile != null)
         {
-            SetupNavMeshAgent();
+            currentTile.RemoveStickman();
+            Debug.Log($"[Stickman] Removed from tile [{GridX},{GridY}]");
         }
-        private void SetupNavMeshAgent()
-        {
-            _navMeshAgent = GetComponent<NavMeshAgent>();
-            if (_navMeshAgent == null)
-                _navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
 
-            _navMeshAgent.speed = _moveSpeed;
-            _navMeshAgent.stoppingDistance = _stoppingDistance;
-            _navMeshAgent.acceleration = 8f;
-            _navMeshAgent.angularSpeed = _rotationSpeed;
-            _navMeshAgent.updateRotation = false;
-        }
-            private void Update()
-        {
-            if (_isMoving && _navMeshAgent.enabled)
+        _isMoving = true;
+        transform.DOMove(targetPosition, _moveSpeed)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
             {
-                // Hedefe ula??ld? m? kontrol et
-                if (Vector3.Distance(transform.position, _currentTargetPosition) <= _pathEndThreshold)
+                _isMoving = false;
+                if (newParent != null)
                 {
-                    OnReachedDestination();
+                    transform.SetParent(newParent);
+                    IsSelectable = false;
+                    Debug.Log("[Stickman] Reached destination and attached to parent");
                 }
-            }
-        }
-        private void OnReachedDestination()
-        {
-            if (_isMoving && _navMeshAgent.velocity.magnitude > 0.1f)
-            {
-                // Hareket yönüne do?ru yumu?ak dönü?
-                Vector3 direction = _navMeshAgent.velocity.normalized;
-                if (direction != Vector3.zero)
-                {
-                    Quaternion targetRotation = Quaternion.LookRotation(direction);
-                    transform.rotation = Quaternion.RotateTowards(
-                        transform.rotation,
-                        targetRotation,
-                        _rotationSpeed * Time.deltaTime
-                    );
-                }
-            }
+            });
+    }
 
-            if (_targetParent != null)
-            {
-                transform.SetParent(_targetParent);
-                IsSelectable = false;
-            }
+    private void StartMovement(Vector3 targetPosition, Transform newParent = null)
+    {
+        // Mevcut tile'dan ayr?l
+        var currentTile = _tileGrid.GetTileAt(GridX, GridY);
+        if (currentTile != null)
+        {
+            currentTile.RemoveStickman();
+            Debug.Log($"[Stickman] Removed from tile [{GridX},{GridY}]");
         }
 
-        #endregion
-
-        #region Public Methods
-
-        /// <summary>
-        /// Sets the grid position of the Stickman.
-        /// </summary>
-        /// <param name="x">X position in the grid.</param>
-        /// <param name="y">Y position in the grid.</param>
-        public void SetGridPosition(int x, int y)
+        _currentPath = _gridPathFinder.GetPathPositions();
+        if (_currentPath == null || _currentPath.Count == 0)
         {
-            GridX = x;
-            GridY = y;
+            Debug.LogError("[Stickman] Path positions not found!");
+            return;
         }
 
-        /// <summary>
-        /// Initializes the Stickman by setting its color based on its assigned color type.
-        /// </summary>
-        public void Initialize()
+        _isMoving = true;
+        _currentPathIndex = 0;
+        _targetParent = newParent;
+
+        Debug.Log($"[Stickman] Starting movement with path length: {_currentPath.Count}");
+    }
+
+    private void UpdateMovement()
+    {
+        if (_currentPathIndex >= _currentPath.Count)
         {
-            IsSelectable = true;
-            Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
-            if (childRenderer != null)
-            {
-                childRenderer.material.color = ColorManager.ColorTypeToColor(_colorType);
-            }
-            else
-            {
-                Debug.LogError("Renderer component not found on Stickman.");
-            }
+            OnReachedDestination();
+            return;
         }
 
-        /// <summary>
-        /// Moves the Stickman to the specified target position using DOTween.
-        /// </summary>
-        /// <param name="targetPosition">The target position where the Stickman will move.</param>
-        /// <param name="tankTransform">The tank's transform to attach the Stickman to after movement.</param>
-        public void MoveToTank(Vector3 targetPosition, Transform tankTransform)
+        Vector3 targetPos = _currentPath[_currentPathIndex];
+        targetPos.y = transform.position.y; // Y pozisyonunu koru
+
+        // Hedefe do?ru dön
+        Vector3 direction = (targetPos - transform.position).normalized;
+        if (direction != Vector3.zero)
         {
-            if (_gridPathFinder == null)
-            {
-                _gridPathFinder = FindObjectOfType<GridPathFinder>();
-            }
-
-            // Yol kontrolü
-            if (_gridPathFinder.HasValidPathToTank(this, tankTransform.GetComponent<Tank>()))
-            {
-                MoveToPosition(targetPosition, tankTransform);
-            }
-            else
-            {
-                Debug.LogWarning($"[Stickman] Cannot move to tank: No valid path found!");
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Moves the Stickman to a specified holder position.
-        /// </summary>
-        /// <param name="holderPosition">The target holder position.</param>
-        public void MoveToHolder(Vector3 holderPosition)
-        {
-            if (_gridPathFinder == null)
-            {
-                _gridPathFinder = FindObjectOfType<GridPathFinder>();
-            }
-
-            // Holder'a giden yol kontrolü
-            Vector2Int targetGridPos = new Vector2Int(
-                Mathf.RoundToInt(holderPosition.x),
-                Mathf.RoundToInt(holderPosition.z)
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                targetRotation,
+                _rotationSpeed * Time.deltaTime
             );
-
-            if (_gridPathFinder.HasValidPathToPosition(this, targetGridPos))
-            {
-                MoveToPosition(holderPosition);
-            }
-            else
-            {
-                Debug.LogWarning($"[Stickman] Cannot move to holder: No valid path found!");
-                return;
-            }
         }
 
-        #endregion
+        // Hedefe do?ru hareket et
+        transform.position = Vector3.MoveTowards(
+            transform.position,
+            targetPos,
+            _moveSpeed * Time.deltaTime
+        );
 
-        #region Private Methods
-
-        /// <summary>
-        /// General method for moving the Stickman to a specified position.
-        /// </summary>
-        /// <param name="targetPosition">The target position where the Stickman will move.</param>
-        /// <param name="tankTransform">Optional: The tank's transform to attach the Stickman to after movement.</param>
-        private void MoveToPosition(Vector3 targetPosition, Transform tankTransform = null)
+        // Bir sonraki noktaya geç
+        if (Vector3.Distance(transform.position, targetPos) < _pathPointThreshold)
         {
-            //transform.DOMove(targetPosition, _moveSpeed)
-            //    .SetEase(Ease.Linear)
-            //    .OnComplete(() =>
-            //    {
-            //        if (tankTransform != null)
-            //        {
-            //            transform.SetParent(tankTransform);
-            //            IsSelectable = false;
-            //        }
-            //    });
-            if (_navMeshAgent == null) return;
-
-            _isMoving = true;
-            _currentTargetPosition = targetPosition;
-            _targetParent = tankTransform;
-
-            // NavMeshAgent'? geçici olarak devre d??? b?rak
-            _navMeshAgent.enabled = false;
-
-            // Grid üzerinde hareket et
-            StartCoroutine(MoveAlongPath(targetPosition));
+            _currentPathIndex++;
+            Debug.Log($"[Stickman] Moving to next path point: {_currentPathIndex}/{_currentPath.Count}");
         }
-        private IEnumerator MoveAlongPath(Vector3 finalTarget)
+    }
+
+    private void OnReachedDestination()
+    {
+        _isMoving = false;
+        _currentPath = null;
+        _currentPathIndex = 0;
+
+        if (_targetParent != null)
         {
-            List<Vector3> pathPositions = _gridPathFinder.GetPathPositions(this, finalTarget);
+            transform.SetParent(_targetParent);
+            IsSelectable = false;
+            Debug.Log("[Stickman] Reached final destination and attached to parent");
+        }
+    }
 
-            if (pathPositions == null || pathPositions.Count == 0)
-            {
-                Debug.LogError("[Stickman] No path positions found!");
-                yield break;
-            }
-
-            foreach (Vector3 position in pathPositions)
-            {
-                // Her grid noktas?na s?rayla hareket et
-                transform.DOMove(position, _moveSpeed)
-                    .SetEase(Ease.Linear);
-
-                yield return new WaitForSeconds(_moveSpeed);
-            }
-
-            // Son hedef noktas?na hareket et
-            transform.DOMove(finalTarget, _moveSpeed)
-                .SetEase(Ease.Linear)
-                .OnComplete(() =>
-                {
-                    _isMoving = false;
-                    if (_targetParent != null)
-                    {
-                        transform.SetParent(_targetParent);
-                        IsSelectable = false;
-                    }
-                });
+    private void UpdateColor()
+    {
+        Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
+        if (childRenderer != null)
+        {
+            childRenderer.material.color = ColorManager.ColorTypeToColor(_colorType);
         }
     }
     #endregion
 }
-

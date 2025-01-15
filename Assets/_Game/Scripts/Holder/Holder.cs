@@ -9,33 +9,54 @@ namespace _Main
     /// </summary>
     public class Holder : BaseOccupiable
     {
-        #region Public Methods
+      
+        #region Fields
+        [SerializeField] private Transform _stickmanPoint;
+        #endregion
 
-        /// <summary>
-        /// Assigns a Stickman to this Holder and moves it to the Holder's position.
-        /// </summary>
-        /// <param name="stickman">The Stickman to assign and move.</param>
-        /// <returns>
-        /// True if the Stickman was successfully assigned and moved; 
-        /// false if the assignment failed (e.g., Holder is already occupied).
-        /// </returns>
+        #region Public Methods
+        public Vector3 GetStickmanTargetPosition()
+        {
+            return _stickmanPoint != null ? _stickmanPoint.position : transform.position;
+        }
         public override bool AssignStickman(Stickman stickman)
         {
-            // Call the base method to validate the assignment
-            if (!base.AssignStickman(stickman))
+            // Önce yol kontrolü yap
+            var gridPathFinder = FindObjectOfType<GridPathFinder>();
+            if (gridPathFinder != null && !gridPathFinder.HasValidPathToTarget(stickman))
+            {
+                Debug.Log($"[Holder] No valid path for stickman to holder {name}");
                 return false;
+            }
 
-            // Move Stickman to the Holder's position while preserving its Y position
-            stickman.MoveToHolder(new Vector3(
-                transform.position.x,
-                stickman.transform.position.y,
-                transform.position.z
-            ));
+            // Base class kontrolü
+            if (!base.AssignStickman(stickman))
+            {
+                Debug.LogWarning($"[Holder] Base AssignStickman failed for {name}");
+                return false;
+            }
 
-            // Assignment successful
+            // Stickman'i hareket ettir
+            Vector3 targetPos = GetStickmanTargetPosition();
+            targetPos.y = stickman.transform.position.y;
+            stickman.MoveToHolder(targetPos);
+
+            Debug.Log($"[Holder] Successfully assigned stickman to {name}");
             return true;
         }
 
+        public override Stickman RemoveStickman()
+        {
+            if (!IsOccupied)
+            {
+                Debug.LogWarning($"[Holder] {name} is already empty!");
+                return null;
+            }
+
+            var stickman = base.RemoveStickman();
+            Debug.Log($"[Holder] Removed stickman from {name}");
+            return stickman;
+        }
         #endregion
     }
 }

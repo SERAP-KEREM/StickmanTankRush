@@ -6,7 +6,6 @@ using DG.Tweening;
 using SerapKeremGameTools._Game._Singleton;
 using SerapKeremGameTools._Game._AudioSystem;
 using System.Collections;
-using _Main._Stickman.PathSystem;
 using UnityEngine.AI;
 
 namespace _Main
@@ -145,7 +144,7 @@ namespace _Main
             _stickmanGrid = level.StickmanGrid;
             _tileGrid = level.TileGrid;
             _holderManager = level.HolderManager;
-            _gridPathFinder = level.GetComponent<GridPathFinder>();
+            _gridPathFinder = level.GridPathFinder;
             if (_gameplayUI != null)
             {
                 _gameplayUI.Show();
@@ -153,9 +152,10 @@ namespace _Main
             }
             if (_gridPathFinder == null)
             {
-                _gridPathFinder = level.gameObject.AddComponent<GridPathFinder>();
+                Debug.LogError("[GameManager] GridPathFinder is missing!");
+                return;
             }
-
+            _gridPathFinder.Initialize(_tileGrid);
             // Validate references
             ValidateReferences();
 
@@ -183,12 +183,12 @@ namespace _Main
             }
             return null;
         }
-    
-    /// <summary>
-    /// Handles the selection of a Stickman by the player.
-    /// </summary>
-    /// <param name="stickman">The selected Stickman instance.</param>
-    public void HandleStickmanSelection(Stickman stickman)
+
+        /// <summary>
+        /// Handles the selection of a Stickman by the player.
+        /// </summary>
+        /// <param name="stickman">The selected Stickman instance.</param>
+        public void HandleStickmanSelection(Stickman stickman)
         {
             if (!ValidateStickmanSelection(stickman)) return;
 
@@ -198,6 +198,7 @@ namespace _Main
             Tank currentTank = _tankManager.CurrentTank;
             if (currentTank == null) return;
 
+            // Renk kontrolü
             if (currentTank.UnitColorType != stickman.UnitColorType)
             {
                 HandleColorMismatch(stickman);
@@ -210,16 +211,19 @@ namespace _Main
                 Debug.Log("Tank is full!");
                 return;
             }
-            if (_gridPathFinder == null)
+
+            // z=0 kontrolü (en öndeki stickman)
+            if (stickman.GridY == 0)
             {
-                Debug.LogError("[GameManager] GridPathFinder is null!");
+                MoveStickmanToTank(stickman, currentTank);
                 return;
             }
-            // Grid üzerinde geçerli bir yol var mı?
-            //if (_gridPathFinder.HasValidPathToTarget(stickman, currentTank))
-            //{
-            //    MoveStickmanToTank(stickman, currentTank);
-            //}
+
+            // Yol kontrolü
+            if (_gridPathFinder.HasValidPathToTarget(stickman))
+            {
+                MoveStickmanToTank(stickman, currentTank);
+            }
             else
             {
                 Debug.Log("No valid path to tank!");
@@ -269,7 +273,21 @@ namespace _Main
         /// <param name="stickman">The Stickman to move.</param>
         private void HandleColorMismatch(Stickman stickman)
         {
-            //Debug.Log("Attempting to move stickman to holder...");
+            if (stickman == null) return;
+
+            // GridPathFinder kontrolü
+            if (_gridPathFinder == null)
+            {
+                Debug.LogError("[GameManager] GridPathFinder is null!");
+                return;
+            }
+
+            // Yol kontrolü
+            if (!_gridPathFinder.HasValidPathToTarget(stickman))
+            {
+                Debug.Log("[GameManager] No valid path for stickman to holder");
+                return;
+            }
 
             // Move Stickman to the nearest available holder
             Holder nearestHolder = _holderManager.MoveToNearestAvailableHolder(stickman);
@@ -278,11 +296,11 @@ namespace _Main
             {
                 ScoreManager.Instance.OnHolderUsed();
                 ProcessStickmanMovement(stickman, null, nearestHolder);
-               // Debug.Log($"Successfully moved stickman to holder: {nearestHolder.name}");
+                Debug.Log($"[GameManager] Successfully moved stickman to holder {nearestHolder.name}");
             }
             else
             {
-               // Debug.LogWarning("No available holder found!");
+                Debug.LogWarning("[GameManager] Failed to move stickman to holder");
             }
         }
 
@@ -323,6 +341,16 @@ namespace _Main
         /// <param name="nearestHolder">The nearest available holder (optional, can be null).</param>
         private void ProcessStickmanMovement(Stickman stickman, Tank currentTank = null, Holder nearestHolder = null)
         {
+            if (stickman.GridY == 0)
+            {
+                MoveStickmanDirectly(stickman, currentTank, nearestHolder);
+                return;
+            }
+            if (!_gridPathFinder.HasValidPathToTarget(stickman))
+            {
+                Debug.Log("[GameManager] No valid path found, movement cancelled");
+                return;
+            }
             // Remove Stickman from the current tile
             Tile currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
             if (currentTile != null)
@@ -330,7 +358,7 @@ namespace _Main
                 currentTile.RemoveStickman();
                 //Debug.Log($"Removed stickman from tile ({stickman.GridX}, {stickman.GridY})");
             }
-
+          
             if (nearestHolder != null)
             {
                 // Assign Stickman to the nearest holder
@@ -346,7 +374,20 @@ namespace _Main
                 // Debug.Log($"Added stickman to tank. Tank color: {currentTank.UnitColorType}");
             }
         }
-
+        private void MoveStickmanDirectly(Stickman stickman, Tank currentTank, Holder nearestHolder)
+        {
+            if (nearestHolder != null)
+            {
+                stickman.MoveToHolder(nearestHolder.transform.position);
+                nearestHolder.AssignStickman(stickman);
+                stickman.IsSelectable = false;
+            }
+            else if (currentTank != null)
+            {
+                stickman.MoveToTank(currentTank.GetStickmanTargetPosition(), currentTank.transform);
+                currentTank.AddStickman(stickman.UnitColorType);
+            }
+        }
         private void MoveNextTankToStopPoint()
         {
             Tank currentTank = _tankManager.CurrentTank;
