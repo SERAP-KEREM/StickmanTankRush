@@ -1,5 +1,6 @@
 using _Main._Stickman;
 using _Main._Stickman.StickmanGrid;
+using DG.Tweening;
 using UnityEngine;
 
 namespace _Main
@@ -17,7 +18,8 @@ namespace _Main
         #region Public Methods
         public Vector3 GetStickmanTargetPosition()
         {
-            return _stickmanPoint != null ? _stickmanPoint.position : transform.position;
+            Vector3 holderPos = _stickmanPoint != null ? _stickmanPoint.position : transform.position;
+            return new Vector3(holderPos.x, 0f, holderPos.z); // Holder'da y=0
         }
         public override bool AssignStickman(Stickman stickman)
         {
@@ -36,12 +38,16 @@ namespace _Main
                 return false;
             }
 
-            // Stickman'i hareket ettir
             Vector3 targetPos = GetStickmanTargetPosition();
-            targetPos.y = stickman.transform.position.y;
-            stickman.MoveToHolder(targetPos);
+            Vector3 startPos = stickman.transform.position;
+            Vector3 midPoint = (startPos + targetPos) * 0.5f + Vector3.up * 5f;
 
-            Debug.Log($"[Holder] Successfully assigned stickman to {name}");
+            stickman.transform.DOPath(
+                new Vector3[] { startPos, midPoint, targetPos },
+                1f,
+                PathType.CatmullRom
+            ).SetEase(Ease.InOutQuad);
+
             return true;
         }
 

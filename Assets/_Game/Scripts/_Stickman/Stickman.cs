@@ -47,11 +47,10 @@ public class Stickman : MonoBehaviour, ISelectable
     {
         _tileGrid = FindObjectOfType<TileGrid>();
         _gridPathFinder = FindObjectOfType<GridPathFinder>();
-
-        if (_tileGrid == null)
-            Debug.LogError("[Stickman] TileGrid not found!");
-        if (_gridPathFinder == null)
-            Debug.LogError("[Stickman] GridPathFinder not found!");
+        if (TryGetComponent<CapsuleCollider>(out var collider))
+        {
+            collider.isTrigger = true;
+        }
     }
 
     private void Update()
@@ -149,29 +148,37 @@ public class Stickman : MonoBehaviour, ISelectable
     #region Private Methods
     private void DirectMove(Vector3 targetPosition, Transform newParent = null)
     {
-        // Mevcut tile'dan ayr?l
         var currentTile = _tileGrid.GetTileAt(GridX, GridY);
         if (currentTile != null)
         {
             currentTile.RemoveStickman();
-            Debug.Log($"[Stickman] Removed from tile [{GridX},{GridY}]");
         }
 
         _isMoving = true;
+        Vector3 startPos = transform.position;
+        targetPosition.y = startPos.y; // Y pozisyonunu koru
+
+        // Düz hareket
         transform.DOMove(targetPosition, _moveSpeed)
             .SetEase(Ease.Linear)
-            .OnComplete(() =>
-            {
+            .OnComplete(() => {
                 _isMoving = false;
-                if (newParent != null)
+                IsSelectable = false;
+
+                if (newParent != null && newParent.TryGetComponent<Tank>(out var tank))
                 {
-                    transform.SetParent(newParent);
-                    IsSelectable = false;
-                    Debug.Log("[Stickman] Reached destination and attached to parent");
+                    // Tank'a vard???n? bildir ama child yapma
+                    transform.rotation = tank.transform.rotation * Quaternion.Euler(0f, 90f, 0f);
+                    tank.OnStickmanArrived();
                 }
             });
     }
-
+    public void FollowTank(Tank tank, Vector3 offset)
+    {
+        // Tank hareket ederken takip et
+        transform.DOMove(tank.transform.position + offset, tank.MovementDuration)
+            .SetEase(Ease.Linear);
+    }
     private void StartMovement(Vector3 targetPosition, Transform newParent = null)
     {
         // Mevcut tile'dan ayr?l
@@ -196,6 +203,8 @@ public class Stickman : MonoBehaviour, ISelectable
         Debug.Log($"[Stickman] Starting movement with path length: {_currentPath.Count}");
     }
 
+
+
     private void UpdateMovement()
     {
         if (_currentPathIndex >= _currentPath.Count)
@@ -205,32 +214,26 @@ public class Stickman : MonoBehaviour, ISelectable
         }
 
         Vector3 targetPos = _currentPath[_currentPathIndex];
-        targetPos.y = transform.position.y; // Y pozisyonunu koru
+        targetPos.y = 0f; // Path boyunca y=0'da kal
 
         // Hedefe do?ru dön
         Vector3 direction = (targetPos - transform.position).normalized;
         if (direction != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRotation,
-                _rotationSpeed * Time.deltaTime
-            );
+            Vector3 euler = targetRotation.eulerAngles;
+            transform.rotation = Quaternion.Euler(0f, euler.y, 0f);
         }
 
-        // Hedefe do?ru hareket et
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPos,
             _moveSpeed * Time.deltaTime
         );
 
-        // Bir sonraki noktaya geç
         if (Vector3.Distance(transform.position, targetPos) < _pathPointThreshold)
         {
             _currentPathIndex++;
-            Debug.Log($"[Stickman] Moving to next path point: {_currentPathIndex}/{_currentPath.Count}");
         }
     }
 
@@ -242,9 +245,30 @@ public class Stickman : MonoBehaviour, ISelectable
 
         if (_targetParent != null)
         {
-            transform.SetParent(_targetParent);
+            if (_targetParent.TryGetComponent<Tank>(out var tank))
+            {
+                // Tank'a vard???nda final pozisyonu ayarla
+                int index = tank.StickmanCount;
+                float xOffset = (index - 1) * -1f;
+                Vector3 finalPos = _targetParent.position + new Vector3(xOffset, 10f, -3f);
+
+                transform.DOMove(finalPos, 0.5f)
+                    .SetEase(Ease.OutQuad)
+                    .OnComplete(() => {
+                        transform.SetParent(_targetParent);
+                        transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+                    });
+            }
+            else
+            {
+                // Holder'a vard???nda
+                transform.SetParent(_targetParent);
+                Vector3 finalPos = transform.position;
+                finalPos.y = 0f;
+                transform.position = finalPos;
+            }
+
             IsSelectable = false;
-            Debug.Log("[Stickman] Reached final destination and attached to parent");
         }
     }
 

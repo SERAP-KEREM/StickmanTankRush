@@ -3,6 +3,7 @@ using _Main._Tank;
 using DG.Tweening;
 using LevelEditor;
 using SerapKeremGameTools._Game._AudioSystem;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -139,34 +140,35 @@ public class TankManager : MonoBehaviour
     {
         if (_currentTank != null && _currentTank.IsFull)
         {
-            AudioManager.Instance.PlayAudio(AudioKeys.TANK_MOVE);
-            _currentTank.MoveToTank();
-            _currentTank.CurrentState = TankState.Moving;
-
-            if (_tankQueue.Count == 0)
-            {
-                //Debug.Log("Last tank is full and moving.");
-                _currentTank = null;
-                CheckAllTanksLeft();
-                return; 
-            }
+            // Mevcut tank doluysa, yeni tank gelene kadar bekle
+            StartCoroutine(WaitAndMoveNextTank());
         }
+    }
+
+    private IEnumerator WaitAndMoveNextTank()
+    {
+        // Mevcut tankın hareketini bekle
+        yield return new WaitForSeconds(_moveDuration);
+
         if (_tankQueue.Count > 0)
         {
             _currentTank = _tankQueue.Dequeue();
             _currentTank.Initialize(_startPosition);
             _currentTank.CurrentState = TankState.Filling;
-            //Debug.Log($"Next tank {_currentTank.name} is now active.");
+
+            // Diğer tankları hareket ettir
+            MoveOtherTanks();
         }
     }
-
     /// <summary>
     /// Moves all tanks in the queue and the current tank.
     /// </summary>
     public void MoveOtherTanks()
     {
-        MoveQueueTanks();
-        MoveCurrentTank();
+        foreach (var tank in _tankQueue)
+        {
+            MoveTankToPosition(tank);
+        }
     }
 
     #endregion
@@ -203,10 +205,8 @@ public class TankManager : MonoBehaviour
         Vector3 currentPosition = tank.transform.position;
         Vector3 targetPosition = new Vector3(currentPosition.x - TankSpacing, currentPosition.y, currentPosition.z);
 
-        if (currentPosition.x > targetPosition.x)
-        {
-            tank.transform.DOMove(targetPosition, _moveDuration).SetEase(Ease.Linear);
-        }
+        tank.transform.DOMove(targetPosition, _moveDuration)
+            .SetEase(Ease.Linear);
     }
 
     #endregion

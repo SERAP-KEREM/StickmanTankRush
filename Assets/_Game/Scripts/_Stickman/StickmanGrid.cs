@@ -101,7 +101,7 @@ namespace _Main._Stickman.StickmanGrid
 
         private Vector3 CalculateWorldPosition(int x, int y)
         {
-            return new Vector3(x, 0, y) + _gridOffset;
+            return new Vector3(x, 0f, y) + _gridOffset;
         }
 
         private Stickman InstantiateStickman(Vector3 position, int x, int y, ColorType colorType)
