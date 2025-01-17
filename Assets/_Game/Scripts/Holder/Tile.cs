@@ -24,7 +24,6 @@ namespace _Main._Stickman.StickmanGrid
         public Tile parent;
         public int x { get; private set; }
         public int y { get; private set; }
-        public bool hasObstacle => IsOccupied; // Tile dolu ise engel vard?r
         #endregion
 
         #region Properties
@@ -53,10 +52,6 @@ namespace _Main._Stickman.StickmanGrid
             y = Mathf.RoundToInt(position.z);
             // Reset the Stickman assigned to this tile
             CurrentStickman = null;
-        }
-        public void CalculateFCost()
-        {
-            fCost = gCost + hCost;
         }
         #endregion
     }

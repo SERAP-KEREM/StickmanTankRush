@@ -1,7 +1,9 @@
 using System.Collections;
 using UnityEngine;
 using _Main._Enums;
-using DG.Tweening; // DOTween included
+using DG.Tweening;
+using System.Collections.Generic;
+using TriInspector; // DOTween included
 
 namespace _Main._Tank
 {
@@ -15,41 +17,87 @@ namespace _Main._Tank
         Moving    // Tank is moving towards its target.
     }
 
+    /// <summary>
+    /// Represents a tank that can collect and transport stickmen.
+    /// Handles tank movement, stickman collection, and state management.
+    /// </summary>
     public class Tank : MonoBehaviour
     {
+        #region Events
         public event System.Action<TankState> OnStateChanged;
+        #endregion
 
-        #region Tank Configuration
+        #region Configuration
+        [Title("Tank Settings")]
+        [SerializeField, PropertyTooltip("Maximum number of stickmen the tank can hold")]
+        [Range(1, 5)]
+        private int _maxStickmanCount = 3;
 
-        [Header("Tank Configuration")]
-        [SerializeField, Tooltip("Maximum number of stickmen the tank can hold.")]
-        public int MaxStickmanCount = 3;
-
-        [SerializeField, Tooltip("Current state of the tank.")]
-        private TankState _currentState = TankState.Waiting;
-
-        [SerializeField, Tooltip("Movement duration of the tank.")]
+        [SerializeField, PropertyTooltip("Duration of tank movement in seconds")]
+        [Range(1f, 10f)]
         private float _movementDuration = 5f;
-        [Header("Stickman Settings")]
-        [SerializeField]
-        [Tooltip("Distance in front of the tank where stickmen should stop")]
+
+        [SerializeField, PropertyTooltip("The color type of this tank")]
+        private ColorType _colorType;
+
+        [Title("Stickman Positioning")]
+        [SerializeField, PropertyTooltip("Distance in front of tank where stickmen stop")]
+        [Range(1f, 5f)]
         private float _stickmanStopDistance = 2f;
 
-        [SerializeField]
-        [Tooltip("Height at which stickmen should stay")]
+        [SerializeField, PropertyTooltip("Height at which stickmen should stay")]
         private float _stickmanHeight = 0f;
 
-        [Header("Debug Visualization")]
-        [SerializeField] private bool _showTargetPosition = true;
-        [SerializeField] private Color _targetPositionColor = Color.green;
+        [Title("Debug")]
+        [SerializeField, PropertyTooltip("Show target position in scene view")]
+        private bool _showTargetPosition = true;
+
+        [SerializeField, PropertyTooltip("Color for target position visualization")]
+        private Color _targetPositionColor = Color.green;
 
         /// <summary>
-        /// Gets whether the tank is full based on the current stickman count.
+        /// Gets the maximum number of stickmen this tank can hold.
         /// </summary>
-        public bool IsFull => _stickmanCount >= MaxStickmanCount;
+        public int MaxStickmanCount => _maxStickmanCount;
+
+        #endregion
+
+        #region State
+        private TankState _currentState = TankState.Waiting;
+        private bool _isMoving;
+        private bool _isReadyForStickmen;
+        private Vector3 _targetPosition;
+        private int _stickmanCount;
+        private int _arrivedStickmanCount;
+        private readonly List<Stickman> _attachedStickmen = new List<Stickman>();
+
+        public static bool IsAnyTankMoving { get; private set; }
 
         /// <summary>
-        /// Gets or sets the current state of the tank. Triggers an event when state changes.
+        /// Gets whether the tank has reached its maximum stickman capacity.
+        /// </summary>
+        public bool IsFull => _stickmanCount >= _maxStickmanCount;
+
+        /// <summary>
+        /// Gets the current number of stickmen in the tank.
+        /// </summary>
+        public int StickmanCount => _stickmanCount;
+
+        /// <summary>
+        /// Gets or sets the color type of the tank.
+        /// </summary>
+        public ColorType UnitColorType
+        {
+            get => _colorType;
+            set
+            {
+                _colorType = value;
+                UpdateColor();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current state of the tank.
         /// </summary>
         public TankState CurrentState
         {
@@ -63,6 +111,190 @@ namespace _Main._Tank
                 }
             }
         }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Initializes the tank with a target position and prepares it for operation.
+        /// </summary>
+        public void Initialize(Vector3 target)
+        {
+            _targetPosition = target;
+            CurrentState = TankState.Waiting;
+            _isReadyForStickmen = false;
+            UpdateColor();
+
+            MoveToInitialPosition(target);
+        }
+
+        /// <summary>
+        /// Adds a stickman to the tank if color matches and tank isn't full.
+        /// </summary>
+        public void AddStickman(ColorType stickmanColor)
+        {
+            if (!CanAddStickman(stickmanColor)) return;
+
+            _stickmanCount++;
+            CheckForFullTank();
+        }
+
+        /// <summary>
+        /// Checks if the tank is full and updates its state accordingly.
+        /// </summary>
+        private void CheckForFullTank()
+        {
+            if (_stickmanCount >= _maxStickmanCount)
+            {
+                SetTankStateToMoving();
+            }
+        }
+        /// <summary>
+        /// Sets the tank's state to moving and initiates movement.
+        /// </summary>
+        private void SetTankStateToMoving()
+        {
+            CurrentState = TankState.Moving;
+            MoveToTank();
+        }
+        /// <summary>
+        /// Initiates tank movement to its target position.
+        /// </summary>
+        public void MoveToTank()
+        {
+            if (_currentState != TankState.Moving || !_isMoving) return;
+
+            const float distanceFactor = 25f;
+            _targetPosition = transform.position + Vector3.left * distanceFactor;
+
+            // Tank hareketi
+            transform.DOMove(_targetPosition, _movementDuration)
+                .SetEase(Ease.Linear)
+                .OnComplete(OnMovementComplete);
+
+            MoveAttachedStickmen();
+        }
+
+        /// <summary>
+        /// Called when a stickman reaches the tank.
+        /// </summary>
+        public void OnStickmanArrived(Stickman stickman)
+        {
+            if (!_isReadyForStickmen) return;
+
+            _attachedStickmen.Add(stickman);
+            _arrivedStickmanCount++;
+
+            UpdateStickmanPosition(stickman, _attachedStickmen.Count - 1);
+
+            if (ShouldStartMovement())
+            {
+                StartCoroutine(StartMovement());
+            }
+        }
+
+        /// <summary>
+        /// Gets the target position for the next stickman.
+        /// </summary>
+        public Vector3 GetStickmanTargetPosition()
+        {
+            float xOffset = (_stickmanCount - 1) * -1f;
+            return new Vector3(
+                transform.position.x + xOffset,
+                0f,
+                transform.position.z - _stickmanStopDistance
+            );
+        }
+        #endregion
+
+        #region Private Methods
+        private void MoveToInitialPosition(Vector3 target)
+        {
+            transform.DOMove(target, 1f)
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() => _isReadyForStickmen = true);
+        }
+
+        private bool CanAddStickman(ColorType stickmanColor)
+        {
+            return stickmanColor == _colorType && !IsFull;
+        }
+
+        private bool ShouldStartMovement()
+        {
+            return _arrivedStickmanCount >= _maxStickmanCount && IsFull;
+        }
+
+        private void UpdateColor()
+        {
+            var newColor = ColorManager.ColorTypeToColor(_colorType);
+            foreach (var renderer in GetComponentsInChildren<Renderer>())
+            {
+                renderer.material.color = newColor;
+            }
+        }
+
+        private void UpdateStickmanPosition(Stickman stickman, int index)
+        {
+            float xOffset = (index - 1) * -1f;
+            Vector3 position = transform.position + new Vector3(
+                xOffset,
+                _stickmanHeight,
+                -_stickmanStopDistance
+            );
+            stickman.transform.position = position;
+        }
+
+        private IEnumerator StartMovement()
+        {
+            if (IsAnyTankMoving)
+            {
+                Debug.Log("[Tank] Waiting for other tank to complete movement");
+                yield break;
+            }
+
+            yield return new WaitForSeconds(0.5f);
+
+            InitiateMovement();
+            MoveAttachedStickmen();
+        }
+
+        private void InitiateMovement()
+        {
+            _isMoving = true;
+            IsAnyTankMoving = true;
+            CurrentState = TankState.Moving;
+
+            const float distanceFactor = 25f;
+            _targetPosition = transform.position + Vector3.left * distanceFactor;
+
+            transform.DOMove(_targetPosition, _movementDuration)
+                .SetEase(Ease.Linear)
+                .OnComplete(OnMovementComplete);
+        }
+
+        private void MoveAttachedStickmen()
+        {
+            for (int i = 0; i < _attachedStickmen.Count; i++)
+            {
+                if (_attachedStickmen[i] == null) continue;
+
+                float xOffset = (i - 1) * -1f;
+                Vector3 stickmanTarget = _targetPosition + new Vector3(
+                    xOffset,
+                    _stickmanHeight,
+                    -_stickmanStopDistance
+                );
+                _attachedStickmen[i].MoveWithTank(stickmanTarget, _movementDuration);
+            }
+        }
+
+        private void OnMovementComplete()
+        {
+            _isMoving = false;
+            IsAnyTankMoving = false;
+            Debug.Log("[Tank] Movement completed");
+        }
+
         private void OnDrawGizmos()
         {
             if (!_showTargetPosition) return;
@@ -71,156 +303,6 @@ namespace _Main._Tank
             Vector3 targetPos = GetStickmanTargetPosition();
             Gizmos.DrawWireSphere(targetPos, 0.3f);
             Gizmos.DrawLine(transform.position, targetPos);
-        }
-        [Tooltip("Current number of stickmen in the tank.")]
-        private int _stickmanCount;
-
-        public int StickmanCount
-        {
-            get => _stickmanCount;
-            private set
-            {
-                if (_stickmanCount != value)
-                {
-                    _stickmanCount = value;
-                    CheckForFullTank(); // Check if tank is full after each update
-                }
-            }
-        }
-
-        private Vector3 _targetPosition;
-
-        #endregion
-
-        #region Tank Color Configuration
-
-        [Header("Tank Color Configuration")]
-        [SerializeField, Tooltip("The color type of the tank.")]
-        private ColorType _colorType;
-
-        /// <summary>
-        /// Gets or sets the color type of the tank. Updates the tank's color when set.
-        /// </summary>
-        public ColorType UnitColorType
-        {
-            get => _colorType;
-            set
-            {
-                _colorType = value;
-                UpdateColor();
-            }
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Initializes the tank with a target position and updates its color.
-        /// </summary>
-        /// <param name="target">The target position for the tank.</param>
-        public void Initialize(Vector3 target)
-        {
-            _targetPosition = target;
-            CurrentState = TankState.Waiting;
-            UpdateColor();
-        }
-
-        /// <summary>
-        /// Updates the tank's color based on its color type.
-        /// </summary>
-        private void UpdateColor()
-        {
-            Color newColor = ColorManager.ColorTypeToColor(_colorType);
-            Renderer[] renderers = GetComponentsInChildren<Renderer>();
-            foreach (Renderer renderer in renderers)
-            {
-                renderer.material.color = newColor;
-            }
-        }
-
-        /// <summary>
-        /// Adds a stickman to the tank. If the tank is full, initiates movement to the target position.
-        /// </summary>
-        /// <param name="stickmanColor">The color type of the stickman being added.</param>
-        public void AddStickman(ColorType stickmanColor)
-        {
-            if (stickmanColor != _colorType)
-            {
-                //Debug.LogWarning($"Stickman color does not match tank color. Tank: {_colorType}, Stickman: {stickmanColor}");
-                return;
-            }
-
-            StickmanCount++;
-            //Debug.Log($"Tank {gameObject.name}: Stickman added. Count: {_stickmanCount}/{_maxStickmanCount}");
-
-            if (_stickmanCount >= MaxStickmanCount)
-            {
-               // Debug.Log($"Tank {gameObject.name} is now full!");
-                SetTankStateToMoving();
-            }
-        }
-
-        /// <summary>
-        /// Moves the tank to the target position based on a predefined distance factor. 
-        /// Once the movement is complete, the tank is destroyed.
-        /// </summary>
-        public void MoveToTank()
-        {
-            if (_currentState != TankState.Moving)
-            {
-                //Debug.LogWarning($"Attempting to move tank {gameObject.name} while not in Moving state.");
-                return;
-            }
-
-            const float distanceFactor = 25f;
-            _targetPosition = new Vector3(transform.position.x - distanceFactor, transform.position.y, transform.position.z);
-
-           // Debug.Log($"Tank {gameObject.name} moving from {transform.position} to {_targetPosition}.");
-
-            transform.DOMove(_targetPosition, _movementDuration)
-                .SetEase(Ease.Linear)
-                .OnComplete(() => {
-                    //Debug.Log($"Tank {gameObject.name} completed movement.");
-
-                });
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        /// <summary>
-        /// Checks if the tank is full, and if so, changes its state to moving.
-        /// </summary>
-        private void CheckForFullTank()
-        {
-            //Debug.Log($"Tank {gameObject.name}: Checking full status. Count: {_stickmanCount}/{_maxStickmanCount}, Current State: {_currentState}");
-
-            if (_stickmanCount >= MaxStickmanCount)
-            {
-               // Debug.Log($"Tank {gameObject.name} should move now!");
-                SetTankStateToMoving();
-            }
-        }
-
-        /// <summary>
-        /// Sets the tank's state to moving and triggers the movement.
-        /// </summary>
-        private void SetTankStateToMoving()
-        {
-            //Debug.Log($"Setting tank {gameObject.name} state to Moving.");
-            CurrentState = TankState.Moving;
-            MoveToTank();
-        }
-        public Vector3 GetStickmanTargetPosition()
-        {
-            Vector3 tankPosition = transform.position;
-            return new Vector3(
-                tankPosition.x,
-                _stickmanHeight,
-                tankPosition.z + _stickmanStopDistance
-            );
         }
         #endregion
     }

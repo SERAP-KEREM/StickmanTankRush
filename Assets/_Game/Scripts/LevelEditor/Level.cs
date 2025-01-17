@@ -1,310 +1,268 @@
-using _Main;
+using UnityEngine;
 using _Main._Stickman.StickmanGrid;
 using DG.Tweening;
 using LevelEditor;
-using SerapKeremGameTools._Game._Singleton;
 using System.Collections;
-using Unity.AI.Navigation;
-using UnityEngine;
+using TriInspector;
 
-public class Level : MonoBehaviour
+namespace _Main
 {
-    #region Fields
-
-    [Header("Level Configuration")]
-    [SerializeField] private LevelDataSO _levelDataSO;
-
-    [Header("Component References")]
-    [SerializeField] private TileGrid tileGrid;
-    [SerializeField] private TankManager tankManager;
-    [SerializeField] private StickmanGrid stickmanGrid;
-    [SerializeField] private HolderManager holderManager;
-    [SerializeField] private GridPathFinder _gridPathFinder;
-    public TileGrid TileGrid => tileGrid;
-    public TankManager TankManager => tankManager;
-    public StickmanGrid StickmanGrid => stickmanGrid;
-    public HolderManager HolderManager => holderManager;
-    public GridPathFinder GridPathFinder => _gridPathFinder;
-
-
-    private bool _isInitialized = false;
-    [Header("Path System")]
-    [SerializeField] private NavMeshSurface _navMeshSurface;
-    #endregion
-
-    #region Events
-    public static event System.Action OnLevelCompleted;
-    public static event System.Action OnLevelFailed;
-    #endregion
-
-    #region Unity Lifecycle
     /// <summary>
-    /// Called when the script instance is being loaded.
-    /// Finds references for necessary components and subscribes to relevant events.
+    /// Manages level initialization, component references, and level state.
+    /// Coordinates between different managers and handles level completion logic.
     /// </summary>
-    private void Awake()
+    [DeclareFoldoutGroup("Configuration", Title = "Level Settings")]
+    [DeclareFoldoutGroup("Components", Title = "Component References")]
+    public class Level : MonoBehaviour
     {
-        FindReferences();
-        SubscribeToEvents();
-    }
+        #region Configuration
+        [Group("Configuration")]
+        [SerializeField, Required]
+        [PropertyTooltip("Scriptable object containing level configuration data")]
+        private LevelDataSO _levelDataSO;
 
-    /// <summary>
-    /// Subscribes to events from the TankManager.
-    /// </summary>
-    private void SubscribeToEvents()
-    {
-        if (tankManager != null)
+        [Group("Configuration")]
+        [SerializeField, ReadOnly]
+        private bool _isInitialized;
+        #endregion
+
+        #region Component References
+        [Group("Components")]
+        [SerializeField, Required]
+        [PropertyTooltip("Manages the tile grid system")]
+        private TileGrid _tileGrid;
+
+        [Group("Components")]
+        [SerializeField, Required]
+        [PropertyTooltip("Manages tank spawning and movement")]
+        private TankManager _tankManager;
+
+        [Group("Components")]
+        [SerializeField, Required]
+        [PropertyTooltip("Manages stickman grid placement")]
+        private StickmanGrid _stickmanGrid;
+
+        [Group("Components")]
+        [SerializeField, Required]
+        [PropertyTooltip("Manages holder positions and assignments")]
+        private HolderManager _holderManager;
+
+        [Group("Components")]
+        [SerializeField, Required]
+        [PropertyTooltip("Handles pathfinding for stickmen")]
+        private GridPathFinder _gridPathFinder;
+        #endregion
+
+        #region Properties
+        public TileGrid TileGrid => _tileGrid;
+        public TankManager TankManager => _tankManager;
+        public StickmanGrid StickmanGrid => _stickmanGrid;
+        public HolderManager HolderManager => _holderManager;
+        public GridPathFinder GridPathFinder => _gridPathFinder;
+        #endregion
+
+        #region Events
+        public static event System.Action OnLevelCompleted;
+        public static event System.Action OnLevelFailed;
+        #endregion
+
+        #region Unity Lifecycle
+        private void Awake()
         {
-            Debug.Log("[Level] Subscribing to TankManager events");
-            tankManager.OnAllTanksLeft += OnTankManagerCompleted;
-        }
-    }
-
-    /// <summary>
-    /// Unsubscribes from events when no longer needed.
-    /// </summary>
-    private void UnsubscribeFromEvents()
-    {
-        if (tankManager != null)
-        {
-            tankManager.OnAllTanksLeft -= OnTankManagerCompleted;
-        }
-    }
-
-    /// <summary>
-    /// Callback when all tanks have completed their tasks, triggering the level to complete.
-    /// </summary>
-    private void OnTankManagerCompleted()
-    {
-        Debug.Log("[Level] All tanks completed, triggering level complete!");
-        CompleteLevel();
-    }
-
-    /// <summary>
-    /// Called when the object is initialized. Ensures components are initialized if not already.
-    /// </summary>
-    private void Start()
-    {
-        if (!_isInitialized)
-        {
-            InitializeComponents();
-        }
-    }
-    #endregion
-
-    #region Initialization
-    /// <summary>
-    /// Finds references for all required components (TileGrid, TankManager, StickmanGrid, HolderManager).
-    /// </summary>
-    private void FindReferences()
-    {
-        if (tileGrid == null)
-        {
-            tileGrid = GetComponentInChildren<TileGrid>(true);
-            Debug.Log($"Found TileGrid: {tileGrid != null}");
+            FindReferences();
+            SubscribeToEvents();
         }
 
-        if (tankManager == null)
+        private void Start()
         {
-            tankManager = GetComponentInChildren<TankManager>(true);
-            Debug.Log($"Found TankManager: {tankManager != null}");
-        }
-
-        if (stickmanGrid == null)
-        {
-            stickmanGrid = GetComponentInChildren<StickmanGrid>(true);
-            Debug.Log($"Found StickmanGrid: {stickmanGrid != null}");
-        }
-
-        if (holderManager == null)
-        {
-            holderManager = GetComponentInChildren<HolderManager>(true);
-            Debug.Log($"Found HolderManager: {holderManager != null}");
-        }
-
-        // GridPathFinder kontrolü
-        if (_gridPathFinder == null)
-        {
-            _gridPathFinder = GetComponent<GridPathFinder>();
-            if (_gridPathFinder == null)
+            if (!_isInitialized)
             {
-                Debug.Log("[Level] Adding GridPathFinder component");
-                _gridPathFinder = gameObject.AddComponent<GridPathFinder>();
+                InitializeComponents();
             }
         }
 
-        Debug.Log($"[Level] GridPathFinder status: {_gridPathFinder != null}");
+        private void OnDestroy()
+        {
+            UnsubscribeFromEvents();
+        }
+        #endregion
+
+        #region Public Methods
+        /// <summary>
+        /// Initializes the level with provided level data.
+        /// </summary>
+        public void InitializeLevel(LevelDataSO data)
+        {
+            if (!ValidateLevelData(data)) return;
+
+            _levelDataSO = data;
+            _isInitialized = false;
+            StartCoroutine(DelayedInitialization());
+        }
+
+        /// <summary>
+        /// Completes the level with success animation.
+        /// </summary>
+        public void CompleteLevel()
+        {
+            if (!ValidateLevelState("complete")) return;
+
+            Debug.Log("[Level] Level completed!");
+            OnLevelCompleted?.Invoke();
+            PlayCompletionAnimation();
+        }
+
+        /// <summary>
+        /// Fails the level with failure animation.
+        /// </summary>
+        public void FailLevel()
+        {
+            if (!ValidateLevelState("fail")) return;
+
+            Debug.Log("[Level] Level failed!");
+            OnLevelFailed?.Invoke();
+            PlayFailureAnimation();
+        }
+        #endregion
+
+        #region Initialization
+        private void FindReferences()
+        {
+            _tileGrid ??= GetComponentInChildren<TileGrid>(true);
+            _tankManager ??= GetComponentInChildren<TankManager>(true);
+            _stickmanGrid ??= GetComponentInChildren<StickmanGrid>(true);
+            _holderManager ??= GetComponentInChildren<HolderManager>(true);
+            _gridPathFinder ??= GetComponent<GridPathFinder>() ?? gameObject.AddComponent<GridPathFinder>();
+
+            LogComponentStatus();
+        }
+
+        private void InitializeComponents()
+        {
+            if (!ValidateReferences()) return;
+
+            InitializeGrids();
+            InitializeManagers();
+            InitializePathfinding();
+
+            _isInitialized = true;
+            NotifyGameManager();
+        }
+
+        private void InitializeGrids()
+        {
+            _stickmanGrid?.SetLevelDataSO(_levelDataSO);
+            _tileGrid?.SetLevelDataSO(_levelDataSO);
+        }
+
+        private void InitializeManagers()
+        {
+            _tankManager?.SetLevelDataSO(_levelDataSO);
+            _holderManager?.Initialize();
+        }
+
+        private void InitializePathfinding()
+        {
+            if (_gridPathFinder != null && _tileGrid != null)
+            {
+                _gridPathFinder.Initialize(_tileGrid);
+            }
+        }
+        #endregion
+
+        #region Event Handling
+        private void SubscribeToEvents()
+        {
+            if (_tankManager != null)
+            {
+                _tankManager.OnAllTanksLeft += OnTankManagerCompleted;
+            }
+        }
+
+        private void UnsubscribeFromEvents()
+        {
+            if (_tankManager != null)
+            {
+                _tankManager.OnAllTanksLeft -= OnTankManagerCompleted;
+            }
+        }
+
+        private void OnTankManagerCompleted()
+        {
+            CompleteLevel();
+        }
+        #endregion
+
+        #region Validation
+        private bool ValidateLevelData(LevelDataSO data)
+        {
+            if (data == null)
+            {
+                Debug.LogError("[Level] Cannot initialize with null level data!");
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateLevelState(string action)
+        {
+            if (!_isInitialized)
+            {
+                Debug.LogWarning($"[Level] Cannot {action} uninitialized level!");
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateReferences()
+        {
+            if (_levelDataSO == null || _tileGrid == null || _tankManager == null ||
+                _stickmanGrid == null || _holderManager == null || _gridPathFinder == null)
+            {
+                Debug.LogError("[Level] One or more required components are missing!");
+                return false;
+            }
+            return true;
+        }
+        #endregion
+
+        #region Helper Methods
+        private IEnumerator DelayedInitialization()
+        {
+            yield return null;
+            FindReferences();
+            InitializeComponents();
+        }
+
+        private void NotifyGameManager()
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.OnLevelCreated(this);
+            }
+        }
+
+        private void PlayCompletionAnimation()
+        {
+            transform.DOScale(Vector3.one * 1.1f, 0.5f)
+                .SetEase(Ease.OutBounce);
+        }
+
+        private void PlayFailureAnimation()
+        {
+            transform.DOScale(Vector3.one * 0.9f, 0.5f)
+                .SetEase(Ease.InBounce);
+        }
+
+        private void LogComponentStatus()
+        {
+            Debug.Log($"[Level] Component Status:\n" +
+                     $"TileGrid: {_tileGrid != null}\n" +
+                     $"TankManager: {_tankManager != null}\n" +
+                     $"StickmanGrid: {_stickmanGrid != null}\n" +
+                     $"HolderManager: {_holderManager != null}\n" +
+                     $"GridPathFinder: {_gridPathFinder != null}");
+        }
+        #endregion
     }
-    /// <summary>
-    /// Initializes the level with the provided LevelDataSO object.
-    /// </summary>
-    /// <param name="data">Level data to initialize the level with.</param>
-    public void InitializeLevel(LevelDataSO data)
-    {
-        if (data == null)
-        {
-            Debug.LogError("Trying to initialize level with null data!");
-            return;
-        }
-        if (_gridPathFinder != null)
-        {
-            _gridPathFinder.Initialize(tileGrid);
-        }
-        _levelDataSO = data;
-        _isInitialized = false; // Reset initialization flag
-        StartCoroutine(DelayedInitialization());
-    }
-
-    /// <summary>
-    /// Delays the initialization process to allow references to be found first.
-    /// </summary>
-    /// <returns>Enumerator for coroutine.</returns>
-    private IEnumerator DelayedInitialization()
-    {
-        yield return null;
-
-        FindReferences();
-        InitializeComponents();
-    }
-
-    /// <summary>
-    /// Initializes the level components (StickmanGrid, TileGrid, TankManager, HolderManager).
-    /// </summary>
-    private void InitializeComponents()
-    {
-        if (!ValidateReferences()) return;
-
-        // Initialize components
-        if (stickmanGrid != null)
-        {
-            stickmanGrid.SetLevelDataSO(_levelDataSO);
-        }
-
-        if (tileGrid != null)
-        {
-            tileGrid.SetLevelDataSO(_levelDataSO);
-        }
-
-        if (tankManager != null)
-        {
-            tankManager.SetLevelDataSO(_levelDataSO);
-        }
-
-        if (holderManager != null)
-        {
-            holderManager.Initialize();
-        }
-
-        // GridPathFinder kontrolü ve initialize
-        if (_gridPathFinder == null)
-        {
-            Debug.Log("[Level] Creating GridPathFinder");
-            _gridPathFinder = gameObject.AddComponent<GridPathFinder>();
-        }
-
-        if (tileGrid != null)
-        {
-            Debug.Log("[Level] Initializing GridPathFinder");
-            _gridPathFinder.Initialize(tileGrid);
-        }
-
-        _isInitialized = true;
-
-        // GameManager'a bildirme
-        if (GameManager.Instance != null)
-        {
-            Debug.Log("[Level] Notifying GameManager of level creation");
-            GameManager.Instance.OnLevelCreated(this);
-        }
-
-        if (_navMeshSurface != null)
-        {
-            _navMeshSurface.BuildNavMesh();
-        }
-    }
-    #endregion
-
-    #region Validation
-    /// <summary>
-    /// Validates that all necessary references are set and not null.
-    /// </summary>
-    /// <returns>True if all references are valid, otherwise false.</returns>
-    private bool ValidateReferences()
-    {
-        bool isValid = true;
-
-        if (_levelDataSO == null)
-        {
-            Debug.LogError("LevelDataSO is missing!");
-            isValid = false;
-        }
-
-        if (tileGrid == null)
-        {
-            Debug.LogError("TileGrid reference is missing!");
-            isValid = false;
-        }
-
-        if (tankManager == null)
-        {
-            Debug.LogError("TankManager reference is missing!");
-            isValid = false;
-        }
-
-        if (stickmanGrid == null)
-        {
-            Debug.LogError("StickmanGrid reference is missing!");
-            isValid = false;
-        }
-
-        if (holderManager == null)
-        {
-            Debug.LogError("HolderManager reference is missing!");
-            isValid = false;
-        }
-        if (_gridPathFinder == null)
-        {
-            Debug.LogError("GridPathFinder reference is missing!");
-            isValid = false;
-        }
-
-        return isValid;
-    }
-    #endregion
-
-    #region Level State
-    /// <summary>
-    /// Completes the current level and triggers the level completion event.
-    /// </summary>
-    public void CompleteLevel()
-    {
-        if (!_isInitialized)
-        {
-            Debug.LogWarning("[Level] Trying to complete uninitialized level!");
-            return;
-        }
-
-        Debug.Log("[Level] Level completed! Triggering OnLevelCompleted event");
-        OnLevelCompleted?.Invoke();
-
-        // Level animation
-        transform.DOScale(Vector3.one * 1.1f, 0.5f)
-            .SetEase(Ease.OutBounce);
-    }
-
-    /// <summary>
-    /// Fails the current level and triggers the level failure event.
-    /// </summary>
-    public void FailLevel()
-    {
-        if (!_isInitialized) return;
-
-        Debug.Log("[Level] Level failed! Triggering OnLevelFailed event");
-        OnLevelFailed?.Invoke();
-
-        // Level animation
-        transform.DOScale(Vector3.one * 0.9f, 0.5f)
-            .SetEase(Ease.InBounce);
-    }
-    #endregion
 }

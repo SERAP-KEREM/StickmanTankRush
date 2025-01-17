@@ -1,40 +1,133 @@
 using UnityEngine;
 using System.Collections.Generic;
 using _Main._Stickman.StickmanGrid;
-using _Main._Enums;
+using TriInspector;
 using _Main;
-using DG.Tweening;
-using LevelEditor;
 
+/// <summary>
+/// Manages the creation and organization of holders for stickmen.
+/// Handles holder availability and stickman placement logic.
+/// </summary>
+[DeclareFoldoutGroup("Configuration", Title = "Holder Settings")]
+[DeclareFoldoutGroup("Runtime", Title = "Runtime References")]
 public class HolderManager : MonoBehaviour
 {
-    #region Fields
-    [Header("Holder Configuration")]
-    [SerializeField, Tooltip("Holder prefab reference")]
+    #region Configuration
+    [Group("Configuration")]
+    [SerializeField, Required]
+    [PropertyTooltip("Prefab used to create holder instances")]
     private Holder _holderPrefab;
 
-    [SerializeField, Tooltip("Number of holders in the row")]
+    [Group("Configuration")]
+    [SerializeField]
+    [PropertyTooltip("Number of holders to create in a row")]
+    [Range(1, 10)]
     private int _rowWidth = 5;
 
-    [SerializeField, Tooltip("Spacing between holders")]
+    [Group("Configuration")]
+    [SerializeField]
+    [PropertyTooltip("Space between each holder")]
+    [Range(0.5f, 3f)]
     private float _holderSpacing = 1f;
 
-    [SerializeField, Tooltip("Starting position for holders")]
+    [Group("Configuration")]
+    [SerializeField]
+    [PropertyTooltip("Starting position for the first holder")]
     private Vector3 _rowStartPosition = Vector3.zero;
+    #endregion
 
+    #region Runtime References
+    [Group("Runtime")]
+    [SerializeField, ReadOnly]
     private Holder[] _waitingHolders;
+
+    [Group("Runtime")]
+    [SerializeField, ReadOnly]
     private List<Holder> _availableHolders = new List<Holder>();
     #endregion
+
+    #region Events
+    /// <summary>
+    /// Triggered when all holders become occupied.
+    /// </summary>
     public event System.Action OnAllHoldersFull;
+    #endregion
 
-
-    #region Initialization
+    #region Public Methods
+    /// <summary>
+    /// Initializes the holder manager and creates initial holders.
+    /// </summary>
     public void Initialize()
     {
-
         InitializeWaitingRow();
     }
-    public void InitializeWaitingRow()
+
+    /// <summary>
+    /// Returns a list of all active holders.
+    /// </summary>
+    public List<Holder> GetAllHolders()
+    {
+        var allHolders = new List<Holder>();
+
+        if (_waitingHolders != null)
+        {
+            foreach (var holder in _waitingHolders)
+            {
+                if (holder != null)
+                {
+                    allHolders.Add(holder);
+                }
+            }
+        }
+
+        return allHolders;
+    }
+
+    /// <summary>
+    /// Moves a stickman to the nearest available holder.
+    /// </summary>
+    public Holder MoveToNearestAvailableHolder(Stickman stickman)
+    {
+        if (!ValidateStickmanMovement(stickman)) return null;
+
+        var gridPathFinder = FindObjectOfType<GridPathFinder>();
+        if (!ValidateGridPathFinder(gridPathFinder)) return null;
+
+        return stickman.GridY == 0
+            ? HandleDirectMove(stickman)
+            : HandlePathfindingMove(stickman, gridPathFinder);
+    }
+
+    /// <summary>
+    /// Checks if all holders are currently occupied.
+    /// </summary>
+    public bool AreAllHoldersFull()
+    {
+        if (_waitingHolders == null || _waitingHolders.Length == 0)
+            return false;
+
+        bool allFull = true;
+        foreach (var holder in _waitingHolders)
+        {
+            if (holder != null && !holder.IsOccupied)
+            {
+                allFull = false;
+                break;
+            }
+        }
+
+        if (allFull)
+        {
+            Debug.Log("[HolderManager] All holders are full!");
+            OnAllHoldersFull?.Invoke();
+        }
+
+        return allFull;
+    }
+    #endregion
+
+    #region Private Methods
+    private void InitializeWaitingRow()
     {
         if (!ValidateSetup()) return;
 
@@ -46,13 +139,13 @@ public class HolderManager : MonoBehaviour
     {
         if (_holderPrefab == null)
         {
-            Debug.LogError("Holder prefab is not assigned!", this);
+            Debug.LogError("[HolderManager] Holder prefab is not assigned!");
             return false;
         }
 
         if (_rowWidth <= 0)
         {
-            Debug.LogError("Row width must be greater than 0!", this);
+            Debug.LogError("[HolderManager] Row width must be greater than 0!");
             return false;
         }
 
@@ -74,30 +167,6 @@ public class HolderManager : MonoBehaviour
 
         _waitingHolders = new Holder[_rowWidth];
         _availableHolders.Clear();
- 
-    }
-    /// <summary>
-    /// Checks if all holders are currently occupied
-    /// </summary>
-    public bool AreAllHoldersFull()
-    {
-        if (_waitingHolders == null || _waitingHolders.Length == 0)
-            return false;
-
-        // Tüm holder'lar? kontrol et
-        foreach (var holder in _waitingHolders)
-        {
-            // E?er bir holder bo?sa, hepsi dolu de?il demektir
-            if (holder != null && !holder.IsOccupied)
-            {
-                return false;
-            }
-        }
-
-        // Tüm holder'lar doluysa true döndür
-        Debug.Log("All holders are full! Game Over condition met.");
-        OnAllHoldersFull?.Invoke();
-        return true;
     }
 
     private void CreateHolders()
@@ -106,132 +175,87 @@ public class HolderManager : MonoBehaviour
         {
             CreateHolderAtPosition(i);
         }
-        //Debug.Log($"Created {_rowWidth} holders in waiting row");
-    }
-    #endregion
-
-    #region Holder Management
-    public List<Holder> GetAllHolders()
-    {
-        List<Holder> allHolders = new List<Holder>();
-
-        if (_waitingHolders != null)
-        {
-            foreach (var holder in _waitingHolders)
-            {
-                if (holder != null)
-                {
-                    allHolders.Add(holder);
-                }
-            }
-        }
-
-        if (_availableHolders != null)
-        {
-            foreach (var holder in _availableHolders)
-            {
-                if (holder != null && !allHolders.Contains(holder))
-                {
-                    allHolders.Add(holder);
-                }
-            }
-        }
-
-        return allHolders;
     }
 
-    public Holder MoveToNearestAvailableHolder(Stickman stickman)
-    {
-        if (stickman == null)
-        {
-            Debug.LogError("[HolderManager] Cannot move null stickman!");
-            return null;
-        }
-
-        // GridPathFinder kontrolü
-        var gridPathFinder = FindObjectOfType<GridPathFinder>();
-        if (gridPathFinder == null)
-        {
-            Debug.LogError("[HolderManager] GridPathFinder not found!");
-            return null;
-        }
-
-        // z=0 kontrolü
-        if (stickman.GridY == 0)
-        {
-            foreach (Holder holder in _availableHolders)
-            {
-                if (holder != null && !holder.IsOccupied)
-                {
-                    bool success = holder.AssignStickman(stickman);
-                    if (success)
-                    {
-                        Debug.Log($"[HolderManager] Direct move to holder {holder.name} (z=0)");
-                        AreAllHoldersFull();
-                        return holder;
-                    }
-                }
-            }
-            return null;
-        }
-
-        // Yol kontrolü ve hareket
-        foreach (Holder holder in _availableHolders)
-        {
-            if (holder != null && !holder.IsOccupied)
-            {
-                // Önce yol kontrolü yap
-                if (gridPathFinder.HasValidPathToTarget(stickman))
-                {
-                    bool success = holder.AssignStickman(stickman);
-                    if (success)
-                    {
-                        Debug.Log($"[HolderManager] Moved stickman to holder {holder.name}");
-                        AreAllHoldersFull();
-                        return holder;
-                    }
-                }
-                else
-                {
-                    Debug.Log($"[HolderManager] No valid path to holder {holder.name}");
-                }
-            }
-        }
-
-        Debug.LogWarning("[HolderManager] No available holder or valid path found");
-        return null;
-    }
-
-
-    #endregion
-
-    #region Helper Methods
     private void CreateHolderAtPosition(int index)
     {
         Vector3 position = _rowStartPosition + Vector3.right * index * _holderSpacing;
 
         Holder holder = Instantiate(_holderPrefab, position, Quaternion.identity, transform);
-
         if (holder != null)
         {
-            holder.name = $"Holder [{index}]";
-            _waitingHolders[index] = holder;
-            _availableHolders.Add(holder);
-
-          //  Debug.Log($"Created {holder.name} at position {position}");
+            ConfigureHolder(holder, index);
         }
         else
         {
-            Debug.LogError($"Failed to create holder at index {index}");
+            Debug.LogError($"[HolderManager] Failed to create holder at index {index}");
         }
+    }
+
+    private void ConfigureHolder(Holder holder, int index)
+    {
+        holder.name = $"Holder [{index}]";
+        _waitingHolders[index] = holder;
+        _availableHolders.Add(holder);
+    }
+
+    private bool ValidateStickmanMovement(Stickman stickman)
+    {
+        if (stickman == null)
+        {
+            Debug.LogError("[HolderManager] Cannot move null stickman!");
+            return false;
+        }
+        return true;
+    }
+
+    private bool ValidateGridPathFinder(GridPathFinder gridPathFinder)
+    {
+        if (gridPathFinder == null)
+        {
+            Debug.LogError("[HolderManager] GridPathFinder not found!");
+            return false;
+        }
+        return true;
+    }
+
+    private Holder HandleDirectMove(Stickman stickman)
+    {
+        foreach (var holder in _availableHolders)
+        {
+            if (holder != null && !holder.IsOccupied && holder.AssignStickman(stickman))
+            {
+                Debug.Log($"[HolderManager] Direct move to {holder.name} successful");
+                AreAllHoldersFull();
+                return holder;
+            }
+        }
+        return null;
+    }
+
+    private Holder HandlePathfindingMove(Stickman stickman, GridPathFinder gridPathFinder)
+    {
+        foreach (var holder in _availableHolders)
+        {
+            if (holder != null && !holder.IsOccupied &&
+                gridPathFinder.HasValidPathToTarget(stickman) &&
+                holder.AssignStickman(stickman))
+            {
+                Debug.Log($"[HolderManager] Pathfinding move to {holder.name} successful");
+                AreAllHoldersFull();
+                return holder;
+            }
+        }
+        return null;
     }
     #endregion
 
-    #region Debug
-    public void LogHolderStatus()
+    #region Debug Methods
+    [Button("Log Holder Status")]
+    private void LogHolderStatus()
     {
-        Debug.Log($"Total Waiting Holders: {_waitingHolders?.Length ?? 0}");
-        Debug.Log($"Available Holders: {_availableHolders?.Count ?? 0}");
+        Debug.Log($"[HolderManager] Total Holders: {_waitingHolders?.Length ?? 0}");
+        Debug.Log($"[HolderManager] Available Holders: {_availableHolders?.Count ?? 0}");
 
         if (_waitingHolders != null)
         {
@@ -241,7 +265,7 @@ public class HolderManager : MonoBehaviour
                 string status = holder != null ?
                     (holder.IsOccupied ? "Occupied" : "Empty") :
                     "Null";
-                Debug.Log($"Holder [{i}]: {status}");
+                Debug.Log($"[HolderManager] Holder [{i}]: {status}");
             }
         }
     }
