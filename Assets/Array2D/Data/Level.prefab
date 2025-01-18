@@ -56,7 +56,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7494536120849370787}
   - component: {fileID: 6813787926016471130}
-  - component: {fileID: -531216718374260870}
   m_Layer: 0
   m_Name: Level
   m_TagString: Untagged
@@ -97,44 +96,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
-  tileGrid: {fileID: 8233481212163296266}
-  tankManager: {fileID: 4400155607343758349}
-  stickmanGrid: {fileID: 5289277413121498745}
-  holderManager: {fileID: 3370300921690580709}
+  _isInitialized: 0
+  _tileGrid: {fileID: 0}
+  _tankManager: {fileID: 0}
+  _stickmanGrid: {fileID: 0}
+  _holderManager: {fileID: 0}
   _gridPathFinder: {fileID: 0}
-  _pathFinder: {fileID: 0}
-  _navMeshSurface: {fileID: -531216718374260870}
---- !u!114 &-531216718374260870
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1487792672356310402}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AgentTypeID: 0
-  m_CollectObjects: 0
-  m_Size: {x: 10, y: 10, z: 10}
-  m_Center: {x: 0, y: 2, z: 0}
-  m_LayerMask:
-    serializedVersion: 2
-    m_Bits: 64
-  m_UseGeometry: 1
-  m_DefaultArea: 0
-  m_GenerateLinks: 0
-  m_IgnoreNavMeshAgent: 1
-  m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
-  m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 6b7fe91104b252e4c8627b686e0e3d33, type: 2}
-  m_BuildHeightMesh: 0
 --- !u!1 &5350876747691730296
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,7 +161,6 @@ GameObject:
   - component: {fileID: 5597197264255492596}
   - component: {fileID: 4275423214477859084}
   - component: {fileID: 5695424145201667329}
-  - component: {fileID: 1030521311163132957}
   m_Layer: 6
   m_Name: Plane
   m_TagString: Untagged
@@ -211,8 +177,8 @@ Transform:
   m_GameObject: {fileID: 5725433931787843704}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10, y: -1.1, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
+  m_LocalPosition: {x: 0, y: -1.1, z: 0}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7494536120849370787}
@@ -232,7 +198,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5725433931787843704}
-  m_Enabled: 0
+  m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -245,7 +211,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 7dc65850bc0112641b55b72219d8335c, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -284,42 +250,11 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1030521311163132957
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5725433931787843704}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AgentTypeID: 0
-  m_CollectObjects: 0
-  m_Size: {x: 10, y: 10, z: 10}
-  m_Center: {x: 0, y: 2, z: 0}
-  m_LayerMask:
-    serializedVersion: 2
-    m_Bits: 64
-  m_UseGeometry: 1
-  m_DefaultArea: 0
-  m_GenerateLinks: 0
-  m_IgnoreNavMeshAgent: 1
-  m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
-  m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 1b1ea022e828e7044a6a695ddba5aac1, type: 2}
-  m_BuildHeightMesh: 0
 --- !u!1 &5788091201236506681
 GameObject:
   m_ObjectHideFlags: 0
@@ -367,7 +302,9 @@ MonoBehaviour:
   _holderPrefab: {fileID: 4243691241198867053, guid: 8e68dd86094d53f45be2ff3a62c2628b, type: 3}
   _rowWidth: 3
   _holderSpacing: 1
-  _rowStartPosition: {x: 0, y: -1, z: -1}
+  _rowStartPosition: {x: 0, y: -1, z: -1.5}
+  _waitingHolders: []
+  _availableHolders: []
 --- !u!1 &7957850989372806839
 GameObject:
   m_ObjectHideFlags: 0
@@ -413,6 +350,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _tankPrefab: {fileID: 8353771008622751197, guid: b80bb5f08b249494fa623419fd80da9b, type: 3}
-  _moveDuration: 3
-  _startPosition: {x: 0, y: -10, z: 0}
+  _moveDuration: 1
+  _startPosition: {x: 1, y: -0.5, z: -3}
   _currentTank: {fileID: 0}
+  _tankCheckDelay: 0

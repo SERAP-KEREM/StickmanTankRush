@@ -79,7 +79,6 @@ public class HolderManager : MonoBehaviour
                 }
             }
         }
-
         return allHolders;
     }
 
@@ -247,27 +246,6 @@ public class HolderManager : MonoBehaviour
             }
         }
         return null;
-    }
-    #endregion
-
-    #region Debug Methods
-    [Button("Log Holder Status")]
-    private void LogHolderStatus()
-    {
-        Debug.Log($"[HolderManager] Total Holders: {_waitingHolders?.Length ?? 0}");
-        Debug.Log($"[HolderManager] Available Holders: {_availableHolders?.Count ?? 0}");
-
-        if (_waitingHolders != null)
-        {
-            for (int i = 0; i < _waitingHolders.Length; i++)
-            {
-                var holder = _waitingHolders[i];
-                string status = holder != null ?
-                    (holder.IsOccupied ? "Occupied" : "Empty") :
-                    "Null";
-                Debug.Log($"[HolderManager] Holder [{i}]: {status}");
-            }
-        }
     }
     #endregion
 }

@@ -104,15 +104,5 @@ namespace _Main
             Debug.Log($"[Holder] Removed stickman from {name}");
         }
         #endregion
-
-        #region Validation
-        private void OnValidate()
-        {
-            if (_stickmanPoint == null)
-            {
-                Debug.LogWarning("[Holder] Stickman point is not assigned!", this);
-            }
-        }
-        #endregion
     }
 }

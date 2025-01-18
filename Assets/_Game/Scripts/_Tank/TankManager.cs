@@ -25,7 +25,7 @@ public class TankManager : MonoBehaviour
     [SerializeField]
     [PropertyTooltip("Duration of tank movement")]
     [Range(1f, 10f)]
-    private float _moveDuration = 3f;
+    private float _moveDuration = 1f;
 
     [Group("Configuration")]
     [SerializeField]
@@ -34,7 +34,7 @@ public class TankManager : MonoBehaviour
     #endregion
 
     #region Constants
-    private const float TankSpacing = 10f;
+    private const float TankSpacing = 5f;
     private const int MaxStickmanCount = 3;
     #endregion
 
@@ -46,7 +46,7 @@ public class TankManager : MonoBehaviour
     [SerializeField, ReadOnly]
     private Tank _currentTank;
     #endregion
-
+    [SerializeField] private float _tankCheckDelay = 0.2f;
     #region Properties
     public Tank CurrentTank => _currentTank;
     #endregion
@@ -119,7 +119,6 @@ public class TankManager : MonoBehaviour
         _currentTank.MoveToTank();
         _currentTank.CurrentState = TankState.Moving;
 
-        // Tank hareketinin bitmesini bekle
         yield return new WaitForSeconds(_moveDuration);
 
         _currentTank = null;
@@ -130,12 +129,12 @@ public class TankManager : MonoBehaviour
         }
         else
         {
+            yield return new WaitForSeconds(_tankCheckDelay);
             PrepareNextTank();
         }
 
         _isMoving = false;
     }
-
     private void PrepareNextTank()
     {
         if (_tankQueue.Count > 0)
@@ -144,13 +143,11 @@ public class TankManager : MonoBehaviour
             _currentTank.Initialize(_startPosition);
             _currentTank.CurrentState = TankState.Filling;
 
-            // GameManager'ı bilgilendir
             NotifyGameManagerForHolderCheck();
 
             Debug.Log($"[TankManager] Next tank {_currentTank.name} is now active");
         }
     }
-
     private void NotifyGameManagerForHolderCheck()
     {
         if (GameManager.Instance != null)
@@ -158,7 +155,6 @@ public class TankManager : MonoBehaviour
             GameManager.Instance.MoveAllHolderStickmenToCurrentTank();
         }
     }
-
     private void MoveQueueTanks()
     {
         foreach (var tank in _tankQueue)
@@ -174,7 +170,6 @@ public class TankManager : MonoBehaviour
             MoveTankToPosition(_currentTank);
         }
     }
-
     private void MoveTankToPosition(Tank tank)
     {
         if (tank == null || _isMoving) return;
@@ -192,7 +187,6 @@ public class TankManager : MonoBehaviour
                 .SetEase(Ease.Linear);
         }
     }
-
     private void CheckAllTanksLeft()
     {
         if (_tankQueue.Count == 0 && _currentTank == null)
@@ -201,7 +195,6 @@ public class TankManager : MonoBehaviour
             OnAllTanksLeft?.Invoke();
         }
     }
-
     private bool ValidateReferences()
     {
         if (_tankPrefab == null)

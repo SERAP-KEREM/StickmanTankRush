@@ -35,7 +35,7 @@ namespace _Main._Tank
 
         [SerializeField, PropertyTooltip("Duration of tank movement in seconds")]
         [Range(1f, 10f)]
-        private float _movementDuration = 5f;
+        private float _movementDuration = 1f;
 
         [SerializeField, PropertyTooltip("The color type of this tank")]
         private ColorType _colorType;
@@ -55,11 +55,21 @@ namespace _Main._Tank
         [SerializeField, PropertyTooltip("Color for target position visualization")]
         private Color _targetPositionColor = Color.green;
 
+        [Title("Stickman Positioning")]
+        [SerializeField] private float _stickmanSpacing = 0.5f;
+        [SerializeField] private Vector3 _firstStickmanOffset = new Vector3(0.5f, 0f, 0f);
+        [SerializeField] private float _nextTankDelay = 0.2f;
         /// <summary>
         /// Gets the maximum number of stickmen this tank can hold.
         /// </summary>
         public int MaxStickmanCount => _maxStickmanCount;
 
+        private readonly Vector3[] _stickmanPositions = new Vector3[]
+ {
+       new Vector3(1f, -0.5f, 0f),   
+       new Vector3(0f, -0.5f, 0f),    
+       new Vector3(-1f, -0.5f, 0f)    
+ };
         #endregion
 
         #region State
@@ -166,12 +176,9 @@ namespace _Main._Tank
             const float distanceFactor = 25f;
             _targetPosition = transform.position + Vector3.left * distanceFactor;
 
-            // Tank hareketi
             transform.DOMove(_targetPosition, _movementDuration)
                 .SetEase(Ease.Linear)
                 .OnComplete(OnMovementComplete);
-
-            MoveAttachedStickmen();
         }
 
         /// <summary>
@@ -181,10 +188,13 @@ namespace _Main._Tank
         {
             if (!_isReadyForStickmen) return;
 
+            if (_attachedStickmen.Contains(stickman)) return;
+
             _attachedStickmen.Add(stickman);
             _arrivedStickmanCount++;
 
-            UpdateStickmanPosition(stickman, _attachedStickmen.Count - 1);
+            int positionIndex = _attachedStickmen.Count - 1;
+            UpdateStickmanPosition(stickman, positionIndex);
 
             if (ShouldStartMovement())
             {
@@ -197,12 +207,14 @@ namespace _Main._Tank
         /// </summary>
         public Vector3 GetStickmanTargetPosition()
         {
-            float xOffset = (_stickmanCount - 1) * -1f;
-            return new Vector3(
-                transform.position.x + xOffset,
-                0f,
-                transform.position.z - _stickmanStopDistance
-            );
+            Vector3 tankPosition = transform.position;
+
+            int nextIndex = _attachedStickmen.Count;
+            if (nextIndex >= _stickmanPositions.Length) return tankPosition;
+
+            Vector3 targetPosition = transform.TransformPoint(_stickmanPositions[nextIndex]);
+
+            return targetPosition;
         }
         #endregion
 
@@ -235,15 +247,18 @@ namespace _Main._Tank
 
         private void UpdateStickmanPosition(Stickman stickman, int index)
         {
-            float xOffset = (index - 1) * -1f;
-            Vector3 position = transform.position + new Vector3(
-                xOffset,
-                _stickmanHeight,
-                -_stickmanStopDistance
-            );
-            stickman.transform.position = position;
-        }
+            if (index >= _stickmanPositions.Length) return;
 
+            stickman.transform.SetParent(transform);
+
+            stickman.transform.DOLocalMove(_stickmanPositions[index], 0.5f)
+           .SetEase(Ease.OutQuad);
+
+            stickman.transform.DOLocalRotate(new Vector3(0f, 90f, 0f), 0.5f)
+                .SetEase(Ease.OutQuad);
+
+
+        }
         private IEnumerator StartMovement()
         {
             if (IsAnyTankMoving)
@@ -252,10 +267,9 @@ namespace _Main._Tank
                 yield break;
             }
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.2f);
 
             InitiateMovement();
-            MoveAttachedStickmen();
         }
 
         private void InitiateMovement()
@@ -264,35 +278,25 @@ namespace _Main._Tank
             IsAnyTankMoving = true;
             CurrentState = TankState.Moving;
 
-            const float distanceFactor = 25f;
-            _targetPosition = transform.position + Vector3.left * distanceFactor;
+            _targetPosition = transform.position + Vector3.left * 10f;
 
             transform.DOMove(_targetPosition, _movementDuration)
                 .SetEase(Ease.Linear)
-                .OnComplete(OnMovementComplete);
+                .OnComplete(() =>
+                {
+                    OnMovementComplete();
+                    StartCoroutine(PrepareForNextTank());
+                });
         }
-
-        private void MoveAttachedStickmen()
+        private IEnumerator PrepareForNextTank()
         {
-            for (int i = 0; i < _attachedStickmen.Count; i++)
-            {
-                if (_attachedStickmen[i] == null) continue;
-
-                float xOffset = (i - 1) * -1f;
-                Vector3 stickmanTarget = _targetPosition + new Vector3(
-                    xOffset,
-                    _stickmanHeight,
-                    -_stickmanStopDistance
-                );
-                _attachedStickmen[i].MoveWithTank(stickmanTarget, _movementDuration);
-            }
+            yield return new WaitForSeconds(_nextTankDelay);
+            IsAnyTankMoving = false;
         }
 
         private void OnMovementComplete()
         {
             _isMoving = false;
-            IsAnyTankMoving = false;
-            Debug.Log("[Tank] Movement completed");
         }
 
         private void OnDrawGizmos()

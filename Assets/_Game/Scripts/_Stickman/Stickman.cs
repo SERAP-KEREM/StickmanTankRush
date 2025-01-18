@@ -3,6 +3,7 @@ using _Main._Enums;
 using _Main._Tank;
 using DG.Tweening;
 using SerapKeremGameTools.Game._Interfaces;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -152,9 +153,26 @@ public class Stickman : MonoBehaviour, ISelectable
     {
         if (_isMoving) return;
         SetLayer("MovingStickman");
-        DirectMove(targetPosition, tankTransform);
-    }
 
+        var currentTile = _tileGrid.GetTileAt(GridX, GridY);
+        currentTile?.RemoveStickman();
+
+        _isMoving = true;
+
+        transform.DOMove(targetPosition, _moveSpeed)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                _isMoving = false;
+                IsSelectable = false;
+
+                if (tankTransform != null && tankTransform.TryGetComponent<Tank>(out var tank))
+                {
+                    tank.OnStickmanArrived(this);
+                }
+            });
+    }
+   
     /// <summary>
     /// Moves the Stickman directly to the holder's position.
     /// </summary>
@@ -164,17 +182,6 @@ public class Stickman : MonoBehaviour, ISelectable
         if (_isMoving) return;
         SetLayer("WaitingStickman");
         DirectMove(holderPosition);
-    }
-
-    /// <summary>
-    /// Moves the Stickman along with the tank for a specified duration.
-    /// </summary>
-    /// <param name="targetPosition">The target position.</param>
-    /// <param name="duration">The duration of the movement.</param>
-    public void MoveWithTank(Vector3 targetPosition, float duration)
-    {
-        transform.DOMove(targetPosition, duration)
-            .SetEase(Ease.Linear);
     }
 
     #endregion
@@ -287,6 +294,5 @@ public class Stickman : MonoBehaviour, ISelectable
             child.gameObject.layer = gameObject.layer;
         }
     }
-
     #endregion
 }

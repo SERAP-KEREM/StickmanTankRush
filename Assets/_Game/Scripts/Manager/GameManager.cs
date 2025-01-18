@@ -184,29 +184,6 @@ namespace _Main
         }
         #endregion
 
-        #region Path Finding
-        private bool CanMoveToTarget(Stickman stickman, Tank tank)
-        {
-            if (stickman == null || tank == null) return false;
-            if (tank.IsFull || tank.UnitColorType != stickman.UnitColorType) return false;
-
-            NavMeshPath path = new NavMeshPath();
-            Vector3 targetPos = tank.GetStickmanTargetPosition();
-
-            return NavMesh.CalculatePath(stickman.transform.position, targetPos, NavMesh.AllAreas, path);
-        }
-
-        public NavMeshPath GetPath(Vector3 start, Vector3 end)
-        {
-            NavMeshPath path = new NavMeshPath();
-            if (NavMesh.CalculatePath(start, end, NavMesh.AllAreas, path))
-            {
-                return path;
-            }
-            return null;
-        }
-        #endregion
-
         #region Stickman Management
         public void HandleStickmanSelection(Stickman stickman)
         {
@@ -317,7 +294,6 @@ namespace _Main
                 MoveStickmanToCurrentTank(stickman, currentTank);
             }
         }
-
         private void MoveStickmanToHolder(Stickman stickman, Holder holder)
         {
             Vector3 targetPos = holder.GetStickmanTargetPosition();

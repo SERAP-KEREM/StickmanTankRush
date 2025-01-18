@@ -72,16 +72,6 @@ public class GridPathFinder : MonoBehaviour
         return hasPath;
     }
 
-    /// <summary>
-    /// Gets the world positions of the current path.
-    /// </summary>
-    /// <returns>List of Vector3 positions representing the path, or null if no path exists.</returns>
-    public List<Vector3> GetPathPositions()
-    {
-        if (!ValidatePathExists()) return null;
-
-        return _currentPath.Select(p => new Vector3(p.x, 0, p.y)).ToList();
-    }
     #endregion
 
     #region Private Methods
@@ -108,10 +98,6 @@ public class GridPathFinder : MonoBehaviour
         return true;
     }
 
-    private bool ValidatePathExists()
-    {
-        return _isInitialized && _currentPath != null && _currentPath.Count > 0;
-    }
 
     private bool IsDirectAccess(Vector2Int position)
     {
