@@ -322,27 +322,74 @@ namespace _Main
             _tankManager.MoveNextTankToStopPoint();
             _tankManager.MoveOtherTanks();
             UpdateTankProgress(_tankManager.CurrentTank);
+           
             StartCoroutine(CheckHoldersAfterTankChange());
         }
         private IEnumerator CheckHoldersAfterTankChange()
         {
             yield return new WaitForSeconds(0.5f);
 
-            if (_tankManager.CurrentTank != null &&
-                _tankManager.CurrentTank.CurrentState == TankState.Filling)
+            Tank currentTank = _tankManager.CurrentTank;
+            if (currentTank == null || currentTank.IsFull) yield break;
+
+            // Tank hazır mı kontrol et
+            if (currentTank.CurrentState == TankState.Filling)
             {
-                MoveAllHolderStickmenToCurrentTank();
+                Debug.Log("[GameManager] Checking holders for matching stickmen...");
+                yield return StartCoroutine(ProcessAllHolderStickmen(currentTank));
             }
+        }
+
+        private IEnumerator ProcessAllHolderStickmen(Tank currentTank)
+        {
+            var holders = _holderManager.GetAllHolders();
+            foreach (var holder in holders)
+            {
+                if (currentTank.IsFull) break;
+
+                Stickman stickmanInHolder = holder.CurrentStickman;
+                if (stickmanInHolder != null && stickmanInHolder.UnitColorType == currentTank.UnitColorType)
+                {
+                    // Her stickman hareketi arasında kısa bir bekleme
+                    yield return StartCoroutine(ProcessSingleHolderStickman(holder, currentTank));
+                }
+            }
+        }
+
+        private IEnumerator ProcessSingleHolderStickman(Holder holder, Tank currentTank)
+        {
+            Stickman stickmanInHolder = holder.CurrentStickman;
+            if (stickmanInHolder == null || currentTank.IsFull ||
+                stickmanInHolder.UnitColorType != currentTank.UnitColorType)
+                yield break;
+
+            Debug.Log($"[GameManager] Moving stickman from holder to tank: {stickmanInHolder.UnitColorType}");
+
+            // Önce holder'dan çıkar
+            holder.RemoveStickman();
+
+            // Tank'a gönder
+            Vector3 targetPos = currentTank.GetStickmanTargetPosition();
+            stickmanInHolder.MoveToTank(targetPos, currentTank.transform);
+            stickmanInHolder.gameObject.layer = LayerMask.NameToLayer("MovingStickman");
+
+            // Stickman'ın tanka varması için bekle
+            yield return new WaitForSeconds(0.3f);
+
+            // Tank'a ekle
+            currentTank.AddStickman(stickmanInHolder.UnitColorType);
+            UpdateTankProgress(currentTank);
         }
         public void MoveAllHolderStickmenToCurrentTank()
         {
             Tank currentTank = _tankManager.CurrentTank;
-            if (currentTank == null || currentTank.IsFull || currentTank.CurrentState != TankState.Filling) return;
-
-            foreach (var holder in _holderManager.GetAllHolders())
+            if (currentTank == null || currentTank.IsFull || currentTank.CurrentState != TankState.Filling)
             {
-                ProcessHolderStickman(holder, currentTank);
+                Debug.Log("[GameManager] Cannot move holder stickmen: Tank not ready");
+                return;
             }
+
+            StartCoroutine(ProcessAllHolderStickmen(currentTank));
         }
 
         private void ProcessHolderStickman(Holder holder, Tank currentTank)

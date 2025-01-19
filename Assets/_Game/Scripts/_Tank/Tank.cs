@@ -63,6 +63,7 @@ namespace _Main._Tank
         /// Gets the maximum number of stickmen this tank can hold.
         /// </summary>
         public int MaxStickmanCount => _maxStickmanCount;
+   
 
         private readonly Vector3[] _stickmanPositions = new Vector3[]
  {

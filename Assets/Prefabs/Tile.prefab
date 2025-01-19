@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 284663116268213770}
   - component: {fileID: 5950946555336775100}
   - component: {fileID: 2455384503678612677}
-  m_Layer: 0
+  - component: {fileID: -3523816578228490495}
+  m_Layer: 9
   m_Name: Tile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -120,3 +121,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currentStickman: {fileID: 0}
+  _position: {x: 0, y: 0, z: 0}
+  gCost: 0
+  hCost: 0
+  parent: {fileID: 0}
+--- !u!208 &-3523816578228490495
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 320167537857610431}
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.45, y: 0.5, z: 0.45}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 0.5, z: 0}
+  m_TimeToStationary: 0.5

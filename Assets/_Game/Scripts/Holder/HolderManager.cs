@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using _Main._Stickman.StickmanGrid;
 using TriInspector;
 using _Main;
+using System.Collections;
 
 /// <summary>
 /// Manages the creation and organization of holders for stickmen.
@@ -35,7 +36,7 @@ public class HolderManager : MonoBehaviour
     [PropertyTooltip("Starting position for the first holder")]
     private Vector3 _rowStartPosition = Vector3.zero;
     #endregion
-
+    private Coroutine _failCheckCoroutine;
     #region Runtime References
     [Group("Runtime")]
     [SerializeField, ReadOnly]
@@ -57,9 +58,12 @@ public class HolderManager : MonoBehaviour
     /// <summary>
     /// Initializes the holder manager and creates initial holders.
     /// </summary>
-    public void Initialize()
+    public void InitializeWaitingRow()
     {
-        InitializeWaitingRow();
+        if (!ValidateSetup()) return;
+
+        CleanupExistingHolders();
+        CreateHolders();
     }
 
     /// <summary>
@@ -117,22 +121,41 @@ public class HolderManager : MonoBehaviour
 
         if (allFull)
         {
-            Debug.Log("[HolderManager] All holders are full!");
-            OnAllHoldersFull?.Invoke();
+            Debug.Log("[HolderManager] All holders are full! Starting second check...");
+            if (_failCheckCoroutine != null)
+            {
+                StopCoroutine(_failCheckCoroutine);
+            }
+            _failCheckCoroutine = StartCoroutine(DelayedFailCheck());
         }
 
-        return allFull;
+        return false; // ?lk kontrolde fail verme
+    }
+    private IEnumerator DelayedFailCheck()
+    {
+        yield return new WaitForSeconds(1f);
+
+        // ?kinci kontrol
+        bool stillFull = true;
+        foreach (var holder in _waitingHolders)
+        {
+            if (holder != null && !holder.IsOccupied)
+            {
+                stillFull = false;
+                break;
+            }
+        }
+
+        if (stillFull)
+        {
+            Debug.Log("[HolderManager] All holders are still full after delay - Game Over!");
+            OnAllHoldersFull?.Invoke();
+        }
     }
     #endregion
 
     #region Private Methods
-    private void InitializeWaitingRow()
-    {
-        if (!ValidateSetup()) return;
 
-        CleanupExistingHolders();
-        CreateHolders();
-    }
 
     private bool ValidateSetup()
     {

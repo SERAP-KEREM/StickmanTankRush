@@ -158,7 +158,7 @@ namespace _Main
         private void InitializeManagers()
         {
             _tankManager?.SetLevelDataSO(_levelDataSO);
-            _holderManager?.Initialize();
+            _holderManager?.InitializeWaitingRow(); 
         }
 
         private void InitializePathfinding()
