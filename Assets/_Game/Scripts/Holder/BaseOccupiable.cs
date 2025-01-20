@@ -12,7 +12,6 @@ namespace _Main._Stickman
 
         [SerializeField, Tooltip("The Stickman currently occupying this object.")]
         private Stickman _currentStickman; // Private field for the assigned stickman
-
         #endregion
 
         #region Properties

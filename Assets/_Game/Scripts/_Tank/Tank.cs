@@ -35,7 +35,7 @@ namespace _Main._Tank
 
         [SerializeField, PropertyTooltip("Duration of tank movement in seconds")]
         [Range(1f, 10f)]
-        private float _movementDuration = 1f;
+        private float _movementDuration = 0.5f;
 
         [SerializeField, PropertyTooltip("The color type of this tank")]
         private ColorType _colorType;
@@ -58,7 +58,10 @@ namespace _Main._Tank
         [Title("Stickman Positioning")]
         [SerializeField] private float _stickmanSpacing = 0.5f;
         [SerializeField] private Vector3 _firstStickmanOffset = new Vector3(0.5f, 0f, 0f);
-        [SerializeField] private float _nextTankDelay = 0.2f;
+        [SerializeField] private float _nextTankDelay = 0.1f;
+
+        private bool _isWaitingForStickmen = false;
+        private bool _readyToMove = false;
         /// <summary>
         /// Gets the maximum number of stickmen this tank can hold.
         /// </summary>
@@ -78,21 +81,23 @@ namespace _Main._Tank
         private bool _isMoving;
         private bool _isReadyForStickmen;
         private Vector3 _targetPosition;
-        private int _stickmanCount;
+      
         private int _arrivedStickmanCount;
         private readonly List<Stickman> _attachedStickmen = new List<Stickman>();
 
         public static bool IsAnyTankMoving { get; private set; }
-
+        [Title("Stickman Settings")]
+        [SerializeField]
+        private float _stickmanPositioningDuration = 0.3f;
         /// <summary>
         /// Gets whether the tank has reached its maximum stickman capacity.
         /// </summary>
-        public bool IsFull => _stickmanCount >= _maxStickmanCount;
+        public bool IsFull => _arrivedStickmanCount >= _maxStickmanCount;
 
         /// <summary>
         /// Gets the current number of stickmen in the tank.
         /// </summary>
-        public int StickmanCount => _stickmanCount;
+        public int StickmanCount => _arrivedStickmanCount;
 
         /// <summary>
         /// Gets or sets the color type of the tank.
@@ -145,8 +150,11 @@ namespace _Main._Tank
         {
             if (!CanAddStickman(stickmanColor)) return;
 
-            _stickmanCount++;
-            CheckForFullTank();
+            _arrivedStickmanCount++;
+            if (IsFull && !_isMoving && !_isWaitingForStickmen)
+            {
+                _readyToMove = true;
+            }
         }
 
         /// <summary>
@@ -154,7 +162,7 @@ namespace _Main._Tank
         /// </summary>
         private void CheckForFullTank()
         {
-            if (_stickmanCount >= _maxStickmanCount)
+            if (_arrivedStickmanCount >= _maxStickmanCount)
             {
                 SetTankStateToMoving();
             }
@@ -164,7 +172,11 @@ namespace _Main._Tank
         /// </summary>
         private void SetTankStateToMoving()
         {
+            if (_isMoving) return;
+
             CurrentState = TankState.Moving;
+            _isMoving = true;
+            IsAnyTankMoving = true;
             MoveToTank();
         }
         /// <summary>
@@ -172,7 +184,7 @@ namespace _Main._Tank
         /// </summary>
         public void MoveToTank()
         {
-            if (_currentState != TankState.Moving || !_isMoving) return;
+            if (!_isMoving) return;
 
             const float distanceFactor = 25f;
             _targetPosition = transform.position + Vector3.left * distanceFactor;
@@ -187,22 +199,31 @@ namespace _Main._Tank
         /// </summary>
         public void OnStickmanArrived(Stickman stickman)
         {
+            if (stickman == null) return;
             if (!_isReadyForStickmen) return;
 
             if (_attachedStickmen.Contains(stickman)) return;
 
             _attachedStickmen.Add(stickman);
-            _arrivedStickmanCount++;
 
             int positionIndex = _attachedStickmen.Count - 1;
             UpdateStickmanPosition(stickman, positionIndex);
 
-            if (ShouldStartMovement())
+            if (_readyToMove && _attachedStickmen.Count == _maxStickmanCount)
             {
-                StartCoroutine(StartMovement());
+                StartCoroutine(PrepareForMovement());
             }
         }
+        private IEnumerator PrepareForMovement()
+        {
+            _isWaitingForStickmen = true;
 
+            // Stickmanlar?n pozisyonlar?na yerle?mesini bekle
+            yield return new WaitForSeconds(0.2f);
+
+            _isWaitingForStickmen = false;
+            SetTankStateToMoving();
+        }
         /// <summary>
         /// Gets the target position for the next stickman.
         /// </summary>
@@ -252,10 +273,10 @@ namespace _Main._Tank
 
             stickman.transform.SetParent(transform);
 
-            stickman.transform.DOLocalMove(_stickmanPositions[index], 0.5f)
+            stickman.transform.DOLocalMove(_stickmanPositions[index], _stickmanPositioningDuration)
            .SetEase(Ease.OutQuad);
 
-            stickman.transform.DOLocalRotate(new Vector3(0f, 90f, 0f), 0.5f)
+            stickman.transform.DOLocalRotate(new Vector3(0f, 90f, 0f), _stickmanPositioningDuration)
                 .SetEase(Ease.OutQuad);
 
 
@@ -297,7 +318,16 @@ namespace _Main._Tank
 
         private void OnMovementComplete()
         {
+            Debug.Log($"[Tank] {name} completed movement");
             _isMoving = false;
+            IsAnyTankMoving = false;
+
+            // Tank Manager'a hareketin tamamland???n? bildir
+            var tankManager = FindObjectOfType<TankManager>();
+            if (tankManager != null)
+            {
+                tankManager.MoveNextTankToStopPoint();
+            }
         }
 
         private void OnDrawGizmos()

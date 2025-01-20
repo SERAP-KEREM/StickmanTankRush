@@ -10,210 +10,97 @@ using TriInspector;
 [DeclareBoxGroup("Debug")]
 public class GridPathFinder : MonoBehaviour
 {
-    #region Private Fields
     private TileGrid _tileGrid;
     private List<Vector2Int> _currentPath;
-    private bool _isInitialized;
-
-    private readonly Vector2Int[] _directions = new Vector2Int[]
+    private Vector2Int[] _directions = new Vector2Int[]
     {
-        new Vector2Int(0, -1),  // Forward
-        new Vector2Int(1, 0),   // Right
-        new Vector2Int(-1, 0),  // Left
-        new Vector2Int(0, 1)    // Back
+        new Vector2Int(0, -1),  // Ön
+        new Vector2Int(1, 0),   // Sa?
+        new Vector2Int(-1, 0),  // Sol
+        new Vector2Int(0, 1)    // Arka
     };
-    #endregion
 
-    #region Debug Settings
-    [Group("Debug")]
-    [SerializeField]
-    [PropertyTooltip("Enable debug logging")]
-    private bool _showDebug = true;
-    #endregion
-
-    #region Public Methods
-    /// <summary>
-    /// Initializes the pathfinder with a tile grid reference.
-    /// </summary>
-    /// <param name="tileGrid">The tile grid to perform pathfinding on.</param>
-    public void Initialize(TileGrid tileGrid)
+    private void Awake()
     {
-        if (tileGrid == null)
-        {
-            Debug.LogError("[GridPathFinder] Cannot initialize with null TileGrid!");
-            return;
-        }
-
-        _tileGrid = tileGrid;
-        _isInitialized = true;
-        Debug.Log("[GridPathFinder] Initialized successfully");
+        _tileGrid = FindObjectOfType<TileGrid>();
+        _currentPath = new List<Vector2Int>();
     }
 
-    /// <summary>
-    /// Checks if there is a valid path from the stickman's position to the target (z=0).
-    /// </summary>
-    /// <param name="stickman">The stickman to find a path for.</param>
-    /// <returns>True if a valid path exists, false otherwise.</returns>
     public bool HasValidPathToTarget(Stickman stickman)
     {
-        if (!ValidateState(stickman)) return false;
+        if (stickman == null) return false;
 
-        _currentPath = new List<Vector2Int>();
-        Vector2Int start = new Vector2Int(stickman.GridX, stickman.GridY);
+        // En öndeki (y=0) veya holder'daki stickmanlar direkt hareket edebilir
+        if (stickman.GridY == 0 || stickman.IsInHolder)
+        {
+            return true;
+        }
+        
+        _currentPath.Clear();
+        Vector2Int startPos = new Vector2Int(stickman.GridX, stickman.GridY);
+        _currentPath.Add(startPos);
 
-        if (IsDirectAccess(start))
+        return FindPath(startPos);
+    }
+
+    private bool FindPath(Vector2Int currentPos)
+    {
+        // y=0'a ula?t?ysak yolu bulduk demektir
+        if (currentPos.y == 0)
         {
             return true;
         }
 
-        _currentPath.Add(start);
-        bool hasPath = FindValidPath(start);
-        LogPathResult(start, hasPath);
-        return hasPath;
-    }
-
-    #endregion
-
-    #region Private Methods
-    private bool ValidateState(Stickman stickman)
-    {
-        if (!_isInitialized)
+        // Kom?ular? kontrol et (ön, sa?, sol, arka s?ras?yla)
+        foreach (Vector2Int direction in _directions)
         {
-            Debug.LogError("[GridPathFinder] Not initialized!");
-            return false;
-        }
+            Vector2Int nextPos = currentPos + direction;
 
-        if (_tileGrid == null)
-        {
-            Debug.LogError("[GridPathFinder] TileGrid is null!");
-            return false;
-        }
+            // Bu pozisyonu daha önce kulland?k m??
+            if (_currentPath.Contains(nextPos)) continue;
 
-        if (stickman == null)
-        {
-            Debug.LogError("[GridPathFinder] Stickman is null!");
-            return false;
-        }
-
-        return true;
-    }
-
-
-    private bool IsDirectAccess(Vector2Int position)
-    {
-        if (position.y == 0)
-        {
-            Debug.Log("[GridPathFinder] Direct access (z=0)");
-            return true;
-        }
-        return false;
-    }
-
-    private bool FindValidPath(Vector2Int currentPos)
-    {
-        var neighbors = GetEmptyNeighbors(currentPos);
-        if (!ValidateNeighbors(neighbors, currentPos))
-        {
-            return false;
-        }
-
-        foreach (var neighbor in neighbors)
-        {
-            if (IsTargetReached(neighbor))
+            // Pozisyon grid içinde mi ve tile bo? mu?
+            if (IsValidTile(nextPos))
             {
-                _currentPath.Add(neighbor);
-                return true;
-            }
+                _currentPath.Add(nextPos);
 
-            if (_currentPath.Contains(neighbor))
-            {
-                continue;
-            }
+                if (FindPath(nextPos))
+                {
+                    return true;
+                }
 
-            if (TryPathThroughNeighbor(neighbor))
-            {
-                return true;
+                // Bu yol ç?kmaza girdi, son eklenen pozisyonu ç?kar
+                _currentPath.RemoveAt(_currentPath.Count - 1);
             }
         }
 
         return false;
     }
 
-    private bool ValidateNeighbors(List<Vector2Int> neighbors, Vector2Int pos)
+    private bool IsValidTile(Vector2Int pos)
     {
-        if (neighbors == null || neighbors.Count == 0)
-        {
-            if (_showDebug)
-            {
-                Debug.Log($"[GridPathFinder] No empty neighbors at [{pos.x},{pos.y}]");
-            }
-            return false;
-        }
-        return true;
-    }
-
-    private bool IsTargetReached(Vector2Int position)
-    {
-        return position.y == 0;
-    }
-
-    private bool TryPathThroughNeighbor(Vector2Int neighbor)
-    {
-        _currentPath.Add(neighbor);
-        if (FindValidPath(neighbor))
-        {
-            return true;
-        }
-        _currentPath.RemoveAt(_currentPath.Count - 1);
-        return false;
-    }
-
-    private List<Vector2Int> GetEmptyNeighbors(Vector2Int pos)
-    {
-        var neighbors = new List<Vector2Int>();
-
-        foreach (var dir in _directions)
-        {
-            var checkPos = pos + dir;
-            if (!IsValidPosition(checkPos))
-            {
-                continue;
-            }
-
-            var tile = _tileGrid.GetTileAt(checkPos.x, checkPos.y);
-            if (tile != null && !tile.IsOccupied)
-            {
-                neighbors.Add(checkPos);
-            }
-        }
-
-        return neighbors;
-    }
-
-    private bool IsValidPosition(Vector2Int pos)
-    {
-        if (!_isInitialized || _tileGrid == null)
+        // Grid s?n?rlar? içinde mi?
+        if (pos.x < 0 || pos.x >= _tileGrid.GridSize.x ||
+            pos.y < 0 || pos.y >= _tileGrid.GridSize.y)
         {
             return false;
         }
 
-        return pos.x >= 0 && pos.x < _tileGrid.GridSize.x &&
-               pos.y >= 0 && pos.y < _tileGrid.GridSize.y;
+        // Tile bo? mu?
+        var tile = _tileGrid.GetTileAt(pos.x, pos.y);
+        return tile != null && !tile.IsOccupied;
     }
 
-    private void LogPathResult(Vector2Int start, bool hasPath)
+    public List<Vector3> GetPathPoints()
     {
-        if (!_showDebug) return;
+        List<Vector3> pathPoints = new List<Vector3>();
 
-        if (hasPath)
+        foreach (Vector2Int point in _currentPath)
         {
-            string path = string.Join(" -> ", _currentPath.Select(p => $"[{p.x},{p.y}]"));
-            Debug.Log($"[GridPathFinder] Found path from [{start.x},{start.y}]: {path}");
+            // Grid pozisyonunu world pozisyonuna çevir
+            pathPoints.Add(new Vector3(point.x, 0, point.y));
         }
-        else
-        {
-            Debug.Log($"[GridPathFinder] No valid path from [{start.x},{start.y}]");
-        }
+
+        return pathPoints;
     }
-    #endregion
 }

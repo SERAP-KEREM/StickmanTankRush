@@ -25,7 +25,7 @@ public class TankManager : MonoBehaviour
     [SerializeField]
     [PropertyTooltip("Duration of tank movement")]
     [Range(1f, 10f)]
-    private float _moveDuration = 1f;
+    private float _moveDuration = 0.5f;
 
     [Group("Configuration")]
     [SerializeField]
@@ -70,14 +70,20 @@ public class TankManager : MonoBehaviour
 
     public void MoveNextTankToStopPoint()
     {
-        if (_isMoving) return;
+        if (_isMoving)
+        {
+            Debug.Log("[TankManager] Cannot move next tank - movement in progress");
+            return;
+        }
 
         if (_currentTank != null && _currentTank.IsFull)
         {
+            Debug.Log("[TankManager] Starting movement sequence for full tank");
             StartCoroutine(MoveTankAndPrepareNext());
         }
         else if (_tankQueue.Count > 0 && _currentTank == null)
         {
+            Debug.Log("[TankManager] Preparing first tank");
             PrepareNextTank();
         }
     }
@@ -113,41 +119,62 @@ public class TankManager : MonoBehaviour
 
     private IEnumerator MoveTankAndPrepareNext()
     {
+        if (_isMoving || Tank.IsAnyTankMoving) yield break;
+
         _isMoving = true;
 
-        AudioManager.Instance.PlayAudio(AudioKeys.TANK_MOVE);
-        _currentTank.MoveToTank();
-        _currentTank.CurrentState = TankState.Moving;
+        Debug.Log("[TankManager] Starting tank movement sequence");
 
-        yield return new WaitForSeconds(_moveDuration);
-
-        _currentTank = null;
-
-        if (_tankQueue.Count == 0)
+        // Current tank'ın hareketini başlat
+        if (_currentTank != null && _currentTank.IsFull)
         {
-            CheckAllTanksLeft();
-        }
-        else
-        {
-            yield return new WaitForSeconds(_tankCheckDelay);
-            PrepareNextTank();
+            AudioManager.Instance.PlayAudio(AudioKeys.TANK_MOVE);
+            _currentTank.MoveToTank();
+            _currentTank.CurrentState = TankState.Moving;
+
+            // Current tank null yapılmadan önce yeni tankı hazırla
+            _currentTank = null;
+
+            // Çok kısa bir bekleme ile yeni tankı getir
+            yield return new WaitForSeconds(0.5f);
+
+            if (_tankQueue.Count > 0)
+            {
+                Debug.Log("[TankManager] Preparing next tank immediately");
+                PrepareNextTank();
+            }
+            else
+            {
+                Debug.Log("[TankManager] No more tanks in queue");
+                CheckAllTanksLeft();
+            }
         }
 
         _isMoving = false;
     }
     private void PrepareNextTank()
     {
-        if (_tankQueue.Count > 0)
+        if (_tankQueue.Count == 0)
         {
-            _currentTank = _tankQueue.Dequeue();
-            _currentTank.Initialize(_startPosition);
-            _currentTank.CurrentState = TankState.Filling;
-
-            NotifyGameManagerForHolderCheck();
-
-            Debug.Log($"[TankManager] Next tank {_currentTank.name} is now active");
+            Debug.Log("[TankManager] No tanks in queue to prepare");
+            return;
         }
+
+        if (Tank.IsAnyTankMoving)
+        {
+            Debug.Log("[TankManager] Cannot prepare next tank while another is moving");
+            return;
+        }
+
+        _currentTank = _tankQueue.Dequeue();
+        _currentTank.Initialize(_startPosition);
+        _currentTank.CurrentState = TankState.Filling;
+
+        Debug.Log($"[TankManager] New tank prepared: {_currentTank.name}");
+
+        NotifyGameManagerForHolderCheck();
     }
+
     private void NotifyGameManagerForHolderCheck()
     {
         if (GameManager.Instance != null)

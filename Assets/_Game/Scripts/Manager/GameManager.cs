@@ -126,7 +126,6 @@ namespace _Main
             }
             return true;
         }
-
         private void InitializeComponents(Level level)
         {
             _tankManager = level.TankManager;
@@ -135,10 +134,10 @@ namespace _Main
             _holderManager = level.HolderManager;
             _gridPathFinder = level.GridPathFinder;
 
-            if (_gridPathFinder != null)
-            {
-                _gridPathFinder.Initialize(_tileGrid);
-            }
+            //if (_gridPathFinder != null)
+            //{
+            //    _gridPathFinder.Initialize(_tileGrid);
+            //}
 
             ValidateReferences();
         }
@@ -277,9 +276,15 @@ namespace _Main
         private void HandleFullTank(Tank currentTank)
         {
             ScoreManager.Instance.OnTankCompleted();
+            StartCoroutine(WaitAndMoveTank());
+        }
+        private IEnumerator WaitAndMoveTank()
+        {
+            // Tüm stickmanların tanka binmesini bekle
+            yield return new WaitForSeconds(0.5f);
+
             MoveNextTankToStopPoint();
         }
-
         private void ProcessStickmanMovement(Stickman stickman, Tank currentTank = null, Holder nearestHolder = null)
         {
             var currentTile = _tileGrid.GetTileAt(stickman.GridX, stickman.GridY);
@@ -303,10 +308,34 @@ namespace _Main
 
         private void MoveStickmanToCurrentTank(Stickman stickman, Tank tank)
         {
+            if (tank.IsFull) return;
+
             Vector3 targetPos = tank.GetStickmanTargetPosition();
             stickman.MoveToTank(targetPos, tank.transform);
-            tank.AddStickman(stickman.UnitColorType);
+
+            // Önce stickman'ın tanka varmasını bekle, sonra say
+            StartCoroutine(WaitForStickmanArrival(stickman, tank));
         }
+
+        private IEnumerator WaitForStickmanArrival(Stickman stickman, Tank tank)
+        {
+            // Stickman'ın hareketi tamamlanana kadar bekle
+            while (stickman.IsMoving)
+            {
+                yield return null;
+            }
+
+            // Tank'a ekle ve UI'ı güncelle
+            tank.AddStickman(stickman.UnitColorType);
+            UpdateTankProgress(tank);
+
+            // Tank doldu mu kontrol et
+            if (tank.IsFull)
+            {
+                HandleFullTank(tank);
+            }
+        }
+
         #endregion
 
         #region Tank Movement Management
@@ -363,18 +392,16 @@ namespace _Main
                 stickmanInHolder.UnitColorType != currentTank.UnitColorType)
                 yield break;
 
-            Debug.Log($"[GameManager] Moving stickman from holder to tank: {stickmanInHolder.UnitColorType}");
+            Debug.Log($"[GameManager] Moving stickman from holder to tank");
 
-            // Önce holder'dan çıkar
+            // Holder'dan çıkar
             holder.RemoveStickman();
 
-            // Tank'a gönder
-            Vector3 targetPos = currentTank.GetStickmanTargetPosition();
-            stickmanInHolder.MoveToTank(targetPos, currentTank.transform);
-            stickmanInHolder.gameObject.layer = LayerMask.NameToLayer("MovingStickman");
+            // Tank'a direkt gönder
+            stickmanInHolder.MoveToTank(currentTank.GetStickmanTargetPosition(), currentTank.transform);
 
-            // Stickman'ın tanka varması için bekle
-            yield return new WaitForSeconds(0.3f);
+            // Kısa bir bekleme
+            yield return new WaitForSeconds(0.5f);
 
             // Tank'a ekle
             currentTank.AddStickman(stickmanInHolder.UnitColorType);
@@ -392,18 +419,7 @@ namespace _Main
             StartCoroutine(ProcessAllHolderStickmen(currentTank));
         }
 
-        private void ProcessHolderStickman(Holder holder, Tank currentTank)
-        {
-            Stickman stickmanInHolder = holder.CurrentStickman;
-            if (stickmanInHolder == null || currentTank.IsFull ||
-                stickmanInHolder.UnitColorType != currentTank.UnitColorType) return;
-
-            holder.RemoveStickman();
-            Vector3 targetPos = currentTank.GetStickmanTargetPosition();
-            stickmanInHolder.MoveToTank(targetPos, currentTank.transform);
-            stickmanInHolder.gameObject.layer = LayerMask.NameToLayer("MovingStickman");
-            currentTank.AddStickman(stickmanInHolder.UnitColorType);
-        }
+      
         #endregion
     }
 }

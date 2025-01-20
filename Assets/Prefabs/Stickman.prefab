@@ -832,8 +832,6 @@ GameObject:
   - component: {fileID: 5783290512618319212}
   - component: {fileID: 6261339967746084488}
   - component: {fileID: 1186582172335759965}
-  - component: {fileID: -326648984284145175}
-  - component: {fileID: -5199478571246541970}
   m_Layer: 0
   m_Name: Stickman
   m_TagString: Untagged
@@ -948,44 +946,11 @@ MonoBehaviour:
   _moveSpeed: 1
   _rotationSpeed: 360
   _pathPointThreshold: 0.1
---- !u!195 &-326648984284145175
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6123813517436190192}
-  m_Enabled: 0
-  m_AgentTypeID: 0
-  m_Radius: 0.4
-  m_Speed: 5
-  m_Acceleration: 8
-  avoidancePriority: 50
-  m_AngularSpeed: 360
-  m_StoppingDistance: 0.1
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 1
-  m_BaseOffset: 0
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
---- !u!208 &-5199478571246541970
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6123813517436190192}
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Shape: 0
-  m_Extents: {x: 0.4, y: 0.5, z: 0.4}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 0.5, z: 0}
-  m_TimeToStationary: 0.5
+  _agent: {fileID: 0}
+  _obstacle: {fileID: 0}
+  _navMeshAgentRadius: 0.3
+  _navMeshAgentHeight: 1
+  _stoppingDistance: 0.1
 --- !u!1 &6171265497574698870
 GameObject:
   m_ObjectHideFlags: 0

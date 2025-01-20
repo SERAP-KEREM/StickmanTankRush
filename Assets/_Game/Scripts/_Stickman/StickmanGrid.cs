@@ -2,6 +2,7 @@ using _Main._Enums;
 using UnityEngine;
 using LevelEditor;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace _Main._Stickman.StickmanGrid
 {
@@ -22,7 +23,7 @@ namespace _Main._Stickman.StickmanGrid
         public event GridEventHandler OnStickmanPlaced;
         public event GridEventHandler OnStickmanRemoved;
         #endregion
-
+        private bool _isInitialized;
         #region Unity Lifecycle
 
         private void OnDestroy()
@@ -45,12 +46,34 @@ namespace _Main._Stickman.StickmanGrid
 
         public void Initialize()
         {
+            if (_isInitialized) return;
             if (!ValidateSetup()) return;
+
+            Debug.Log("[StickmanGrid] Starting initialization...");
 
             ClearGrid();
             Setup(_levelDataSO.Array2DGrid);
-        }
 
+            // NavMesh componentlerinin kurulmas? için biraz bekle
+            StartCoroutine(DelayedStickmanSetup());
+
+            _isInitialized = true;
+        }
+        private IEnumerator DelayedStickmanSetup()
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            var allStickmen = GetComponentsInChildren<Stickman>();
+            foreach (var stickman in allStickmen)
+            {
+                if (stickman != null)
+                {
+                    stickman.Initialize();
+                }
+            }
+
+            Debug.Log($"[StickmanGrid] Initialized {allStickmen.Length} stickmen");
+        }
         private bool ValidateSetup()
         {
             if (_levelDataSO == null)
