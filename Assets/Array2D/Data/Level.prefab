@@ -102,7 +102,6 @@ MonoBehaviour:
   _stickmanGrid: {fileID: 0}
   _holderManager: {fileID: 0}
   _gridPathFinder: {fileID: 0}
-  _navMeshSurface: {fileID: 1047710641974281782}
 --- !u!1 &5350876747691730296
 GameObject:
   m_ObjectHideFlags: 0
@@ -147,7 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a124323fe372044b093f435f06bb1e22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stickmanPrefab: {fileID: 1186582172335759965, guid: d07f5b4bbb41cd34398c59a5578060f6, type: 3}
+  _stickmanPrefab: {fileID: 3015259032783030602, guid: 96e3f2a4b59d84b87a6fe5bfb111a1f2, type: 3}
   _tileGrid: {fileID: 8233481212163296266}
   _gridOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &5725433931787843704
@@ -162,7 +161,6 @@ GameObject:
   - component: {fileID: 5597197264255492596}
   - component: {fileID: 4275423214477859084}
   - component: {fileID: 5695424145201667329}
-  - component: {fileID: 1047710641974281782}
   m_Layer: 8
   m_Name: Plane
   m_TagString: Untagged
@@ -257,37 +255,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &1047710641974281782
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5725433931787843704}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AgentTypeID: 0
-  m_CollectObjects: 0
-  m_Size: {x: 10, y: 10, z: 10}
-  m_Center: {x: 0, y: 2, z: 0}
-  m_LayerMask:
-    serializedVersion: 2
-    m_Bits: 65
-  m_UseGeometry: 0
-  m_DefaultArea: 0
-  m_GenerateLinks: 0
-  m_IgnoreNavMeshAgent: 1
-  m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
-  m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: f00a91b9816bddb4e992f34c5369fe32, type: 2}
-  m_BuildHeightMesh: 0
 --- !u!1 &5788091201236506681
 GameObject:
   m_ObjectHideFlags: 0
@@ -382,7 +349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc050e9132e15d54db044018ce0c7248, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tankPrefab: {fileID: 8353771008622751197, guid: b80bb5f08b249494fa623419fd80da9b, type: 3}
+  _tankPrefab: {fileID: 2074812478252662958, guid: 2dc5d0ee2160c4d458e04efd9861f0ce, type: 3}
   _moveDuration: 1
   _startPosition: {x: 1, y: -0.5, z: -3}
   _currentTank: {fileID: 0}

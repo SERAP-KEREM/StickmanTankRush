@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AI;
 using TriInspector;
+using DG.Tweening;
 
 namespace _Main
 {
@@ -281,7 +282,7 @@ namespace _Main
         private IEnumerator WaitAndMoveTank()
         {
             // Tüm stickmanların tanka binmesini bekle
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.3f);
 
             MoveNextTankToStopPoint();
         }
@@ -356,15 +357,17 @@ namespace _Main
         }
         private IEnumerator CheckHoldersAfterTankChange()
         {
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.2f);
 
             Tank currentTank = _tankManager.CurrentTank;
             if (currentTank == null || currentTank.IsFull) yield break;
 
+            yield return new WaitForSeconds(0.2f);
+
             // Tank hazır mı kontrol et
-            if (currentTank.CurrentState == TankState.Filling)
+            if (currentTank != null && !currentTank.IsFull && currentTank.CurrentState == TankState.Filling)
             {
-                Debug.Log("[GameManager] Checking holders for matching stickmen...");
+                Debug.Log("[GameManager] Tank ready, processing holder stickmen");
                 yield return StartCoroutine(ProcessAllHolderStickmen(currentTank));
             }
         }
@@ -392,20 +395,26 @@ namespace _Main
                 stickmanInHolder.UnitColorType != currentTank.UnitColorType)
                 yield break;
 
-            Debug.Log($"[GameManager] Moving stickman from holder to tank");
+            Debug.Log($"[GameManager] Moving stickman directly from holder to tank");
 
             // Holder'dan çıkar
             holder.RemoveStickman();
 
-            // Tank'a direkt gönder
-            stickmanInHolder.MoveToTank(currentTank.GetStickmanTargetPosition(), currentTank.transform);
+            // Tank'ın güncel pozisyonunu al
+            Vector3 tankPos = currentTank.GetStickmanTargetPosition();
 
-            // Kısa bir bekleme
-            yield return new WaitForSeconds(0.5f);
+            // Direkt tank'a parent'la ve hareket ettir
+            stickmanInHolder.transform.SetParent(currentTank.transform);
+            stickmanInHolder.transform.DOMove(tankPos, 0.5f)
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() => {
+                    stickmanInHolder.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+                    currentTank.OnStickmanArrived(stickmanInHolder);
+                    currentTank.AddStickman(stickmanInHolder.UnitColorType);
+                    UpdateTankProgress(currentTank);
+                });
 
-            // Tank'a ekle
-            currentTank.AddStickman(stickmanInHolder.UnitColorType);
-            UpdateTankProgress(currentTank);
+            yield return new WaitForSeconds(0.6f);
         }
         public void MoveAllHolderStickmenToCurrentTank()
         {

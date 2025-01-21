@@ -1,4 +1,4 @@
-using Unity.AI.Navigation;
+
 using UnityEngine;
 
 namespace _Main._Stickman.StickmanGrid
@@ -15,7 +15,7 @@ namespace _Main._Stickman.StickmanGrid
         [Tooltip("The world position of the tile.")]
         [SerializeField, HideInInspector] // This can hide it in the Inspector if it should not be manually modified.
         private Vector3 _position;
-        private NavMeshModifier _navMeshModifier;
+
         #endregion
 
         #region Pathfinding Properties
@@ -26,10 +26,7 @@ namespace _Main._Stickman.StickmanGrid
         public int x { get; private set; }
         public int y { get; private set; }
         #endregion
-        private void Awake()
-        {
-            SetupNavMeshModifier();
-        }
+     
         #region Properties
 
         /// <summary>
@@ -56,47 +53,25 @@ namespace _Main._Stickman.StickmanGrid
             y = Mathf.RoundToInt(position.z);
             // Reset the Stickman assigned to this tile
             CurrentStickman = null;
-            UpdateNavMeshArea(false);
+
         }
         public override bool AssignStickman(Stickman stickman)
         {
             bool success = base.AssignStickman(stickman);
-            if (success)
-            {
-                UpdateNavMeshArea(true); // Tile dolu
-            }
+          
             return success;
         }
         public override Stickman RemoveStickman()
         {
             var stickman = base.RemoveStickman();
-            UpdateNavMeshArea(false); // Tile bo?
+ 
             return stickman;
         }
 
         #endregion
         #region Private Methods
-        private void SetupNavMeshModifier()
-        {
-            _navMeshModifier = gameObject.AddComponent<NavMeshModifier>();
-            _navMeshModifier.overrideArea = true;
-            UpdateNavMeshArea(false);
-        }
-        private void UpdateNavMeshArea(bool isOccupied)
-        {
-            if (_navMeshModifier != null)
-            {
-                // 0 = Walkable, 1 = Not Walkable
-                _navMeshModifier.area = isOccupied ? 1 : 0;
-
-                // NavMesh'i güncelle
-                var surface = FindObjectOfType<NavMeshSurface>();
-                if (surface != null)
-                {
-                    surface.UpdateNavMesh(surface.navMeshData);
-                }
-            }
-        }
+      
+      
         #endregion
     }
 }

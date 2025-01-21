@@ -4,7 +4,6 @@ using DG.Tweening;
 using LevelEditor;
 using System.Collections;
 using TriInspector;
-using Unity.AI.Navigation;
 
 namespace _Main
 {
@@ -53,7 +52,6 @@ namespace _Main
         [PropertyTooltip("Handles pathfinding for stickmen")]
         private GridPathFinder _gridPathFinder;
         #endregion
-        [SerializeField] private NavMeshSurface _navMeshSurface;
         #region Properties
         public TileGrid TileGrid => _tileGrid;
         public TankManager TankManager => _tankManager;
@@ -80,15 +78,9 @@ namespace _Main
             {
                 InitializeComponents();
             }
-            RebuildNavMesh();
+         
         }
-        private void RebuildNavMesh()
-        {
-            if (_navMeshSurface != null)
-            {
-                _navMeshSurface.BuildNavMesh();
-            }
-        }
+      
         private void OnDestroy()
         {
             UnsubscribeFromEvents();

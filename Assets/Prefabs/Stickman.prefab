@@ -943,14 +943,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _colorType: 0
   _isSelectable: 0
-  _moveSpeed: 1
+  _moveSpeed: 3
   _rotationSpeed: 360
   _pathPointThreshold: 0.1
-  _agent: {fileID: 0}
-  _obstacle: {fileID: 0}
-  _navMeshAgentRadius: 0.3
-  _navMeshAgentHeight: 1
-  _stoppingDistance: 0.1
+  _arrivalThreshold: 0.1
+  _isInHolder: 0
 --- !u!1 &6171265497574698870
 GameObject:
   m_ObjectHideFlags: 0

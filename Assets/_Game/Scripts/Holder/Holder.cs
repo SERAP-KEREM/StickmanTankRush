@@ -41,7 +41,7 @@ namespace _Main
             if (!ValidateAssignment(stickman)) return false;
 
             if (!base.AssignStickman(stickman)) return false;
-
+            stickman.IsInHolder = true;
             MoveStickmanToPosition(stickman);
             return true;
         }
@@ -57,8 +57,9 @@ namespace _Main
                 LogWarningEmpty();
                 return null;
             }
-
+        
             var stickman = base.RemoveStickman();
+            stickman.IsInHolder = false;
             LogStickmanRemoval();
             return stickman;
         }

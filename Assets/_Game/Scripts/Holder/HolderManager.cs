@@ -257,6 +257,12 @@ public class HolderManager : MonoBehaviour
 
     private Holder HandlePathfindingMove(Stickman stickman, GridPathFinder gridPathFinder)
     {
+        // Holder'daysa path finding kullanma
+        if (stickman.IsInHolder)
+        {
+            return HandleDirectMove(stickman);
+        }
+
         foreach (var holder in _availableHolders)
         {
             if (holder != null && !holder.IsOccupied &&

@@ -103,4 +103,23 @@ public class GridPathFinder : MonoBehaviour
 
         return pathPoints;
     }
+    public Vector2Int GetNextDirection(Vector2Int currentPos, Vector2Int nextPos)
+    {
+        return nextPos - currentPos;
+    }
+
+    public float GetRotationAngleForDirection(Vector2Int direction)
+    {
+        // Yön vektörüne göre aç?y? belirle
+        if (direction == new Vector2Int(0, -1))  // Ön
+            return 0f;
+        if (direction == new Vector2Int(1, 0))   // Sa?
+            return 90f;
+        if (direction == new Vector2Int(-1, 0))  // Sol
+            return -90f;
+        if (direction == new Vector2Int(0, 1))   // Arka
+            return 180f;
+
+        return 0f; // Varsay?lan olarak ileri bak
+    }
 }

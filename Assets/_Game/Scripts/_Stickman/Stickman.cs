@@ -6,7 +6,6 @@ using SerapKeremGameTools.Game._Interfaces;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI;
 
 /// <summary>
 /// Represents a Stickman unit with movement, selection, and color-based functionalities.
@@ -26,7 +25,7 @@ public class Stickman : MonoBehaviour, ISelectable
     [SerializeField, Range(1f, 10f)] private float _moveSpeed = 5f;
 
     [Tooltip("Rotation speed of the Stickman in degrees per second.")]
-    [SerializeField, Range(90f, 720f)] private float _rotationSpeed = 720f;
+    [SerializeField, Range(90f, 720f)] private float _rotationSpeed = 360f;
 
     [Header("Movement")]
     [Tooltip("Threshold distance to determine when the Stickman reaches a path point.")]
@@ -39,10 +38,7 @@ public class Stickman : MonoBehaviour, ISelectable
     private int _currentPathIndex;
     private Transform _targetParent;
     private TankManager _tankManager;
-  
-
     #endregion
-
 
     #region Properties
 
@@ -81,11 +77,7 @@ public class Stickman : MonoBehaviour, ISelectable
 
     #endregion
     [SerializeField] private float _arrivalThreshold = 0.1f;
-    #region NavMesh Components
-    private NavMeshAgent _agent;
-    private NavMeshObstacle _obstacle;
-    private bool _isNavMeshInitialized;
-    #endregion
+    
     [Header("State")]
     [SerializeField] private bool _isInHolder;
 
@@ -111,31 +103,8 @@ public class Stickman : MonoBehaviour, ISelectable
         {
             collider.isTrigger = true;
         }
-        if (_agent == null) _agent = GetComponent<NavMeshAgent>();
-        if (_obstacle == null) _obstacle = GetComponent<NavMeshObstacle>();
         // Assign layer for this Stickman
         SetLayer("MovingStickman");
-        SetupNavMeshComponents();
-
-    }
-    private void SetupNavMeshComponents()
-    {
-        // Agent setup
-        _agent = gameObject.AddComponent<NavMeshAgent>();
-        _agent.radius = 0.3f;
-        _agent.height = 1f;
-        _agent.speed = _moveSpeed;
-        _agent.angularSpeed = _rotationSpeed;
-        _agent.acceleration = 8f;
-        _agent.stoppingDistance = 0.1f;
-        _agent.enabled = false;
-
-        // Obstacle setup
-        _obstacle = gameObject.AddComponent<NavMeshObstacle>();
-        _obstacle.carving = true;
-        _obstacle.radius = 0.3f;
-        _obstacle.height = 1f;
-        _obstacle.enabled = true;
     }
 
     private void Update()
@@ -157,45 +126,7 @@ public class Stickman : MonoBehaviour, ISelectable
     {
         IsSelectable = true;
         UpdateColor();
-        StartCoroutine(DelayedNavMeshSetup());
 
-    }
-    private IEnumerator DelayedNavMeshSetup()
-    {
-        yield return new WaitForEndOfFrame();
-
-        try
-        {
-            Debug.Log($"[Stickman] Setting up NavMesh for {gameObject.name}");
-
-            if (_agent == null)
-            {
-                _agent = gameObject.AddComponent<NavMeshAgent>();
-                _agent.radius = 0.3f;
-                _agent.height = 1f;
-                _agent.speed = _moveSpeed;
-                _agent.angularSpeed = _rotationSpeed;
-                _agent.acceleration = 8f;
-                _agent.stoppingDistance = 0.1f;
-                _agent.enabled = false;
-            }
-
-            if (_obstacle == null)
-            {
-                _obstacle = gameObject.AddComponent<NavMeshObstacle>();
-                _obstacle.carving = true;
-                _obstacle.radius = 0.3f;
-                _obstacle.height = 1f;
-                _obstacle.enabled = true;
-            }
-
-            _isNavMeshInitialized = true;
-            Debug.Log($"[Stickman] NavMesh setup complete for {gameObject.name}");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[Stickman] Error in NavMesh setup: {e}");
-        }
     }
     /// <summary>
     /// Sets the grid position of the Stickman.
@@ -237,26 +168,39 @@ public class Stickman : MonoBehaviour, ISelectable
         if (_isMoving) return;
         SetLayer("MovingStickman");
 
-        // DURUM 1: Holder'daysa direkt tanka git
+        var currentTank = tankTransform.GetComponent<Tank>();
+        if (currentTank == null) return;
+
+        // DURUM 1: Holder'daysa direkt tank'a git
         if (IsInHolder)
         {
-            var currentTank = _tankManager?.CurrentTank;
-            if (currentTank != null && currentTank.UnitColorType == UnitColorType)
-            {
-                Debug.Log("[Stickman] Direct movement from holder to tank");
-                IsInHolder = false;
-                DirectMoveToTank(currentTank);
-                return;
-            }
-        }
+            Debug.Log("[Stickman] Direct movement from holder to tank");
+            IsInHolder = false;
 
-        // DURUM 2: Y=0'daysa (en ön s?ra) direkt tanka git
+            // Direkt tank'a parent'la
+            transform.SetParent(currentTank.transform);
+
+            // Güncel pozisyona git
+            Vector3 tankPos = currentTank.GetStickmanTargetPosition();
+            transform.DOMove(tankPos, 0.5f)
+                .SetEase(Ease.OutQuad)
+                .OnComplete(() => {
+                    transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+                    _isMoving = false;
+                    currentTank.OnStickmanArrived(this);
+                });
+
+            return;
+        }
+        // DURUM 2: Y=0'daysa (en ön s?ra)
         if (GridY == 0)
         {
-            Debug.Log("[Stickman] Direct movement from front row to tank");
             var currentTile = _tileGrid.GetTileAt(GridX, GridY);
-            currentTile?.RemoveStickman();
-            DirectMoveToTank(_tankManager.CurrentTank);
+            if (currentTile != null)
+            {
+                currentTile.RemoveStickman();
+                DirectMoveToTank(currentTank);
+            }
             return;
         }
 
@@ -264,13 +208,15 @@ public class Stickman : MonoBehaviour, ISelectable
         if (_gridPathFinder.HasValidPathToTarget(this))
         {
             var currentTile = _tileGrid.GetTileAt(GridX, GridY);
-            currentTile?.RemoveStickman();
-
-            _currentPath = _gridPathFinder.GetPathPoints();
-            if (_currentPath != null && _currentPath.Count > 0)
+            if (currentTile != null)
             {
-                _currentPath.Add(targetPosition);
-                StartPathMovement(tankTransform);
+                currentTile.RemoveStickman();
+                _currentPath = _gridPathFinder.GetPathPoints();
+                if (_currentPath != null && _currentPath.Count > 0)
+                {
+                    _currentPath.Add(targetPosition);
+                    StartPathMovement(tankTransform);
+                }
             }
         }
     }
@@ -282,18 +228,16 @@ public class Stickman : MonoBehaviour, ISelectable
         _isMoving = true;
         Vector3 targetPos = tank.GetStickmanTargetPosition();
 
-        // Önce parent'? ayarla
         transform.SetParent(tank.transform);
-
-        // Direkt hareket et
-        transform.DOMove(targetPos, 0.3f)
+        transform.DOMove(targetPos, 0.5f)
             .SetEase(Ease.OutQuad)
             .OnComplete(() => {
-                transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+                 transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
                 _isMoving = false;
                 tank.OnStickmanArrived(this);
             });
     }
+
     private IEnumerator FollowPath(Transform target)
     {
         if (_currentPath == null || _currentPath.Count == 0)
@@ -337,41 +281,62 @@ public class Stickman : MonoBehaviour, ISelectable
         }
     }
 
-    private IEnumerator RotateTowards(Vector3 targetPosition)
+   private IEnumerator RotateTowards(Vector3 targetPosition)
+{
+    if (!gameObject.activeInHierarchy) yield break;
+
+    // Holder veya tank için sabit rotasyon
+    if (IsInHolder || transform.parent?.GetComponent<Tank>() != null)
     {
-        if (!gameObject.activeInHierarchy) yield break;
+        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        yield break;
+    }
 
-        Vector3 direction = (targetPosition - transform.position).normalized;
+    // Hareket yönüne göre rotasyon
+    Vector3 direction = (targetPosition - transform.position).normalized;
+    
+    if (direction != Vector3.zero)
+    {
         Quaternion targetRotation = Quaternion.LookRotation(direction);
-
+        
         while (Quaternion.Angle(transform.rotation, targetRotation) > 0.1f)
-        {
-            if (!gameObject.activeInHierarchy) yield break;
-
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRotation,
-                _rotationSpeed * Time.deltaTime
-            );
-            yield return null;
+      {
+                transform.rotation = Quaternion.RotateTowards(//-----------------------
+                    transform.rotation,
+                    targetRotation,
+                    _rotationSpeed * Time.deltaTime
+                );
+                yield return null;
         }
     }
+}
 
     private IEnumerator MoveToPosition(Vector3 targetPosition)
     {
         if (!gameObject.activeInHierarchy) yield break;
 
-        while (Vector3.Distance(transform.position, targetPosition) > _arrivalThreshold)
+        // Y pozisyonunu ba?lang?çta sabitle
+        float fixedY = transform.position.y;
+        Vector3 targetWithFixedY = new Vector3(targetPosition.x, fixedY, targetPosition.z);
+
+        while (Vector3.Distance(transform.position, targetWithFixedY) > _arrivalThreshold)
         {
             if (!gameObject.activeInHierarchy) yield break;
 
-            transform.position = Vector3.MoveTowards(
+            
+            Vector3 newPosition = Vector3.MoveTowards(
                 transform.position,
-                targetPosition,
+                targetWithFixedY,
                 _moveSpeed * Time.deltaTime
             );
+
+            // Y pozisyonunu koru
+            transform.position = new Vector3(newPosition.x, fixedY, newPosition.z);
             yield return null;
         }
+
+        // Son pozisyonda da Y'yi koru
+        transform.position = targetWithFixedY;
     }
     private void CompleteMovement(Transform target)
     {
@@ -383,7 +348,7 @@ public class Stickman : MonoBehaviour, ISelectable
             if (target.TryGetComponent<Tank>(out var tank))
             {
                 Debug.Log($"[Stickman] Completing movement to tank {tank.name}");
-                transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                transform.rotation = Quaternion.Euler(0f,0f, 0f);
 
                 // Tank'a fiziksel olarak ba?la
                 transform.SetParent(tank.transform);
@@ -466,8 +431,8 @@ public class Stickman : MonoBehaviour, ISelectable
         var currentTile = _tileGrid.GetTileAt(GridX, GridY);
         //currentTile?.RemoveStickman();
 
-        //_isMoving = true;
-        //targetPosition.y = 0f;
+        _isMoving = true;
+    
 
         StartCoroutine(DirectMoveSequence(targetPosition, newParent));
     }
@@ -544,12 +509,16 @@ public class Stickman : MonoBehaviour, ISelectable
     /// </summary>
     private void UpdateColor()
     {
-        Renderer childRenderer = transform.GetChild(0).GetComponent<Renderer>();
-        if (childRenderer != null)
+        // Stickman modelinin tüm alt ö?elerini kontrol ediyoruz
+        Renderer[] allRenderers = GetComponentsInChildren<Renderer>();
+
+        foreach (var renderer in allRenderers)
         {
-            childRenderer.material.color = ColorManager.ColorTypeToColor(_colorType);
+            // Her renderer'? kontrol edip materyali de?i?tirebiliriz
+            renderer.material.color = ColorManager.ColorTypeToColor(_colorType);
         }
     }
+
 
     /// <summary>
     /// Sets the layer for the Stickman and its children.

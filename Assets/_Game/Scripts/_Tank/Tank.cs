@@ -34,8 +34,8 @@ namespace _Main._Tank
         private int _maxStickmanCount = 3;
 
         [SerializeField, PropertyTooltip("Duration of tank movement in seconds")]
-        [Range(1f, 10f)]
-        private float _movementDuration = 0.5f;
+        [Range(0.2f, 2f)]
+        private float _movementDuration = 0.3f;
 
         [SerializeField, PropertyTooltip("The color type of this tank")]
         private ColorType _colorType;
@@ -84,7 +84,11 @@ namespace _Main._Tank
       
         private int _arrivedStickmanCount;
         private readonly List<Stickman> _attachedStickmen = new List<Stickman>();
-
+        public bool IsMoving
+        {
+            get => _isMoving;
+            set => _isMoving = value;
+        }
         public static bool IsAnyTankMoving { get; private set; }
         [Title("Stickman Settings")]
         [SerializeField]
@@ -243,9 +247,13 @@ namespace _Main._Tank
         #region Private Methods
         private void MoveToInitialPosition(Vector3 target)
         {
+            _isMoving = true;
             transform.DOMove(target, 1f)
                 .SetEase(Ease.OutQuad)
-                .OnComplete(() => _isReadyForStickmen = true);
+                .OnComplete(() => {
+                    _isMoving = false;
+                    _isReadyForStickmen = true;
+                });
         }
 
         private bool CanAddStickman(ColorType stickmanColor)
@@ -260,12 +268,24 @@ namespace _Main._Tank
 
         private void UpdateColor()
         {
-            var newColor = ColorManager.ColorTypeToColor(_colorType);
-            foreach (var renderer in GetComponentsInChildren<Renderer>())
+            // Stickman modelinin tüm alt ö?elerinde bulunan Renderer'lar? al?yoruz
+            Renderer[] allRenderers = GetComponentsInChildren<Renderer>();
+
+            // Her bir Renderer'? kontrol ediyoruz
+            foreach (var renderer in allRenderers)
             {
-                renderer.material.color = newColor;
+                // Renderer'?n materyallerini al?yoruz
+                Material[] materials = renderer.materials;
+
+                // Her bir materyali kontrol edip rengini güncelliyoruz
+                foreach (var material in materials)
+                {
+                    material.color = ColorManager.ColorTypeToColor(_colorType);
+                }
             }
         }
+
+
 
         private void UpdateStickmanPosition(Stickman stickman, int index)
         {
