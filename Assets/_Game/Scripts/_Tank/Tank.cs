@@ -144,7 +144,7 @@ namespace _Main._Tank
             _isReadyForStickmen = false;
             UpdateColor();
 
-            MoveToInitialPosition(target);
+           
         }
 
         /// <summary>
@@ -155,29 +155,25 @@ namespace _Main._Tank
             if (!CanAddStickman(stickmanColor)) return;
 
             _arrivedStickmanCount++;
+            Debug.Log($"[Tank] Added stickman. Count: {_arrivedStickmanCount}/{_maxStickmanCount}");
+
+            // Tank doluysa ve hareket etmeye haz?rsa
             if (IsFull && !_isMoving && !_isWaitingForStickmen)
             {
-                _readyToMove = true;
+                Debug.Log("[Tank] Tank is full, preparing for movement");
+                StartCoroutine(PrepareForMovement());
             }
         }
 
         /// <summary>
-        /// Checks if the tank is full and updates its state accordingly.
-        /// </summary>
-        private void CheckForFullTank()
-        {
-            if (_arrivedStickmanCount >= _maxStickmanCount)
-            {
-                SetTankStateToMoving();
-            }
-        }
-        /// <summary>
         /// Sets the tank's state to moving and initiates movement.
         /// </summary>
+
         private void SetTankStateToMoving()
         {
             if (_isMoving) return;
 
+            Debug.Log("[Tank] Setting state to Moving");
             CurrentState = TankState.Moving;
             _isMoving = true;
             IsAnyTankMoving = true;
@@ -186,16 +182,25 @@ namespace _Main._Tank
         /// <summary>
         /// Initiates tank movement to its target position.
         /// </summary>
+
         public void MoveToTank()
         {
-            if (!_isMoving) return;
+            if (!_isMoving)
+            {
+                Debug.LogWarning("[Tank] Trying to move while not in moving state");
+                return;
+            }
 
-            const float distanceFactor = 25f;
+            Debug.Log("[Tank] Starting movement to target");
+            const float distanceFactor = 50f; 
             _targetPosition = transform.position + Vector3.left * distanceFactor;
 
             transform.DOMove(_targetPosition, _movementDuration)
                 .SetEase(Ease.Linear)
-                .OnComplete(OnMovementComplete);
+                .OnComplete(() => {
+                    Debug.Log("[Tank] Movement completed");
+                    OnMovementComplete();
+                });
         }
 
         /// <summary>
@@ -218,15 +223,29 @@ namespace _Main._Tank
                 StartCoroutine(PrepareForMovement());
             }
         }
+
         private IEnumerator PrepareForMovement()
         {
+            if (_isMoving || _isWaitingForStickmen) yield break;
+
             _isWaitingForStickmen = true;
+            Debug.Log("[Tank] Waiting for stickmen to settle...");
 
             // Stickmanlar?n pozisyonlar?na yerle?mesini bekle
             yield return new WaitForSeconds(0.2f);
 
-            _isWaitingForStickmen = false;
-            SetTankStateToMoving();
+            // Son bir kontrol daha yap
+            if (IsFull && !_isMoving)
+            {
+                Debug.Log("[Tank] All conditions met, starting movement");
+                _isWaitingForStickmen = false;
+                SetTankStateToMoving();
+            }
+            else
+            {
+                Debug.LogWarning($"[Tank] Movement cancelled. IsFull: {IsFull}, IsMoving: {_isMoving}");
+                _isWaitingForStickmen = false;
+            }
         }
         /// <summary>
         /// Gets the target position for the next stickman.
@@ -245,48 +264,25 @@ namespace _Main._Tank
         #endregion
 
         #region Private Methods
-        private void MoveToInitialPosition(Vector3 target)
-        {
-            _isMoving = true;
-            transform.DOMove(target, 1f)
-                .SetEase(Ease.OutQuad)
-                .OnComplete(() => {
-                    _isMoving = false;
-                    _isReadyForStickmen = true;
-                });
-        }
 
         private bool CanAddStickman(ColorType stickmanColor)
         {
             return stickmanColor == _colorType && !IsFull;
         }
-
-        private bool ShouldStartMovement()
-        {
-            return _arrivedStickmanCount >= _maxStickmanCount && IsFull;
-        }
-
         private void UpdateColor()
         {
-            // Stickman modelinin tüm alt ö?elerinde bulunan Renderer'lar? al?yoruz
             Renderer[] allRenderers = GetComponentsInChildren<Renderer>();
 
-            // Her bir Renderer'? kontrol ediyoruz
             foreach (var renderer in allRenderers)
             {
-                // Renderer'?n materyallerini al?yoruz
                 Material[] materials = renderer.materials;
 
-                // Her bir materyali kontrol edip rengini güncelliyoruz
                 foreach (var material in materials)
                 {
                     material.color = ColorManager.ColorTypeToColor(_colorType);
                 }
             }
         }
-
-
-
         private void UpdateStickmanPosition(Stickman stickman, int index)
         {
             if (index >= _stickmanPositions.Length) return;
@@ -298,44 +294,7 @@ namespace _Main._Tank
 
             stickman.transform.DOLocalRotate(new Vector3(0f, 90f, 0f), _stickmanPositioningDuration)
                 .SetEase(Ease.OutQuad);
-
-
         }
-        private IEnumerator StartMovement()
-        {
-            if (IsAnyTankMoving)
-            {
-                Debug.Log("[Tank] Waiting for other tank to complete movement");
-                yield break;
-            }
-
-            yield return new WaitForSeconds(0.2f);
-
-            InitiateMovement();
-        }
-
-        private void InitiateMovement()
-        {
-            _isMoving = true;
-            IsAnyTankMoving = true;
-            CurrentState = TankState.Moving;
-
-            _targetPosition = transform.position + Vector3.left * 10f;
-
-            transform.DOMove(_targetPosition, _movementDuration)
-                .SetEase(Ease.Linear)
-                .OnComplete(() =>
-                {
-                    OnMovementComplete();
-                    StartCoroutine(PrepareForNextTank());
-                });
-        }
-        private IEnumerator PrepareForNextTank()
-        {
-            yield return new WaitForSeconds(_nextTankDelay);
-            IsAnyTankMoving = false;
-        }
-
         private void OnMovementComplete()
         {
             Debug.Log($"[Tank] {name} completed movement");
@@ -349,7 +308,6 @@ namespace _Main._Tank
                 tankManager.MoveNextTankToStopPoint();
             }
         }
-
         private void OnDrawGizmos()
         {
             if (!_showTargetPosition) return;

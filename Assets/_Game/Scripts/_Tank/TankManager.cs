@@ -169,34 +169,32 @@ public class TankManager : MonoBehaviour
         _currentTank = _tankQueue.Dequeue();
         _currentTank.Initialize(_startPosition);
         _currentTank.CurrentState = TankState.Filling;
-
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.MoveAllHolderStickmenToCurrentTank();
+        }
         Debug.Log($"[TankManager] New tank prepared: {_currentTank.name}");
-        StartCoroutine(WaitForTankPositionAndCheckHolders());
-    
+      //  StartCoroutine(WaitForTankPositionAndCheckHolders());
+
     }
 
     private IEnumerator WaitForTankPositionAndCheckHolders()
+{
+    if (_currentTank == null) yield break;
+
+    Debug.Log("[TankManager] Waiting for tank to reach position");
+
+    while (_currentTank.IsMoving)
     {
-        if (_currentTank == null) yield break;
-
-        Debug.Log("[TankManager] Waiting for tank to reach position");
-
-        // Tank'ın hareket etmesini ve durmasını bekle
-        while (_currentTank.IsMoving)
-        {
-            yield return null;
-        }
-
-        // Ek güvenlik beklemesi
-        yield return new WaitForSeconds(0.5f);
-
-        // Tank hazır, şimdi holder kontrolü yapılabilir
-        if (_currentTank != null && !_currentTank.IsFull)
-        {
-            Debug.Log("[TankManager] Tank in position, checking holders");
-            NotifyGameManagerForHolderCheck();
-        }
+        yield return null;
     }
+
+    if (_currentTank != null && !_currentTank.IsFull)
+    {
+        Debug.Log("[TankManager] Tank in position, checking holders immediately");
+        NotifyGameManagerForHolderCheck();
+    }
+}
     private void NotifyGameManagerForHolderCheck()
     {
         if (GameManager.Instance != null)

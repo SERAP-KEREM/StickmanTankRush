@@ -75,7 +75,7 @@ public class LevelFailedUI : MonoBehaviour
             _titleText.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack);
 
             DOVirtual.DelayedCall(_buttonAnimDelay, () =>
-                _retryButton.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack));
+                _retryButton.transform.DOScale(0.3f, _fadeInDuration).SetEase(Ease.OutBack));
 
             DOVirtual.DelayedCall(_buttonAnimDelay * 2, () =>
                 _mainMenuButton.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack));

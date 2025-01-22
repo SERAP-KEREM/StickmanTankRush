@@ -51,6 +51,9 @@ namespace _Main
         [SerializeField, Required]
         [PropertyTooltip("Handles pathfinding for stickmen")]
         private GridPathFinder _gridPathFinder;
+
+        [SerializeField] private Transform _mainPlane;
+
         #endregion
         #region Properties
         public TileGrid TileGrid => _tileGrid;
@@ -136,7 +139,6 @@ namespace _Main
 
             LogComponentStatus();
         }
-
         private void InitializeComponents()
         {
             if (!ValidateReferences()) return;

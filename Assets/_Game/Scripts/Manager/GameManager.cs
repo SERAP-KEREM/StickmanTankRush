@@ -362,9 +362,8 @@ namespace _Main
             Tank currentTank = _tankManager.CurrentTank;
             if (currentTank == null || currentTank.IsFull) yield break;
 
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.1f);
 
-            // Tank hazır mı kontrol et
             if (currentTank != null && !currentTank.IsFull && currentTank.CurrentState == TankState.Filling)
             {
                 Debug.Log("[GameManager] Tank ready, processing holder stickmen");
@@ -382,7 +381,6 @@ namespace _Main
                 Stickman stickmanInHolder = holder.CurrentStickman;
                 if (stickmanInHolder != null && stickmanInHolder.UnitColorType == currentTank.UnitColorType)
                 {
-                    // Her stickman hareketi arasında kısa bir bekleme
                     yield return StartCoroutine(ProcessSingleHolderStickman(holder, currentTank));
                 }
             }
@@ -407,14 +405,15 @@ namespace _Main
             stickmanInHolder.transform.SetParent(currentTank.transform);
             stickmanInHolder.transform.DOMove(tankPos, 0.5f)
                 .SetEase(Ease.OutQuad)
-                .OnComplete(() => {
+                .OnComplete(() =>
+                {
                     stickmanInHolder.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
                     currentTank.OnStickmanArrived(stickmanInHolder);
                     currentTank.AddStickman(stickmanInHolder.UnitColorType);
                     UpdateTankProgress(currentTank);
                 });
 
-            yield return new WaitForSeconds(0.6f);
+            yield return new WaitForSeconds(0.1f);
         }
         public void MoveAllHolderStickmenToCurrentTank()
         {

@@ -38,6 +38,9 @@ public class Stickman : MonoBehaviour, ISelectable
     private int _currentPathIndex;
     private Transform _targetParent;
     private TankManager _tankManager;
+
+    private Animator _animator;
+    private static readonly int IsRunning = Animator.StringToHash("IsRunning");
     #endregion
 
     #region Properties
@@ -93,11 +96,13 @@ public class Stickman : MonoBehaviour, ISelectable
         _tileGrid = FindObjectOfType<TileGrid>();
         _gridPathFinder = FindObjectOfType<GridPathFinder>();
         _tankManager = FindObjectOfType<TankManager>();
+        _animator = GetComponentInChildren<Animator>();
         if (_tileGrid == null)
             Debug.LogError("[Stickman] TileGrid not found!");
         if (_gridPathFinder == null)
             Debug.LogError("[Stickman] GridPathFinder not found!");
-
+        if (_animator == null)
+            Debug.LogError("[Stickman] Animator not found!");
         // Set the collider to trigger mode
         if (TryGetComponent<Collider>(out var collider))
         {
@@ -105,6 +110,20 @@ public class Stickman : MonoBehaviour, ISelectable
         }
         // Assign layer for this Stickman
         SetLayer("MovingStickman");
+    }
+    private void StartMovementAnimation()
+    {
+        if (_animator != null)
+        {
+            _animator.SetBool(IsRunning, true);
+        }
+    }
+    private void StopMovementAnimation()
+    {
+        if (_animator != null)
+        {
+            _animator.SetBool(IsRunning, false);
+        }
     }
 
     private void Update()
@@ -168,6 +187,7 @@ public class Stickman : MonoBehaviour, ISelectable
         if (_isMoving) return;
         SetLayer("MovingStickman");
 
+        StartMovementAnimation();
         var currentTank = tankTransform.GetComponent<Tank>();
         if (currentTank == null) return;
 
@@ -185,6 +205,7 @@ public class Stickman : MonoBehaviour, ISelectable
             transform.DOMove(tankPos, 0.5f)
                 .SetEase(Ease.OutQuad)
                 .OnComplete(() => {
+                    StopMovementAnimation();
                     transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
                     _isMoving = false;
                     currentTank.OnStickmanArrived(this);
@@ -250,6 +271,8 @@ public class Stickman : MonoBehaviour, ISelectable
         int totalPoints = _currentPath.Count;
         int currentPoint = 0;
 
+        StartMovementAnimation();
+
         foreach (Vector3 nextPosition in _currentPath)
         {
             currentPoint++;
@@ -275,42 +298,55 @@ public class Stickman : MonoBehaviour, ISelectable
             Debug.Log($"[Stickman] Reached point {currentPoint}/{totalPoints}");
         }
 
+        StopMovementAnimation();
+
         if (gameObject.activeInHierarchy)
         {
             CompleteMovement(target);
         }
     }
 
-   private IEnumerator RotateTowards(Vector3 targetPosition)
-{
-    if (!gameObject.activeInHierarchy) yield break;
-
-    // Holder veya tank için sabit rotasyon
-    if (IsInHolder || transform.parent?.GetComponent<Tank>() != null)
+    private IEnumerator RotateTowards(Vector3 targetPosition)
     {
-        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-        yield break;
-    }
+        if (!gameObject.activeInHierarchy) yield break;
 
-    // Hareket yönüne göre rotasyon
-    Vector3 direction = (targetPosition - transform.position).normalized;
-    
-    if (direction != Vector3.zero)
-    {
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        
-        while (Quaternion.Angle(transform.rotation, targetRotation) > 0.1f)
-      {
-                transform.rotation = Quaternion.RotateTowards(//-----------------------
-                    transform.rotation,
-                    targetRotation,
-                    _rotationSpeed * Time.deltaTime
-                );
-                yield return null;
+        // Holder kontrolü
+        if (IsInHolder)
+        {
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            yield break;
+        }
+
+        // Tank kontrolü
+        if (transform.parent?.GetComponent<Tank>() != null)
+        {
+            transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+            yield break;
+        }
+
+        // Hareket yönünü hesapla
+        Vector3 moveDirection = targetPosition - transform.position;
+        moveDirection.y = 0;
+
+        // Çok küçük hareket varsa dönme
+        if (moveDirection.magnitude < 0.1f) yield break;
+
+        // Grid bazl? hareket yönünü belirle
+        float xDiff = Mathf.Abs(moveDirection.x);
+        float zDiff = Mathf.Abs(moveDirection.z);
+
+        // Sadece X ekseni hareketi varsa (sa?a veya sola) rotasyon uygula
+        if (xDiff > zDiff && xDiff > 0.1f)
+        {
+            float targetAngle = moveDirection.x > 0 ? 90f : -90f;
+            transform.rotation = Quaternion.Euler(0f, targetAngle, 0f);
+        }
+        else
+        {
+            // Z ekseni hareketi veya kar???k hareket varsa düz bak
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
         }
     }
-}
-
     private IEnumerator MoveToPosition(Vector3 targetPosition)
     {
         if (!gameObject.activeInHierarchy) yield break;
@@ -348,7 +384,6 @@ public class Stickman : MonoBehaviour, ISelectable
             if (target.TryGetComponent<Tank>(out var tank))
             {
                 Debug.Log($"[Stickman] Completing movement to tank {tank.name}");
-                transform.rotation = Quaternion.Euler(0f,0f, 0f);
 
                 // Tank'a fiziksel olarak ba?la
                 transform.SetParent(tank.transform);
@@ -438,7 +473,7 @@ public class Stickman : MonoBehaviour, ISelectable
     }
     private IEnumerator DirectMoveSequence(Vector3 targetPosition, Transform target)
     {
- 
+        StartMovementAnimation();
         // Hedefe dön
         yield return StartCoroutine(RotateTowards(targetPosition));
 
@@ -449,6 +484,7 @@ public class Stickman : MonoBehaviour, ISelectable
 
         if (!gameObject.activeInHierarchy) yield break;
 
+        StopMovementAnimation();
         CompleteMovement(target);
     }
     /// <summary>
@@ -465,27 +501,17 @@ public class Stickman : MonoBehaviour, ISelectable
         Vector3 targetPos = _currentPath[_currentPathIndex];
         targetPos.y = transform.position.y;
 
-        Vector3 direction = (targetPos - transform.position).normalized;
-        if (direction != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRotation,
-                _rotationSpeed * Time.deltaTime
-            );
-        }
+      // Pozisyonu güncelle
+    transform.position = Vector3.MoveTowards(
+        transform.position,
+        targetPos,
+        _moveSpeed * Time.deltaTime
+    );
 
-        transform.position = Vector3.MoveTowards(
-            transform.position,
-            targetPos,
-            _moveSpeed * Time.deltaTime
-        );
-
-        if (Vector3.Distance(transform.position, targetPos) < _pathPointThreshold)
-        {
-            _currentPathIndex++;
-        }
+    if (Vector3.Distance(transform.position, targetPos) < _pathPointThreshold)
+    {
+        _currentPathIndex++;
+    }
     }
 
     /// <summary>

@@ -102,6 +102,7 @@ MonoBehaviour:
   _stickmanGrid: {fileID: 0}
   _holderManager: {fileID: 0}
   _gridPathFinder: {fileID: 0}
+  _mainPlane: {fileID: 3879840700806629452}
 --- !u!1 &5350876747691730296
 GameObject:
   m_ObjectHideFlags: 0
@@ -146,7 +147,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a124323fe372044b093f435f06bb1e22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stickmanPrefab: {fileID: 1186582172335759965, guid: d07f5b4bbb41cd34398c59a5578060f6, type: 3}
+  _stickmanPrefab: {fileID: 3015259032783030602, guid: 96e3f2a4b59d84b87a6fe5bfb111a1f2, type: 3}
   _tileGrid: {fileID: 8233481212163296266}
   _gridOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &5725433931787843704
@@ -161,7 +162,7 @@ GameObject:
   - component: {fileID: 5597197264255492596}
   - component: {fileID: 4275423214477859084}
   - component: {fileID: 5695424145201667329}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: Plane
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -349,7 +350,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc050e9132e15d54db044018ce0c7248, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tankPrefab: {fileID: 8353771008622751197, guid: b80bb5f08b249494fa623419fd80da9b, type: 3}
+  _tankPrefab: {fileID: 2074812478252662958, guid: 2dc5d0ee2160c4d458e04efd9861f0ce, type: 3}
   _moveDuration: 1
   _startPosition: {x: 1, y: -0.5, z: -3}
   _currentTank: {fileID: 0}

@@ -6,7 +6,6 @@ public class TileGrid : MonoBehaviour
 {
     #region Fields
 
-
     [Header("Tile Grid Configuration")]
     [SerializeField] private Tile _tilePrefab;
     [SerializeField] private StickmanGrid _stickmanGrid;
