@@ -34,7 +34,7 @@ public class TankManager : MonoBehaviour
     #endregion
 
     #region Constants
-    private const float TankSpacing = 5f;
+    private const float TankSpacing = 4f;
     private const int MaxStickmanCount = 3;
     #endregion
 

@@ -62,6 +62,10 @@ namespace _Main._Tank
 
         private bool _isWaitingForStickmen = false;
         private bool _readyToMove = false;
+
+        private Animator _animator;
+        private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
+
         /// <summary>
         /// Gets the maximum number of stickmen this tank can hold.
         /// </summary>
@@ -87,7 +91,15 @@ namespace _Main._Tank
         public bool IsMoving
         {
             get => _isMoving;
-            set => _isMoving = value;
+            set
+            {
+                _isMoving = value;
+                if (_animator != null)
+                {
+                    _animator.SetBool(IsMovingHash, value);
+                }
+            }
+      
         }
         public static bool IsAnyTankMoving { get; private set; }
         [Title("Stickman Settings")]
@@ -132,7 +144,15 @@ namespace _Main._Tank
             }
         }
         #endregion
+        private void Awake()
+        {
+            _animator = GetComponentInChildren<Animator>();
 
+            if (_animator == null)
+            {
+                Debug.LogWarning("[Tank] Animator component not found!");
+            }
+        }
         #region Public Methods
         /// <summary>
         /// Initializes the tank with a target position and prepares it for operation.
@@ -192,12 +212,15 @@ namespace _Main._Tank
             }
 
             Debug.Log("[Tank] Starting movement to target");
-            const float distanceFactor = 50f; 
+            const float distanceFactor = 40f; 
             _targetPosition = transform.position + Vector3.left * distanceFactor;
+
+            IsMoving = true;
 
             transform.DOMove(_targetPosition, _movementDuration)
                 .SetEase(Ease.Linear)
                 .OnComplete(() => {
+                    IsMoving = false;
                     Debug.Log("[Tank] Movement completed");
                     OnMovementComplete();
                 });

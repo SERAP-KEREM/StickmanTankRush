@@ -97,7 +97,7 @@ public class GameplayUI : MonoBehaviour
                 .SetUpdate(true)
                 .OnComplete(() =>
                 {
-                    _settingsButton.transform.DOScale(1f, _buttonAnimDuration).SetUpdate(true);
+                    _settingsButton.transform.DOScale(0.2f, _buttonAnimDuration).SetUpdate(true);
                 });
         });
     }

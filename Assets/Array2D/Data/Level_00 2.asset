@@ -13,17 +13,12 @@ MonoBehaviour:
   m_Name: Level_00 2
   m_EditorClassIdentifier: 
   _array2DGrid:
-    gridSize: {x: 4, y: 4}
+    gridSize: {x: 2, y: 3}
     cellSize: {x: 64, y: 16}
     cells:
-    - row: 01000000020000000100000004000000
-    - row: 06000000030000000600000003000000
-    - row: 01000000060000000200000000000000
-    - row: 02000000030000000400000004000000
-  _tankManager: {fileID: 0}
+    - row: 0200000004000000
+    - row: 0200000004000000
+    - row: 0200000004000000
   _tankDataList:
   - TankColorType: 2
-  - TankColorType: 1
-  - TankColorType: 6
-  - TankColorType: 3
   - TankColorType: 4

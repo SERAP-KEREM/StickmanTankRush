@@ -95,14 +95,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56c67d5734aa07549bb04bb20e4de28c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelDataSO: {fileID: 11400000, guid: b998397d2c1134b1686a5b8865a75f91, type: 2}
+  _levelDataSO: {fileID: 11400000, guid: 003dfb591f9c41d429b2581d7f6bc011, type: 2}
   _isInitialized: 0
   _tileGrid: {fileID: 0}
   _tankManager: {fileID: 0}
   _stickmanGrid: {fileID: 0}
   _holderManager: {fileID: 0}
   _gridPathFinder: {fileID: 0}
-  _navMeshSurface: {fileID: 0}
   _mainPlane: {fileID: 3879840700806629452}
 --- !u!1 &5350876747691730296
 GameObject:
@@ -180,7 +179,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -1.1, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7494536120849370787}
@@ -213,7 +212,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7dc65850bc0112641b55b72219d8335c, type: 2}
+  - {fileID: 2100000, guid: 2ce15eb831ba1a4458fb7c73a4b64708, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

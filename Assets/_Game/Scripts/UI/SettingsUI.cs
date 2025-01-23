@@ -140,7 +140,6 @@ public class SettingsUI : MonoBehaviour
     public void Show()
     {
       
-
         gameObject.SetActive(true);
 
         _settingsPanel.alpha = 0f;
