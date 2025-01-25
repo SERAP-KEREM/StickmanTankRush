@@ -3,7 +3,7 @@ using UnityEngine;
 using _Main._Enums;
 using DG.Tweening;
 using System.Collections.Generic;
-using TriInspector; // DOTween included
+using TriInspector; 
 
 namespace _Main._Tank
 {
@@ -70,14 +70,14 @@ namespace _Main._Tank
         /// Gets the maximum number of stickmen this tank can hold.
         /// </summary>
         public int MaxStickmanCount => _maxStickmanCount;
-   
+
 
         private readonly Vector3[] _stickmanPositions = new Vector3[]
- {
-       new Vector3(1f, -0.5f, 0f),   
-       new Vector3(0f, -0.5f, 0f),    
-       new Vector3(-1f, -0.5f, 0f)    
- };
+             {
+            new Vector3(1f, -0.5f, 0f),
+            new Vector3(0f, -0.5f, 0f),
+            new Vector3(-1f, -0.5f, 0f)
+             };
         #endregion
 
         #region State
@@ -88,6 +88,7 @@ namespace _Main._Tank
       
         private int _arrivedStickmanCount;
         private readonly List<Stickman> _attachedStickmen = new List<Stickman>();
+
         public bool IsMoving
         {
             get => _isMoving;
@@ -99,12 +100,13 @@ namespace _Main._Tank
                     _animator.SetBool(IsMovingHash, value);
                 }
             }
-      
         }
         public static bool IsAnyTankMoving { get; private set; }
+
         [Title("Stickman Settings")]
         [SerializeField]
         private float _stickmanPositioningDuration = 0.3f;
+
         /// <summary>
         /// Gets whether the tank has reached its maximum stickman capacity.
         /// </summary>
@@ -163,8 +165,6 @@ namespace _Main._Tank
             CurrentState = TankState.Waiting;
             _isReadyForStickmen = false;
             UpdateColor();
-
-           
         }
 
         /// <summary>
@@ -177,7 +177,6 @@ namespace _Main._Tank
             _arrivedStickmanCount++;
             Debug.Log($"[Tank] Added stickman. Count: {_arrivedStickmanCount}/{_maxStickmanCount}");
 
-            // Tank doluysa ve hareket etmeye haz?rsa
             if (IsFull && !_isMoving && !_isWaitingForStickmen)
             {
                 Debug.Log("[Tank] Tank is full, preparing for movement");
@@ -188,7 +187,6 @@ namespace _Main._Tank
         /// <summary>
         /// Sets the tank's state to moving and initiates movement.
         /// </summary>
-
         private void SetTankStateToMoving()
         {
             if (_isMoving) return;
@@ -202,7 +200,6 @@ namespace _Main._Tank
         /// <summary>
         /// Initiates tank movement to its target position.
         /// </summary>
-
         public void MoveToTank()
         {
             if (!_isMoving)
@@ -254,10 +251,8 @@ namespace _Main._Tank
             _isWaitingForStickmen = true;
             Debug.Log("[Tank] Waiting for stickmen to settle...");
 
-            // Stickmanlar?n pozisyonlar?na yerle?mesini bekle
             yield return new WaitForSeconds(0.2f);
 
-            // Son bir kontrol daha yap
             if (IsFull && !_isMoving)
             {
                 Debug.Log("[Tank] All conditions met, starting movement");
@@ -324,7 +319,6 @@ namespace _Main._Tank
             _isMoving = false;
             IsAnyTankMoving = false;
 
-            // Tank Manager'a hareketin tamamland???n? bildir
             var tankManager = FindObjectOfType<TankManager>();
             if (tankManager != null)
             {

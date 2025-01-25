@@ -1068,7 +1068,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.30723113, y: 0.32246196}
   m_AnchorMax: {x: 0.68600005, y: 0.60059655}
-  m_AnchoredPosition: {x: 2.0000153, y: -1.2189941}
+  m_AnchoredPosition: {x: 2.0000305, y: -1.2189941}
   m_SizeDelta: {x: -170.6199, y: -163.5629}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &465310682
@@ -1731,7 +1731,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &713509040
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2605,7 +2605,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.14120483, y: 4.4589005}
+  m_AnchoredPosition: {x: 0.14120483, y: 4.458893}
   m_SizeDelta: {x: -57.3963, y: -63.7623}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &907259563
@@ -6004,8 +6004,8 @@ MonoBehaviour:
   _tankPrefab: {fileID: 8353771008622751197, guid: b80bb5f08b249494fa623419fd80da9b, type: 3}
   _moveDuration: 3
   _startPosition: {x: 0, y: -10, z: 0}
-  _currentTank: {fileID: 0}
   _tankCheckDelay: 0.2
+  _currentTank: {fileID: 0}
 --- !u!114 &5294721196503225564
 MonoBehaviour:
   m_ObjectHideFlags: 0

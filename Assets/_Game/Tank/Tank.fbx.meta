@@ -16,7 +16,8 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
+    rigImportErrors: "Invalid Avatar Rig Configuration. Missing or invalid transform:\n\tRequired
+      human bone 'LeftLowerLeg' not found\n"
     rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
@@ -32,7 +33,7 @@ ModelImporter:
     extraExposedTransformPaths: []
     extraUserProperties: []
     clipAnimations: []
-    isReadable: 0
+    isReadable: 1
   meshes:
     lODScreenPercentages: []
     globalScale: 1
@@ -81,8 +82,544 @@ ModelImporter:
   importAnimation: 1
   humanDescription:
     serializedVersion: 3
-    human: []
-    skeleton: []
+    human:
+    - boneName: TankArmature
+      humanName: Hips
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: TankTrack8.L
+      humanName: LeftUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: TankTrack19.R
+      humanName: RightUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: Root
+      humanName: Spine
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: TankTrack2.L
+      humanName: Neck
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: TankTrack8.L
+      humanName: LeftShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: TankTrack19.R
+      humanName: RightShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    skeleton:
+    - name: Tank(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Tank_Gun
+      parentName: Tank(Clone)
+      position: {x: 0.54460526, y: 3.9007998, z: -0.070085794}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    - name: TankArmature
+      parentName: Tank(Clone)
+      position: {x: -0, y: 1.3019022, z: 3.9312344}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    - name: Root
+      parentName: TankArmature
+      position: {x: -0, y: 0.03931234, z: -0.013019021}
+      rotation: {x: 0.38058174, y: 0.000000016501083, z: -0.00000001650108, w: 0.9247473}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack22.L
+      parentName: Root
+      position: {x: 0.027999999, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack22.L_end
+      parentName: TankTrack22.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack11.L
+      parentName: Root
+      position: {x: -0.028, y: 0.013019023, z: 0.03931234}
+      rotation: {x: 0.000000015893242, y: 5.6838664e-15, z: 1, w: -6.123243e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack11.L_end
+      parentName: TankTrack11.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack10.L
+      parentName: Root
+      position: {x: -0.042000003, y: 0.013019022, z: 0.03931234}
+      rotation: {x: 0.000000075497894, y: 1.8000097e-14, z: 1, w: -6.12337e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack10.L_end
+      parentName: TankTrack10.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack12.L
+      parentName: Root
+      position: {x: -0.014000002, y: 0.013019025, z: 0.03931234}
+      rotation: {x: 0.000000031786495, y: 1.03573546e-14, z: 1, w: -6.123267e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack12.L_end
+      parentName: TankTrack12.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack9.L
+      parentName: Root
+      position: {x: -0.056, y: 0.013019023, z: 0.039312337}
+      rotation: {x: -0.000000043711395, y: -2.0843218e-14, z: 1, w: 6.123143e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack9.L_end
+      parentName: TankTrack9.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack8.L
+      parentName: Root
+      position: {x: -0.061, y: 0.013019018, z: 0.039312337}
+      rotation: {x: -0.000000029802326, y: 0.000000020648331, z: 0.8000789, w: 0.5998948}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack8.L_end
+      parentName: TankTrack8.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack14.L
+      parentName: Root
+      position: {x: 0.014000002, y: 0.013019026, z: 0.03931234}
+      rotation: {x: 0.000000075497894, y: 1.80001e-14, z: 1, w: -6.12337e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack14.L_end
+      parentName: TankTrack14.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack13.L
+      parentName: Root
+      position: {x: -0, y: 0.013019026, z: 0.03931234}
+      rotation: {x: 0.000000015893242, y: 5.6838664e-15, z: 1, w: -6.123243e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack13.L_end
+      parentName: TankTrack13.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack15.L
+      parentName: Root
+      position: {x: 0.028, y: 0.013019031, z: 0.039312344}
+      rotation: {x: -0.000000043711395, y: -2.084322e-14, z: 1, w: 6.123143e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack15.L_end
+      parentName: TankTrack15.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack16.L
+      parentName: Root
+      position: {x: 0.042000003, y: 0.013019032, z: 0.039312344}
+      rotation: {x: -0.000000043711395, y: -2.084322e-14, z: 1, w: 6.123143e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack16.L_end
+      parentName: TankTrack16.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack6.L
+      parentName: Root
+      position: {x: -0.055999998, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0.000000044465544, y: 0.000000043614197, z: 0.00000081956387, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack6.L_end
+      parentName: TankTrack6.L
+      position: {x: -0, y: 0.010000001, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack7.L
+      parentName: Root
+      position: {x: -0.060999997, y: 0.013019025, z: 0.03931234}
+      rotation: {x: -0.000000003935889, y: -0.000000041564668, z: 0.42261827, w: 0.9063078}
+      scale: {x: 1, y: 1.0000001, z: 1}
+    - name: TankTrack7.L_end
+      parentName: TankTrack7.L
+      position: {x: -0, y: 0.010000001, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack18.L
+      parentName: Root
+      position: {x: 0.061, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0.00000007929625, y: -0.000000071393806, z: 0.9063078, w: -0.42261827}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack18.L_end
+      parentName: TankTrack18.L
+      position: {x: -0, y: 0.010000001, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack17.L
+      parentName: Root
+      position: {x: 0.056, y: 0.013019023, z: 0.03931234}
+      rotation: {x: -0.000000058191286, y: -0.000000138522, z: 1, w: -0.0000005326322}
+      scale: {x: 1.0000002, y: 1, z: 1}
+    - name: TankTrack17.L_end
+      parentName: TankTrack17.L
+      position: {x: -0, y: 0.009999999, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack5.L
+      parentName: Root
+      position: {x: -0.042000003, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack5.L_end
+      parentName: TankTrack5.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack4.L
+      parentName: Root
+      position: {x: -0.028, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack4.L_end
+      parentName: TankTrack4.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack2.L
+      parentName: Root
+      position: {x: -0.0000000023841857, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0.15232691, y: 2.6645353e-15, z: 0.00000000923821, w: 0.9883302}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack2.L_end
+      parentName: TankTrack2.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack3.L
+      parentName: Root
+      position: {x: -0.014000002, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack3.L_end
+      parentName: TankTrack3.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack19.L
+      parentName: Root
+      position: {x: 0.061, y: 0.013019021, z: 0.03931234}
+      rotation: {x: -3.2404984e-15, y: 0.000000056782504, z: -0.42261833, w: 0.90630776}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack19.L_end
+      parentName: TankTrack19.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack20.L
+      parentName: Root
+      position: {x: 0.056, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack20.L_end
+      parentName: TankTrack20.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack1.L
+      parentName: Root
+      position: {x: 0.0139999995, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack1.L_end
+      parentName: TankTrack1.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack21.L
+      parentName: Root
+      position: {x: 0.042000003, y: 0.013019021, z: 0.03931234}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack21.L_end
+      parentName: TankTrack21.L
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack22.R
+      parentName: Root
+      position: {x: 0.027999999, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack22.R_end
+      parentName: TankTrack22.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack11.R
+      parentName: Root
+      position: {x: -0.028, y: 0.013019019, z: -0.040333442}
+      rotation: {x: 0.00000001589325, y: 5.683869e-15, z: 1, w: 6.123225e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack11.R_end
+      parentName: TankTrack11.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack10.R
+      parentName: Root
+      position: {x: -0.042000003, y: 0.013019018, z: -0.040333442}
+      rotation: {x: 0.000000075497894, y: 1.80001e-14, z: 1, w: 6.123098e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack10.R_end
+      parentName: TankTrack10.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack12.R
+      parentName: Root
+      position: {x: -0.014000002, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0.00000003178649, y: 1.0357354e-14, z: 1, w: 6.123201e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack12.R_end
+      parentName: TankTrack12.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack9.R
+      parentName: Root
+      position: {x: -0.056, y: 0.013019017, z: -0.040333442}
+      rotation: {x: -0.000000043711395, y: -2.0843218e-14, z: 1, w: 6.123143e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack9.R_end
+      parentName: TankTrack9.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack8.R
+      parentName: Root
+      position: {x: -0.061, y: 0.013019015, z: -0.040333442}
+      rotation: {x: 0.00000001716651, y: 0.00000001847322, z: 0.9063078, w: 0.42261827}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack8.R_end
+      parentName: TankTrack8.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack14.R
+      parentName: Root
+      position: {x: 0.014000002, y: 0.0130190225, z: -0.040333442}
+      rotation: {x: 0.000000075497894, y: 1.80001e-14, z: 1, w: 6.123098e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack14.R_end
+      parentName: TankTrack14.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack13.R
+      parentName: Root
+      position: {x: -0, y: 0.013019022, z: -0.040333442}
+      rotation: {x: 0.00000001589325, y: 5.683869e-15, z: 1, w: 6.123225e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack13.R_end
+      parentName: TankTrack13.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack15.R
+      parentName: Root
+      position: {x: 0.028, y: 0.013019023, z: -0.040333442}
+      rotation: {x: -0.000000043711395, y: -2.0843218e-14, z: 1, w: 6.123143e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack15.R_end
+      parentName: TankTrack15.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack16.R
+      parentName: Root
+      position: {x: 0.042000003, y: 0.013019025, z: -0.040333442}
+      rotation: {x: -0.000000043711395, y: -2.0843218e-14, z: 1, w: 6.123143e-17}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack16.R_end
+      parentName: TankTrack16.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack6.R
+      parentName: Root
+      position: {x: -0.055999998, y: 0.013019017, z: -0.040333442}
+      rotation: {x: -0.0000000061134147, y: -0.000000047913048, z: 0.00000078976154, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack6.R_end
+      parentName: TankTrack6.R
+      position: {x: -0, y: 0.010000001, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack7.R
+      parentName: Root
+      position: {x: -0.060999997, y: 0.013019025, z: -0.040333442}
+      rotation: {x: 0.00000009588847, y: -0.0000000012783756, z: 0.42261827, w: 0.9063078}
+      scale: {x: 1, y: 1.0000001, z: 1}
+    - name: TankTrack7.R_end
+      parentName: TankTrack7.R
+      position: {x: -0, y: 0.010000001, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack18.R
+      parentName: Root
+      position: {x: 0.061, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0.000000058426263, y: -0.000000057303104, z: 0.9063078, w: -0.42261827}
+      scale: {x: 0.99999994, y: 0.99999994, z: 1}
+    - name: TankTrack18.R_end
+      parentName: TankTrack18.R
+      position: {x: -0, y: 0.010000001, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack17.R
+      parentName: Root
+      position: {x: 0.056, y: 0.013019025, z: -0.040333442}
+      rotation: {x: -0.00000003526199, y: -0.00000002129159, z: 1, w: -0.00000039947417}
+      scale: {x: 1.0000002, y: 1.0000001, z: 1}
+    - name: TankTrack17.R_end
+      parentName: TankTrack17.R
+      position: {x: -0, y: 0.009999999, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack5.R
+      parentName: Root
+      position: {x: -0.042000003, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack5.R_end
+      parentName: TankTrack5.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack4.R
+      parentName: Root
+      position: {x: -0.028, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack4.R_end
+      parentName: TankTrack4.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack2.R
+      parentName: Root
+      position: {x: -0.0000000023841857, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack2.R_end
+      parentName: TankTrack2.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack3.R
+      parentName: Root
+      position: {x: -0.014000002, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack3.R_end
+      parentName: TankTrack3.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack19.R
+      parentName: Root
+      position: {x: 0.061, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0.00000034272674, y: 0.0000004676619, z: -0.79903066, w: 0.6012903}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack19.R_end
+      parentName: TankTrack19.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack20.R
+      parentName: Root
+      position: {x: 0.056, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack20.R_end
+      parentName: TankTrack20.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack1.R
+      parentName: Root
+      position: {x: 0.0139999995, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack1.R_end
+      parentName: TankTrack1.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack21.R
+      parentName: Root
+      position: {x: 0.042000003, y: 0.013019021, z: -0.040333442}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: TankTrack21.R_end
+      parentName: TankTrack21.R
+      position: {x: -0, y: 0.01, z: 0}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: Tank_body
+      parentName: Tank(Clone)
+      position: {x: 0.004407327, y: 1.3019024, z: -0.06748414}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    - name: TrackMesh.R
+      parentName: Tank(Clone)
+      position: {x: -0.00000047683716, y: 1.3013312, z: -4.035615}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    - name: TrackMesh.L
+      parentName: Tank(Clone)
+      position: {x: -0, y: 1.3019023, z: 3.9312346}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
+    - name: Tank_Turret
+      parentName: Tank(Clone)
+      position: {x: -1.5547532, y: 3.718987, z: -0.043349504}
+      rotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+      scale: {x: 100, y: 100, z: 100}
     armTwist: 0.5
     foreArmTwist: 0.5
     upperLegTwist: 0.5

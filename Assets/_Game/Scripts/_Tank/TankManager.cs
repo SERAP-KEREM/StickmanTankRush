@@ -31,6 +31,10 @@ public class TankManager : MonoBehaviour
     [SerializeField]
     [PropertyTooltip("Initial spawn position")]
     private Vector3 _startPosition = Vector3.zero;
+
+    [Group("Configuration")]
+    [SerializeField, Tooltip("Delay between tank checks")]
+    private float _tankCheckDelay = 0.2f;
     #endregion
 
     #region Constants
@@ -46,7 +50,7 @@ public class TankManager : MonoBehaviour
     [SerializeField, ReadOnly]
     private Tank _currentTank;
     #endregion
-    [SerializeField] private float _tankCheckDelay = 0.2f;
+
     #region Properties
     public Tank CurrentTank => _currentTank;
     #endregion
@@ -63,31 +67,32 @@ public class TankManager : MonoBehaviour
     #endregion
 
     #region Public Methods
+    /// <summary>
+    /// Sets the level data for the tank manager.
+    /// </summary>
+    /// <param name="levelDataSO">The LevelDataSO to set.</param>
     public void SetLevelDataSO(LevelDataSO levelDataSO)
     {
         _levelDataSO = levelDataSO;
     }
 
+    /// <summary>
+    /// Moves the next tank to its stop point.
+    /// </summary>
     public void MoveNextTankToStopPoint()
     {
-        if (_isMoving)
-        {
-            Debug.Log("[TankManager] Cannot move next tank - movement in progress");
-            return;
-        }
+        if (_isMoving) return;
 
         if (_currentTank != null && _currentTank.IsFull)
-        {
-            Debug.Log("[TankManager] Starting movement sequence for full tank");
             StartCoroutine(MoveTankAndPrepareNext());
-        }
+
         else if (_tankQueue.Count > 0 && _currentTank == null)
-        {
-            Debug.Log("[TankManager] Preparing first tank");
             PrepareNextTank();
-        }
     }
 
+    /// <summary>
+    /// Moves the other tanks in the queue.
+    /// </summary>
     public void MoveOtherTanks()
     {
         if (_isMoving) return;
@@ -100,11 +105,7 @@ public class TankManager : MonoBehaviour
     #region Private Methods
     private void InitializeTanks()
     {
-        if (_levelDataSO == null)
-        {
-            Debug.LogError("[TankManager] LevelDataSO reference is missing!");
-            return;
-        }
+        if (_levelDataSO == null) return;
 
         SetupTanks();
         MoveNextTankToStopPoint();
@@ -113,7 +114,9 @@ public class TankManager : MonoBehaviour
     private void SetupTanks()
     {
         ClearExistingTanks();
+
         if (!ValidateReferences()) return;
+
         CreateTanks();
     }
 
@@ -123,84 +126,39 @@ public class TankManager : MonoBehaviour
 
         _isMoving = true;
 
-        Debug.Log("[TankManager] Starting tank movement sequence");
 
-        // Current tank'ın hareketini başlat
         if (_currentTank != null && _currentTank.IsFull)
         {
             AudioManager.Instance.PlayAudio(AudioKeys.TANK_MOVE);
             _currentTank.MoveToTank();
             _currentTank.CurrentState = TankState.Moving;
-
-            // Current tank null yapılmadan önce yeni tankı hazırla
             _currentTank = null;
 
-            // Çok kısa bir bekleme ile yeni tankı getir
             yield return new WaitForSeconds(0.5f);
 
             if (_tankQueue.Count > 0)
-            {
-                Debug.Log("[TankManager] Preparing next tank immediately");
                 PrepareNextTank();
-            }
             else
-            {
-                Debug.Log("[TankManager] No more tanks in queue");
                 CheckAllTanksLeft();
-            }
         }
 
         _isMoving = false;
     }
     private void PrepareNextTank()
     {
-        if (_tankQueue.Count == 0)
-        {
-            Debug.Log("[TankManager] No tanks in queue to prepare");
-            return;
-        }
+        if (_tankQueue.Count == 0) return;
 
-        if (Tank.IsAnyTankMoving)
-        {
-            Debug.Log("[TankManager] Cannot prepare next tank while another is moving");
-            return;
-        }
+        if (Tank.IsAnyTankMoving) return;
 
         _currentTank = _tankQueue.Dequeue();
         _currentTank.Initialize(_startPosition);
         _currentTank.CurrentState = TankState.Filling;
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.MoveAllHolderStickmenToCurrentTank();
         }
-        Debug.Log($"[TankManager] New tank prepared: {_currentTank.name}");
-      //  StartCoroutine(WaitForTankPositionAndCheckHolders());
 
-    }
-
-    private IEnumerator WaitForTankPositionAndCheckHolders()
-{
-    if (_currentTank == null) yield break;
-
-    Debug.Log("[TankManager] Waiting for tank to reach position");
-
-    while (_currentTank.IsMoving)
-    {
-        yield return null;
-    }
-
-    if (_currentTank != null && !_currentTank.IsFull)
-    {
-        Debug.Log("[TankManager] Tank in position, checking holders immediately");
-        NotifyGameManagerForHolderCheck();
-    }
-}
-    private void NotifyGameManagerForHolderCheck()
-    {
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.MoveAllHolderStickmenToCurrentTank();
-        }
     }
     private void MoveQueueTanks()
     {
@@ -237,24 +195,13 @@ public class TankManager : MonoBehaviour
     private void CheckAllTanksLeft()
     {
         if (_tankQueue.Count == 0 && _currentTank == null)
-        {
-            Debug.Log("[TankManager] All tanks have left!");
             OnAllTanksLeft?.Invoke();
-        }
     }
     private bool ValidateReferences()
     {
-        if (_tankPrefab == null)
-        {
-            Debug.LogError("[TankManager] Tank prefab is missing!");
-            return false;
-        }
+        if (_tankPrefab == null) return false;
 
-        if (_levelDataSO?.TankDataList == null || _levelDataSO.TankDataList.Count == 0)
-        {
-            Debug.LogError("[TankManager] Level data contains no tank configurations!");
-            return false;
-        }
+        if (_levelDataSO?.TankDataList == null || _levelDataSO.TankDataList.Count == 0) return false;
 
         return true;
     }
@@ -276,7 +223,6 @@ public class TankManager : MonoBehaviour
             CreateTank(tankData);
         }
     }
-
     private void CreateTank(TankData tankData)
     {
         Vector3 position = _startPosition + Vector3.right * TankSpacing * _tankQueue.Count;

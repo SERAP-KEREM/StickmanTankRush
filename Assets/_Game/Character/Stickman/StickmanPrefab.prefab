@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 666121102035259079}
   - component: {fileID: 3015259032783030602}
   - component: {fileID: 8482017247078983175}
+  - component: {fileID: 2324137500388209041}
   m_Layer: 0
   m_Name: StickmanPrefab
   m_TagString: Untagged
@@ -76,6 +77,26 @@ CapsuleCollider:
   m_Height: 1.7899779
   m_Direction: 1
   m_Center: {x: 0, y: -0.14498895, z: -0.03329104}
+--- !u!114 &2324137500388209041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1875863197215018875}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
+  renderers:
+  - {fileID: 6919125455876451959}
 --- !u!1 &2259996560384293375
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,6 +201,14 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1630794972795428178, guid: aa71b9a780dfe4d4ca9f62fbd263be02, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8a8f5f713e999894cb45c988abb2279d, type: 2}
+    - target: {fileID: 1630794972795428178, guid: aa71b9a780dfe4d4ca9f62fbd263be02, type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: 2100000, guid: 8a8f5f713e999894cb45c988abb2279d, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -188,6 +217,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 5504184249693461320}
   m_SourcePrefab: {fileID: 100100000, guid: aa71b9a780dfe4d4ca9f62fbd263be02, type: 3}
+--- !u!137 &6919125455876451959 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1630794972795428178, guid: aa71b9a780dfe4d4ca9f62fbd263be02, type: 3}
+  m_PrefabInstance: {fileID: 8548980611146461989}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8155647218190865614 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: aa71b9a780dfe4d4ca9f62fbd263be02, type: 3}

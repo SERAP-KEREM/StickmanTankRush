@@ -18,7 +18,10 @@ namespace _Main._StickmanSelector
         protected override void Awake()
         {
             base.Awake();
-            transform.SetParent(FindObjectOfType<Level>()?.transform);
+            if (transform.parent == null)
+            {
+                transform.SetParent(FindObjectOfType<Level>()?.transform);
+            }
         }
 
         private void OnEnable()
@@ -41,6 +44,13 @@ namespace _Main._StickmanSelector
         #region Selection Handling
         private void HandleSelection()
         {
+            Camera mainCamera = Camera.main;
+            if (mainCamera == null)
+            {
+                Debug.LogError("Main Camera is not assigned in the scene.");
+                return;
+            }
+
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit, _raycastLength))
             {
