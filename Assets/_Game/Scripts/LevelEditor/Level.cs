@@ -74,7 +74,6 @@ namespace _Main
             FindReferences();
             SubscribeToEvents();
         }
-
         private void Start()
         {
             if (!_isInitialized)
@@ -83,7 +82,6 @@ namespace _Main
             }
          
         }
-      
         private void OnDestroy()
         {
             UnsubscribeFromEvents();
@@ -110,22 +108,11 @@ namespace _Main
         {
             if (!ValidateLevelState("complete")) return;
 
-            Debug.Log("[Level] Level completed!");
             OnLevelCompleted?.Invoke();
             PlayCompletionAnimation();
         }
 
-        /// <summary>
-        /// Fails the level with failure animation.
-        /// </summary>
-        public void FailLevel()
-        {
-            if (!ValidateLevelState("fail")) return;
-
-            Debug.Log("[Level] Level failed!");
-            OnLevelFailed?.Invoke();
-            PlayFailureAnimation();
-        }
+      
         #endregion
 
         #region Initialization
@@ -145,31 +132,22 @@ namespace _Main
 
             InitializeGrids();
             InitializeManagers();
-            InitializePathfinding();
 
             _isInitialized = true;
             NotifyGameManager();
         }
-
         private void InitializeGrids()
         {
             _stickmanGrid?.SetLevelDataSO(_levelDataSO);
             _tileGrid?.SetLevelDataSO(_levelDataSO);
         }
-
         private void InitializeManagers()
         {
             _tankManager?.SetLevelDataSO(_levelDataSO);
             _holderManager?.InitializeWaitingRow(); 
         }
 
-        private void InitializePathfinding()
-        {
-            if (_gridPathFinder != null && _tileGrid != null)
-            {
-               // _gridPathFinder.Initialize(_tileGrid);
-            }
-        }
+     
         #endregion
 
         #region Event Handling
@@ -180,7 +158,6 @@ namespace _Main
                 _tankManager.OnAllTanksLeft += OnTankManagerCompleted;
             }
         }
-
         private void UnsubscribeFromEvents()
         {
             if (_tankManager != null)
@@ -188,7 +165,6 @@ namespace _Main
                 _tankManager.OnAllTanksLeft -= OnTankManagerCompleted;
             }
         }
-
         private void OnTankManagerCompleted()
         {
             CompleteLevel();
@@ -248,12 +224,6 @@ namespace _Main
         {
             transform.DOScale(Vector3.one * 1.1f, 0.5f)
                 .SetEase(Ease.OutBounce);
-        }
-
-        private void PlayFailureAnimation()
-        {
-            transform.DOScale(Vector3.one * 0.9f, 0.5f)
-                .SetEase(Ease.InBounce);
         }
 
         private void LogComponentStatus()

@@ -4,12 +4,14 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+
 /// <summary>
 /// Manages the Level Failed UI, including showing animations, button functionality, 
 /// and interactions with the LevelManager.
 /// </summary>
 public class LevelFailedUI : MonoBehaviour
 {
+    #region UI References
     [Header("UI References")]
     [Tooltip("The canvas group for controlling UI visibility and interaction.")]
     [SerializeField] private CanvasGroup _canvasGroup;
@@ -22,7 +24,9 @@ public class LevelFailedUI : MonoBehaviour
 
     [Tooltip("Button for returning to the main menu.")]
     [SerializeField] private Button _mainMenuButton;
+    #endregion
 
+    #region Animation Settings
     [Header("Animation Settings")]
     [Tooltip("Delay before showing the UI.")]
     [SerializeField, Range(0f, 2f)] private float _showDelay = 0.5f;
@@ -32,19 +36,23 @@ public class LevelFailedUI : MonoBehaviour
 
     [Tooltip("Delay between button animations.")]
     [SerializeField, Range(0f, 1f)] private float _buttonAnimDelay = 0.2f;
-    //[SerializeField] private LevelManager _levelManager;
+    #endregion
 
+    #region Initialization
     private void Awake()
     {
-        if (_canvasGroup == null)
-        {
-            Debug.LogWarning("[LevelFailedUI] CanvasGroup is not assigned. Attempting to find it.");
-            _canvasGroup = GetComponent<CanvasGroup>();
-        }
-      //  _levelManager = GetComponent<LevelManager>();
-
+        InitializeComponents();
         InitializeButtons();
         Hide(true);
+    }
+
+    /// <summary>
+    /// Initializes necessary components and validates references.
+    /// </summary>
+    private void InitializeComponents()
+    {
+        if (_canvasGroup == null)
+            _canvasGroup = GetComponent<CanvasGroup>();
     }
 
     /// <summary>
@@ -55,7 +63,9 @@ public class LevelFailedUI : MonoBehaviour
         _retryButton.onClick.AddListener(OnRetryClicked);
         _mainMenuButton.onClick.AddListener(OnMainMenuClicked);
     }
+    #endregion
 
+    #region Show/Hide UI
     /// <summary>
     /// Displays the Level Failed UI with animations.
     /// </summary>
@@ -119,7 +129,9 @@ public class LevelFailedUI : MonoBehaviour
                 });
         }
     }
+    #endregion
 
+    #region Button Handlers
     /// <summary>
     /// Handles the retry button click event.
     /// </summary>
@@ -142,7 +154,9 @@ public class LevelFailedUI : MonoBehaviour
         // TODO: Implement main menu navigation.
         // SceneManager.LoadScene("MainMenu");
     }
+    #endregion
 
+    #region Cleanup
     /// <summary>
     /// Cleans up DOTween animations when the object is destroyed.
     /// </summary>
@@ -150,4 +164,5 @@ public class LevelFailedUI : MonoBehaviour
     {
         DOTween.Kill(this);
     }
+    #endregion
 }

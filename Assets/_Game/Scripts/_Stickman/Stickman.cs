@@ -242,6 +242,7 @@ public class Stickman : MonoBehaviour, ISelectable
                 // Finalize position and stop animation
                 transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
                 _isMoving = false;
+                StopMovementAnimation();
                 tank.OnStickmanArrived(this);
             });
     }
@@ -526,7 +527,6 @@ public class Stickman : MonoBehaviour, ISelectable
             renderer.material.color = ColorManager.ColorTypeToColor(_colorType);
         }
     }
-
 
     /// <summary>
     /// Sets the layer for the Stickman and its children.

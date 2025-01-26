@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class LevelCompleteUI : MonoBehaviour
 {
+    #region UI References
     [Header("UI References")]
     [Tooltip("CanvasGroup for fading in/out the LevelComplete UI.")]
     [SerializeField] private CanvasGroup _canvasGroup;
@@ -24,7 +25,9 @@ public class LevelCompleteUI : MonoBehaviour
 
     [Tooltip("Button to proceed to the next level.")]
     [SerializeField] private Button _nextLevelButton;
+    #endregion
 
+    #region Animation Settings
     [Header("Animation Settings")]
     [Tooltip("Delay before the UI starts showing.")]
     [SerializeField, Range(0.1f, 1f)] private float _showDelay = 0.5f;
@@ -37,24 +40,30 @@ public class LevelCompleteUI : MonoBehaviour
 
     [Tooltip("Duration for score counting animation.")]
     [SerializeField, Range(0.5f, 2f)] private float _scoreCountDuration = 1f;
+    #endregion
 
+    #region Visual Settings
     [Header("Visual Settings")]
     [Tooltip("Color for active stars.")]
     [SerializeField] private Color _starActiveColor = Color.yellow;
 
     [Tooltip("Color for inactive stars.")]
     [SerializeField] private Color _starInactiveColor = Color.gray;
-  //  [SerializeField] private LevelManager _levelManager;
+    #endregion
+
+    #region Unity Methods
     private void Awake()
     {
-       // _levelManager = GetComponent<LevelManager>();    
         _nextLevelButton.onClick.AddListener(OnNextLevelClicked);
         Hide(true);
     }
+    #endregion
 
+    #region Public Methods
     /// <summary>
     /// Hides the LevelComplete UI.
     /// </summary>
+    /// <param name="instant">If true, the hide operation happens instantly without animation.</param>
     public void Hide(bool instant = false)
     {
         if (instant)
@@ -78,6 +87,7 @@ public class LevelCompleteUI : MonoBehaviour
     /// <summary>
     /// Displays the LevelComplete UI with score and stars.
     /// </summary>
+    /// <param name="scoreData">The score data to display on the UI.</param>
     public void Show(ScoreData scoreData)
     {
         gameObject.SetActive(true);
@@ -98,10 +108,13 @@ public class LevelCompleteUI : MonoBehaviour
 
         AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
     }
+    #endregion
 
+    #region Private Methods
     /// <summary>
     /// Animates stars based on the number of stars earned.
     /// </summary>
+    /// <param name="starCount">The number of stars earned.</param>
     private void AnimateStars(int starCount)
     {
         for (int i = 0; i < _starImages.Length; i++)
@@ -141,4 +154,5 @@ public class LevelCompleteUI : MonoBehaviour
                 LevelManager.Instance?.OnNextLevelButtonClicked();
             });
     }
+    #endregion
 }

@@ -44,16 +44,12 @@ public class ScoreManager : MonoSingleton<ScoreManager>
 
     private void OnEnable()
     {
-        // Subscribe to level start event
         LevelManager.OnLevelStarted += OnLevelStarted;
     }
-
     private void OnDisable()
     {
-        // Unsubscribe from level start event
         LevelManager.OnLevelStarted -= OnLevelStarted;
     }
-
     #endregion
 
     #region Event Handlers
@@ -65,7 +61,6 @@ public class ScoreManager : MonoSingleton<ScoreManager>
     {
         ResetScores();
     }
-
     #endregion
 
     #region Score Calculation
@@ -172,6 +167,5 @@ public class ScoreManager : MonoSingleton<ScoreManager>
             Stars = stars
         };
     }
-
     #endregion
 }

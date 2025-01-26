@@ -63,6 +63,13 @@ public class TankManager : MonoBehaviour
     private void Start()
     {
         InitializeTanks();
+        if (_currentTank == null)
+        {
+            _currentTank = _tankQueue.Dequeue(); 
+            _currentTank.Initialize(_startPosition); 
+            _currentTank.CurrentState = TankState.Filling;
+        }
+
     }
     #endregion
 
@@ -158,7 +165,6 @@ public class TankManager : MonoBehaviour
         {
             GameManager.Instance.MoveAllHolderStickmenToCurrentTank();
         }
-
     }
     private void MoveQueueTanks()
     {
@@ -172,6 +178,7 @@ public class TankManager : MonoBehaviour
     {
         if (_currentTank != null)
         {
+            Debug.Log(CurrentTank.name);
             MoveTankToPosition(_currentTank);
         }
     }
@@ -239,5 +246,6 @@ public class TankManager : MonoBehaviour
         tank.name = $"{data.TankColorType} Tank [{_tankQueue.Count}]";
         _tankQueue.Enqueue(tank);
     }
+
     #endregion
 }

@@ -13,22 +13,22 @@ namespace _Main
     public class Holder : BaseOccupiable
     {
         #region Inspector Fields
-        [SerializeField]
-        [Required]
+
+        [SerializeField, Required]
         [PropertyTooltip("Transform point where the stickman should be positioned")]
         private Transform _stickmanPoint;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Gets the target position where a stickman should be placed.
         /// </summary>
         /// <returns>The world position where the stickman should move to.</returns>
         public Vector3 GetStickmanTargetPosition()
         {
-            return _stickmanPoint != null
-                ? _stickmanPoint.position
-                : transform.position;
+            return _stickmanPoint != null ? _stickmanPoint.position : transform.position;
         }
 
         /// <summary>
@@ -38,9 +38,12 @@ namespace _Main
         /// <returns>True if the assignment was successful, false otherwise.</returns>
         public override bool AssignStickman(Stickman stickman)
         {
-            if (!ValidateAssignment(stickman)) return false;
+            if (!ValidateAssignment(stickman))
+                return false;
 
-            if (!base.AssignStickman(stickman)) return false;
+            if (!base.AssignStickman(stickman))
+                return false;
+
             stickman.IsInHolder = true;
             MoveStickmanToPosition(stickman);
             return true;
@@ -53,33 +56,33 @@ namespace _Main
         public override Stickman RemoveStickman()
         {
             if (!IsOccupied)
-            {
-                LogWarningEmpty();
                 return null;
-            }
-        
+
             var stickman = base.RemoveStickman();
             stickman.IsInHolder = false;
-            LogStickmanRemoval();
             return stickman;
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Validates whether a stickman can be assigned to this holder.
         /// </summary>
+        /// <param name="stickman">The stickman to validate.</param>
+        /// <returns>True if the stickman can be assigned, false otherwise.</returns>
         private bool ValidateAssignment(Stickman stickman)
         {
             if (stickman == null)
             {
-                Debug.LogWarning("[Holder] Cannot assign null stickman.");
+                Debug.LogWarning("[Holder] Attempted to assign a null stickman.");
                 return false;
             }
 
             if (IsOccupied)
             {
-                Debug.LogWarning("[Holder] Holder is already occupied.");
+                Debug.LogWarning("[Holder] Cannot assign stickman, holder is already occupied.");
                 return false;
             }
 
@@ -89,21 +92,13 @@ namespace _Main
         /// <summary>
         /// Moves the assigned stickman to the holder's position.
         /// </summary>
+        /// <param name="stickman">The stickman to move.</param>
         private void MoveStickmanToPosition(Stickman stickman)
         {
             Vector3 targetPos = GetStickmanTargetPosition();
             stickman.MoveToHolder(targetPos);
         }
 
-        private void LogWarningEmpty()
-        {
-            Debug.LogWarning($"[Holder] {name} is already empty!");
-        }
-
-        private void LogStickmanRemoval()
-        {
-            Debug.Log($"[Holder] Removed stickman from {name}");
-        }
         #endregion
     }
 }

@@ -135,11 +135,6 @@ namespace _Main
             _holderManager = level.HolderManager;
             _gridPathFinder = level.GridPathFinder;
 
-            //if (_gridPathFinder != null)
-            //{
-            //    _gridPathFinder.Initialize(_tileGrid);
-            //}
-
             ValidateReferences();
         }
 
@@ -281,7 +276,6 @@ namespace _Main
         }
         private IEnumerator WaitAndMoveTank()
         {
-            // Tüm stickmanların tanka binmesini bekle
             yield return new WaitForSeconds(0.3f);
 
             MoveNextTankToStopPoint();
@@ -314,23 +308,19 @@ namespace _Main
             Vector3 targetPos = tank.GetStickmanTargetPosition();
             stickman.MoveToTank(targetPos, tank.transform);
 
-            // Önce stickman'ın tanka varmasını bekle, sonra say
             StartCoroutine(WaitForStickmanArrival(stickman, tank));
         }
 
         private IEnumerator WaitForStickmanArrival(Stickman stickman, Tank tank)
         {
-            // Stickman'ın hareketi tamamlanana kadar bekle
             while (stickman.IsMoving)
             {
                 yield return null;
             }
 
-            // Tank'a ekle ve UI'ı güncelle
             tank.AddStickman(stickman.UnitColorType);
             UpdateTankProgress(tank);
 
-            // Tank doldu mu kontrol et
             if (tank.IsFull)
             {
                 HandleFullTank(tank);
@@ -370,7 +360,6 @@ namespace _Main
                 yield return StartCoroutine(ProcessAllHolderStickmen(currentTank));
             }
         }
-
         private IEnumerator ProcessAllHolderStickmen(Tank currentTank)
         {
             var holders = _holderManager.GetAllHolders();
@@ -385,7 +374,6 @@ namespace _Main
                 }
             }
         }
-
         private IEnumerator ProcessSingleHolderStickman(Holder holder, Tank currentTank)
         {
             Stickman stickmanInHolder = holder.CurrentStickman;
@@ -395,13 +383,10 @@ namespace _Main
 
             Debug.Log($"[GameManager] Moving stickman directly from holder to tank");
 
-            // Holder'dan çıkar
             holder.RemoveStickman();
 
-            // Tank'ın güncel pozisyonunu al
             Vector3 tankPos = currentTank.GetStickmanTargetPosition();
 
-            // Direkt tank'a parent'la ve hareket ettir
             stickmanInHolder.transform.SetParent(currentTank.transform);
             stickmanInHolder.transform.DOMove(tankPos, 0.5f)
                 .SetEase(Ease.OutQuad)
@@ -423,11 +408,9 @@ namespace _Main
                 Debug.Log("[GameManager] Cannot move holder stickmen: Tank not ready");
                 return;
             }
-
             StartCoroutine(ProcessAllHolderStickmen(currentTank));
         }
 
-      
         #endregion
     }
 }

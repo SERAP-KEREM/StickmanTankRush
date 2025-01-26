@@ -4,25 +4,27 @@ using TMPro;
 using DG.Tweening;
 using SerapKeremGameTools._Game._AudioSystem;
 
-/// <summary>
-/// Manages the Settings UI, including animations, sound settings, and button interactions.
-/// </summary>
 public class SettingsUI : MonoBehaviour
 {
+    #region Panel References
     [Header("Panel References")]
     [Tooltip("The main canvas group for controlling UI visibility.")]
     [SerializeField] private CanvasGroup _settingsPanel;
 
     [Tooltip("The content panel for animating slide-in and slide-out effects.")]
     [SerializeField] private RectTransform _contentPanel;
+    #endregion
 
+    #region Sound Settings
     [Header("Sound Settings")]
     [Tooltip("The slider for adjusting music volume.")]
     [SerializeField] private Slider _musicSlider;
 
     [Tooltip("The text displaying the current music volume percentage.")]
     [SerializeField] private TextMeshProUGUI _musicValueText;
+    #endregion
 
+    #region Buttons
     [Header("Buttons")]
     [Tooltip("The button for closing the settings panel.")]
     [SerializeField] private Button _closeButton;
@@ -32,7 +34,9 @@ public class SettingsUI : MonoBehaviour
 
     [Tooltip("The button for navigating back to the main menu.")]
     [SerializeField] private Button _mainMenuButton;
+    #endregion
 
+    #region Animation Settings
     [Header("Animation Settings")]
     [Tooltip("Duration for fading in and out the panel.")]
     [SerializeField, Range(0f, 1f)] private float _fadeInDuration = 0.3f;
@@ -48,21 +52,23 @@ public class SettingsUI : MonoBehaviour
 
     [Tooltip("Duration for button hover animation.")]
     [SerializeField] private float _buttonHoverDuration = 0.2f;
-   // [SerializeField] private LevelManager _levelManager;
+    #endregion
 
+    #region Unity Methods 
     private void Awake()
     {
+        // Validate and initialize components
         if (_settingsPanel == null)
         {
             Debug.LogError("[SettingsUI] SettingsPanel reference is missing!");
             _settingsPanel = GetComponent<CanvasGroup>();
         }
-       // _levelManager = GetComponent<LevelManager>();
 
         InitializeUI();
-
     }
+    #endregion
 
+    #region UI Initialization
     /// <summary>
     /// Initializes the UI components, validates references, and sets up listeners.
     /// </summary>
@@ -79,7 +85,9 @@ public class SettingsUI : MonoBehaviour
         InitializeSliderValues();
         SetupButtonAnimations();
     }
+    #endregion
 
+    #region Reference Validation
     /// <summary>
     /// Validates that all necessary references are assigned.
     /// </summary>
@@ -91,7 +99,9 @@ public class SettingsUI : MonoBehaviour
         if (_restartButton == null) Debug.LogError("[SettingsUI] RestartButton reference is missing!");
         if (_mainMenuButton == null) Debug.LogError("[SettingsUI] MainMenuButton reference is missing!");
     }
+    #endregion
 
+    #region Slider Initialization
     /// <summary>
     /// Initializes the slider values based on the current music volume.
     /// </summary>
@@ -100,7 +110,9 @@ public class SettingsUI : MonoBehaviour
         _musicSlider.value = AudioManager.Instance?.MusicVolume ?? 1f;
         UpdateVolumeTexts();
     }
+    #endregion
 
+    #region Volume Text Update
     /// <summary>
     /// Updates the text displaying the current music volume.
     /// </summary>
@@ -108,7 +120,9 @@ public class SettingsUI : MonoBehaviour
     {
         _musicValueText.text = $"{(int)(_musicSlider.value * 100)}%";
     }
+    #endregion
 
+    #region Button Animations
     /// <summary>
     /// Sets up hover and click animations for buttons.
     /// </summary>
@@ -133,13 +147,14 @@ public class SettingsUI : MonoBehaviour
                 .OnComplete(() => button.transform.DOScale(1f, _buttonHoverDuration).SetUpdate(true));
         });
     }
+    #endregion
 
+    #region Panel Control
     /// <summary>
     /// Displays the settings panel with animations.
     /// </summary>
     public void Show()
     {
-      
         gameObject.SetActive(true);
 
         _settingsPanel.alpha = 0f;
@@ -158,7 +173,6 @@ public class SettingsUI : MonoBehaviour
     /// <param name="instant">Whether to hide the panel instantly or with animation.</param>
     public void HidePanel(bool instant = false)
     {
-
         gameObject.SetActive(false);
 
         if (instant)
@@ -180,7 +194,9 @@ public class SettingsUI : MonoBehaviour
                 });
         }
     }
+    #endregion
 
+    #region Volume Control
     /// <summary>
     /// Updates the music volume when the slider value changes.
     /// </summary>
@@ -193,7 +209,9 @@ public class SettingsUI : MonoBehaviour
             x => _musicValueText.text = $"{Mathf.RoundToInt(x)}%",
             value * 100f, 0.2f).SetUpdate(true);
     }
+    #endregion
 
+    #region Button Click Handlers
     /// <summary>
     /// Handles the restart button click event.
     /// </summary>
@@ -212,7 +230,9 @@ public class SettingsUI : MonoBehaviour
         // TODO: Implement main menu navigation.
         // SceneManager.LoadScene("MainMenu");
     }
+    #endregion
 
+    #region Cleanup
     /// <summary>
     /// Cleans up DOTween animations when the object is destroyed.
     /// </summary>
@@ -222,4 +242,5 @@ public class SettingsUI : MonoBehaviour
         DOTween.Kill(_contentPanel);
         DOTween.Kill(_musicValueText);
     }
+    #endregion
 }

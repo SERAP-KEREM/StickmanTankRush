@@ -1,11 +1,10 @@
-
 using UnityEngine;
 
 namespace _Main._Stickman.StickmanGrid
 {
     /// <summary>
     /// Represents a tile within the Stickman grid system.
-    /// A tile can hold a Stickman and provides information about its position.
+    /// A tile can hold a Stickman and provides information about its position and state.
     /// </summary>
     public class Tile : BaseOccupiable
     {
@@ -13,20 +12,25 @@ namespace _Main._Stickman.StickmanGrid
 
         [Header("Tile Configuration")]
         [Tooltip("The world position of the tile.")]
-        [SerializeField, HideInInspector] // This can hide it in the Inspector if it should not be manually modified.
+        [SerializeField, HideInInspector]
         private Vector3 _position;
 
         #endregion
 
         #region Pathfinding Properties
-        public int gCost;
-        public int hCost;
-        public int fCost { get; private set; }
-        public Tile parent;
-        public int x { get; private set; }
-        public int y { get; private set; }
+
+        /// <summary>
+        /// The X coordinate of the tile in the grid.
+        /// </summary>
+        public int X { get; private set; }
+
+        /// <summary>
+        /// The Y coordinate of the tile in the grid.
+        /// </summary>
+        public int Y { get; private set; }
+
         #endregion
-     
+
         #region Properties
 
         /// <summary>
@@ -37,7 +41,7 @@ namespace _Main._Stickman.StickmanGrid
             get => _position;
             private set => _position = value;
         }
-        public bool IsWalkable => CurrentStickman == null;
+
         #endregion
 
         #region Public Methods
@@ -49,29 +53,32 @@ namespace _Main._Stickman.StickmanGrid
         public void Initialize(Vector3 position)
         {
             Position = position;
-            x = Mathf.RoundToInt(position.x);
-            y = Mathf.RoundToInt(position.z);
-            // Reset the Stickman assigned to this tile
-            CurrentStickman = null;
-
+            X = Mathf.RoundToInt(position.x);
+            Y = Mathf.RoundToInt(position.z);
+            CurrentStickman = null; // Reset the Stickman assigned to this tile
         }
+
+        /// <summary>
+        /// Assigns a Stickman to this tile.
+        /// </summary>
+        /// <param name="stickman">The Stickman to assign.</param>
+        /// <returns>True if the Stickman was successfully assigned; otherwise, false.</returns>
         public override bool AssignStickman(Stickman stickman)
         {
             bool success = base.AssignStickman(stickman);
-          
             return success;
         }
+
+        /// <summary>
+        /// Removes the Stickman assigned to this tile.
+        /// </summary>
+        /// <returns>The Stickman that was removed, or null if no Stickman was assigned.</returns>
         public override Stickman RemoveStickman()
         {
             var stickman = base.RemoveStickman();
- 
             return stickman;
         }
 
-        #endregion
-        #region Private Methods
-      
-      
         #endregion
     }
 }

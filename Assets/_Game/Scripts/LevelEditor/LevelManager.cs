@@ -70,13 +70,6 @@ public class LevelManager : MonoSingleton<LevelManager>
     private int _currentLevelIndex;
     #endregion
 
-    #region Properties
-    /// <summary>
-    /// Gets the current active level instance.
-    /// </summary>
-    public Level CurrentLevel => _currentLevel;
-    #endregion
-
     #region Events
     public static event System.Action OnLevelStarted;
     public static event System.Action OnLevelWon;
@@ -167,7 +160,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         yield return CleanupCurrentLevel();
         yield return CreateNewLevel(levelIndex);
         yield return InitializeNewLevel(levelIndex);
-
+       
         AnimateLevelEntry();
     }
 
@@ -292,6 +285,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         _currentLevel = Instantiate(levelPrefab, Vector3.zero, Quaternion.identity);
         _currentLevel.transform.SetParent(transform, worldPositionStays: true);
         yield return null;
+        
     }
 
     private IEnumerator InitializeNewLevel(int levelIndex)
@@ -384,7 +378,6 @@ public class LevelManager : MonoSingleton<LevelManager>
 
         return true;
     }
-
     private bool ValidateLevelState(string action)
     {
         if (!_isLevelInProgress || (_isTransitioning && action == "won"))
@@ -394,7 +387,6 @@ public class LevelManager : MonoSingleton<LevelManager>
         }
         return true;
     }
-
     private bool ValidateLevelComponents()
     {
         if (_currentLevel == null) return false;
@@ -419,10 +411,15 @@ public class LevelManager : MonoSingleton<LevelManager>
     #region Debug
     private void HandleDebugInput()
     {
-#if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.N)) LoadNextLevel();
-        if (Input.GetKeyDown(KeyCode.R)) RestartLevel();
-#endif
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LoadNextLevel();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            RestartLevel();
+        }
     }
     #endregion
 }

@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 public class GameplayUI : MonoBehaviour
 {
+    #region UI References
     [Header("UI References")]
     [Tooltip("Displays the current level number.")]
     [SerializeField] private TextMeshProUGUI _levelText;
@@ -21,13 +22,14 @@ public class GameplayUI : MonoBehaviour
     [Tooltip("Image representing the fill of the tank progress bar.")]
     [SerializeField] private Image _tankProgressFillImage;
 
-    [Header("Settings")]
     [Tooltip("Button to open settings UI.")]
     [SerializeField] private Button _settingsButton;
 
     [Tooltip("The Settings UI panel.")]
     [SerializeField] private SettingsUI _settingsUI;
+    #endregion
 
+    #region Animation Settings
     [Header("Animation Settings")]
     [Tooltip("Duration for fade-in/fade-out animations.")]
     [SerializeField, Range(0.1f, 2f)] private float _fadeInDuration = 0.5f;
@@ -43,16 +45,22 @@ public class GameplayUI : MonoBehaviour
 
     [Tooltip("Duration for the progress bar update animation.")]
     [SerializeField, Range(0.1f, 1f)] private float _progressBarDuration = 0.3f;
+    #endregion
 
+    #region Private Variables
     private CanvasGroup _gameplayPanel;
+    #endregion
 
+    #region Unity Methods
     private void Awake()
     {
         InitializeComponents();
         InitializeUI();
         SetupSettingsButton();
     }
+    #endregion
 
+    #region Initialization Methods
     /// <summary>
     /// Initializes necessary components and validates references.
     /// </summary>
@@ -67,12 +75,12 @@ public class GameplayUI : MonoBehaviour
     /// </summary>
     private void ValidateReferences()
     {
-        if (_levelText == null) Debug.LogWarning("[GameplayUI] Level text reference is missing!");
-        if (_tankProgressSlider == null) Debug.LogWarning("[GameplayUI] Tank progress slider reference is missing!");
-        if (_tankProgressText == null) Debug.LogWarning("[GameplayUI] Tank progress text reference is missing!");
-        if (_tankProgressFillImage == null) Debug.LogWarning("[GameplayUI] Tank progress fill image reference is missing!");
-        if (_settingsButton == null) Debug.LogWarning("[GameplayUI] Settings button reference is missing!");
-        if (_settingsUI == null) Debug.LogWarning("[GameplayUI] Settings UI reference is missing!");
+        if (_levelText == null) Debug.LogError("[GameplayUI] Level text reference is missing!");
+        if (_tankProgressSlider == null) Debug.LogError("[GameplayUI] Tank progress slider reference is missing!");
+        if (_tankProgressText == null) Debug.LogError("[GameplayUI] Tank progress text reference is missing!");
+        if (_tankProgressFillImage == null) Debug.LogError("[GameplayUI] Tank progress fill image reference is missing!");
+        if (_settingsButton == null) Debug.LogError("[GameplayUI] Settings button reference is missing!");
+        if (_settingsUI == null) Debug.LogError("[GameplayUI] Settings UI reference is missing!");
     }
 
     /// <summary>
@@ -90,18 +98,23 @@ public class GameplayUI : MonoBehaviour
     private void SetupSettingsButton()
     {
         _settingsButton.onClick.AddListener(OnSettingsClicked);
-
-        _settingsButton.onClick.AddListener(() =>
-        {
-            _settingsButton.transform.DOScale(_buttonClickScale, _buttonAnimDuration)
-                .SetUpdate(true)
-                .OnComplete(() =>
-                {
-                    _settingsButton.transform.DOScale(0.2f, _buttonAnimDuration).SetUpdate(true);
-                });
-        });
+        _settingsButton.onClick.AddListener(AnimateSettingsButton);
     }
+    #endregion
 
+    #region Button Animations
+    private void AnimateSettingsButton()
+    {
+        _settingsButton.transform.DOScale(_buttonClickScale, _buttonAnimDuration)
+            .SetUpdate(true)
+            .OnComplete(() =>
+            {
+                _settingsButton.transform.DOScale(0.2f, _buttonAnimDuration).SetUpdate(true);
+            });
+    }
+    #endregion
+
+    #region UI Updates
     /// <summary>
     /// Handles the settings button click event.
     /// </summary>
@@ -144,7 +157,9 @@ public class GameplayUI : MonoBehaviour
         _tankProgressSlider.value = 0;
         _tankProgressText.text = "0/0";
     }
+    #endregion
 
+    #region UI Visibility
     /// <summary>
     /// Shows the UI with a fade-in animation.
     /// </summary>
@@ -175,16 +190,5 @@ public class GameplayUI : MonoBehaviour
         _gameplayPanel.interactable = false;
         _gameplayPanel.blocksRaycasts = false;
     }
-
-    /// <summary>
-    /// Cleans up resources and stops animations when the object is destroyed.
-    /// </summary>
-    private void OnDestroy()
-    {
-        if (_settingsButton != null) _settingsButton.onClick.RemoveAllListeners();
-
-        DOTween.Kill(_levelText.transform);
-        DOTween.Kill(_gameplayPanel);
-        DOTween.Kill(_settingsButton.transform);
-    }
+    #endregion
 }
