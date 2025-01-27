@@ -70,42 +70,21 @@ namespace _Main
         protected override void Awake()
         {
             base.Awake();
-            InitializeAudioManager();
+        }
+
+        private void Start()
+        {
+           StartCoroutine(PlayInitialAudio());
         }
         #endregion
 
         #region Initialization Methods
-        private void InitializeAudioManager()
+        private IEnumerator PlayInitialAudio()
         {
-            if (AudioManager.Instance != null) return;
-
-            var audioManagerPrefab = Resources.Load<AudioManager>("Prefabs/AudioManager");
-            if (audioManagerPrefab == null)
-            {
-                Debug.LogError("[GameManager] AudioManager prefab not found!");
-                return;
-            }
-
-            var audioManager = Instantiate(audioManagerPrefab);
-            audioManager.name = "AudioManager";
-            StartCoroutine(InitializeAudioDelayed());
+            AudioManager.Instance?.PlayAudio(AudioKeys.GAME_MUSIC);
+            yield return new WaitForSeconds(0.2f);
+            AudioManager.Instance?.PlayAudio(AudioKeys.GAME_START);
         }
-
-        private IEnumerator InitializeAudioDelayed()
-        {
-            yield return new WaitForSeconds(0.1f);
-            if (AudioManager.Instance != null)
-            {
-                PlayInitialAudio();
-            }
-        }
-
-        private void PlayInitialAudio()
-        {
-            AudioManager.Instance.PlayAudio(AudioKeys.GAME_MUSIC);
-            AudioManager.Instance.PlayAudio(AudioKeys.GAME_START);
-        }
-
         /// <summary>
         /// Initializes the game with the provided level data.
         /// </summary>
@@ -184,7 +163,7 @@ namespace _Main
         {
             if (!ValidateStickmanSelection(stickman)) return;
 
-            AudioManager.Instance.PlayAudio(AudioKeys.STICKMAN_CLICK);
+            AudioManager.Instance?.PlayAudioByName(AudioKeys.STICKMAN_CLICK);
             _selectedStickman = stickman;
 
             Tank currentTank = _tankManager.CurrentTank;
@@ -338,7 +317,7 @@ namespace _Main
                 Debug.LogWarning("[GameManager] No active tank available.");
                 return;
             }
-
+            AudioManager.Instance?.PlayAudioByName(AudioKeys.TANK_MOVE);
             _tankManager.MoveNextTankToStopPoint();
             _tankManager.MoveOtherTanks();
             UpdateTankProgress(_tankManager.CurrentTank);

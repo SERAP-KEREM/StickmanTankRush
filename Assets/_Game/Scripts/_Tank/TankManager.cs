@@ -136,7 +136,6 @@ public class TankManager : MonoBehaviour
 
         if (_currentTank != null && _currentTank.IsFull)
         {
-            AudioManager.Instance.PlayAudio(AudioKeys.TANK_MOVE);
             _currentTank.MoveToTank();
             _currentTank.CurrentState = TankState.Moving;
             _currentTank = null;

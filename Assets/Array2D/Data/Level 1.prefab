@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3c8f35d086e47546af7daf84fad8059, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tilePrefab: {fileID: 2455384503678612677, guid: 1ccadef738aa3e54892e95eff0dec873, type: 3}
+  _tilePrefab: {fileID: 2571171597959980598, guid: f568be6276d514ed798bef89db90537b, type: 3}
   _stickmanGrid: {fileID: 5289277413121498745}
 --- !u!1 &1487792672356310402
 GameObject:
@@ -353,5 +353,5 @@ MonoBehaviour:
   _tankPrefab: {fileID: 2074812478252662958, guid: 2dc5d0ee2160c4d458e04efd9861f0ce, type: 3}
   _moveDuration: 1
   _startPosition: {x: 1, y: -0.5, z: -3}
-  _currentTank: {fileID: 0}
   _tankCheckDelay: 0
+  _currentTank: {fileID: 0}

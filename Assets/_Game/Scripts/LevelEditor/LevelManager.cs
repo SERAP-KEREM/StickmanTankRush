@@ -188,7 +188,7 @@ public class LevelManager : MonoSingleton<LevelManager>
         AnimateLevelWin();
         ShowLevelCompleteUI(scoreData);
 
-        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
+        AudioManager.Instance?.PlayAudioByName(AudioKeys.LEVEL_WIN);
         OnLevelWon?.Invoke();
     }
 
@@ -203,7 +203,6 @@ public class LevelManager : MonoSingleton<LevelManager>
         ShowLevelFailedUI();
         AnimateLevelLose();
 
-        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_LOSE);
         OnLevelLost?.Invoke();
     }
     #endregion

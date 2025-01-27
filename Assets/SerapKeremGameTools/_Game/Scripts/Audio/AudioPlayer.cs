@@ -47,5 +47,13 @@ namespace SerapKeremGameTools._Game._AudioSystem
             yield return new WaitForSeconds(audio.Clip.length);
             AudioManager.Instance.ReturnAudioPlayerToPool(this);
         }
+
+        public void StopAudio(Audio audio)
+        {
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();  // Ses durduruluyor
+            }
+        }
     }
 }

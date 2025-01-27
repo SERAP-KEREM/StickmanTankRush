@@ -120,7 +120,6 @@ public class GameplayUI : MonoBehaviour
     /// </summary>
     private void OnSettingsClicked()
     {
-        AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
         _settingsUI.Show();
     }
 

@@ -54,11 +54,19 @@ namespace SerapKeremGameTools._Game._InputSystem
         protected override void Awake()
         {
             base.Awake();
-            mainCamera = Camera.main;
+        }
+        private void Start()
+        {
+            // Assign Camera.main in Start for dynamically instantiated cameras
+            if (mainCamera == null)
+            {
+                mainCamera = Camera.main;
+            }
+
             if (mainCamera == null)
             {
 #if UNITY_EDITOR
-                Debug.LogError("No Main Camera found in the scene!");
+                Debug.LogError("No Main Camera found in the scene even after Start!");
 #endif
             }
         }
@@ -71,12 +79,24 @@ namespace SerapKeremGameTools._Game._InputSystem
             if (mainCamera != null)
             {
                 Vector3 previousMousePosition = MousePosition; // Store previous position
-                MousePosition = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, mainCamera.nearClipPlane));
 
-                // Trigger event if mouse position has changed
-                if (MousePosition != previousMousePosition)
+                // Check if Input.mousePosition is within valid screen bounds
+                if (Input.mousePosition.x >= 0 && Input.mousePosition.y >= 0 &&
+                    Input.mousePosition.x <= Screen.width && Input.mousePosition.y <= Screen.height)
                 {
-                    OnMousePositionInput.Invoke(MousePosition);
+                    // Convert screen position to world position using nearClipPlane for Z
+                    float zDepth = mainCamera.nearClipPlane;
+                    MousePosition = mainCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, zDepth));
+
+                    // Trigger event if mouse position has changed
+                    if (MousePosition != previousMousePosition)
+                    {
+                        OnMousePositionInput.Invoke(MousePosition);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"Mouse position is out of screen bounds: {Input.mousePosition}");
                 }
             }
 

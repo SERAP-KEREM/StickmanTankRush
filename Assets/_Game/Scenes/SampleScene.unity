@@ -1981,7 +1981,7 @@ Canvas:
   m_GameObject: {fileID: 763252239}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 1
+  m_RenderMode: 0
   m_Camera: {fileID: 0}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
@@ -2866,7 +2866,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.9063079, z: 0.42261827, w: 0}
-  m_LocalPosition: {x: 1, y: 7, z: 5}
+  m_LocalPosition: {x: 1, y: 9, z: 5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4361,107 +4361,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1449718780}
   m_CullTransparentMesh: 1
---- !u!1 &1456288297
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1456288299}
-  - component: {fileID: 1456288298}
-  m_Layer: 0
-  m_Name: AudioManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1456288298
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456288297}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 984ab2fc06892cd4a93a19ee6df57853, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  audioClips:
-  - name: game_music
-    clip: {fileID: 8300000, guid: 83c63ad16c35bcf47ab83f8fdd829bfc, type: 3}
-    volume: 0.3
-    pitch: 0
-    loop: 1
-  - name: game_start
-    clip: {fileID: 8300000, guid: 0df435d2e7a8c8645a92f420cea50c40, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: stickman_click
-    clip: {fileID: 8300000, guid: f468ebc7c24e60541bc45199d20da521, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: level_win
-    clip: {fileID: 8300000, guid: 977ff7f3fa8767042ae5d61547e2570f, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: level_lose
-    clip: {fileID: 8300000, guid: 8c1bb81b7c6f8c14dabd2dabbcded507, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: tank_move
-    clip: {fileID: 8300000, guid: 280977793e4f2c242848a4aae71b9840, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: ui_click
-    clip: {fileID: 8300000, guid: 280977793e4f2c242848a4aae71b9840, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: star_earned
-    clip: {fileID: 8300000, guid: 280977793e4f2c242848a4aae71b9840, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: score_count
-    clip: {fileID: 8300000, guid: 280977793e4f2c242848a4aae71b9840, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  - name: bonus_show
-    clip: {fileID: 8300000, guid: 280977793e4f2c242848a4aae71b9840, type: 3}
-    volume: 0.5
-    pitch: 0
-    loop: 0
-  audioPlayerPrefab: {fileID: 8573648614527833978, guid: 7c5474113d83d314385d6989bb528a31, type: 3}
-  poolSize: 10
-  musicSource: {fileID: 0}
-  soundSource: {fileID: 0}
-  defaultSoundVolume: 1
-  defaultMusicVolume: 1
---- !u!4 &1456288299
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1456288297}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1466693998
 GameObject:
   m_ObjectHideFlags: 0
@@ -5989,6 +5888,23 @@ MonoBehaviour:
   _rowStartPosition: {x: 0, y: -1, z: -1}
   _waitingHolders: []
   _availableHolders: []
+--- !u!1 &3957784666052491430
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5277465775182001739}
+  - component: {fileID: 7569396770105131336}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!114 &4399338568632121000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6006,6 +5922,21 @@ MonoBehaviour:
   _startPosition: {x: 0, y: -10, z: 0}
   _tankCheckDelay: 0.2
   _currentTank: {fileID: 0}
+--- !u!4 &5277465775182001739
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3957784666052491430}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5294721196503225564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6109,6 +6040,25 @@ Transform:
   - {fileID: 210913615270315989}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7569396770105131336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3957784666052491430}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 984ab2fc06892cd4a93a19ee6df57853, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioClips: []
+  audioPlayerPrefab: {fileID: 8573648614527833978, guid: 7c5474113d83d314385d6989bb528a31, type: 3}
+  poolSize: 10
+  musicSource: {fileID: 6522432655155185394, guid: 7c5474113d83d314385d6989bb528a31, type: 3}
+  soundSource: {fileID: 6522432655155185394, guid: 7c5474113d83d314385d6989bb528a31, type: 3}
+  defaultSoundVolume: 0.2
+  defaultMusicVolume: 0.2
 --- !u!1 &7958456920805366802
 GameObject:
   m_ObjectHideFlags: 0
@@ -6166,6 +6116,6 @@ SceneRoots:
   - {fileID: 1512601092}
   - {fileID: 1446090110}
   - {fileID: 1175818111}
-  - {fileID: 1456288299}
+  - {fileID: 5277465775182001739}
   - {fileID: 763252243}
   - {fileID: 748443740}

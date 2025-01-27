@@ -62,7 +62,6 @@ namespace SerapKeremGameTools._Game._AudioSystem
         {
             soundVolume = PlayerPrefs.GetFloat("SoundVolume", defaultSoundVolume);
             musicVolume = PlayerPrefs.GetFloat("MusicVolume", defaultMusicVolume);
-
             ApplyVolumeSettings();
         }
         private void ApplyVolumeSettings()
@@ -72,6 +71,8 @@ namespace SerapKeremGameTools._Game._AudioSystem
 
             if (musicSource != null)
                 musicSource.volume = musicVolume;
+            AudioListener.volume = Mathf.Max(soundVolume, musicVolume);
+
         }
 
         public void PlaySound(AudioClip clip, float volumeMultiplier = 1f)
@@ -110,10 +111,9 @@ namespace SerapKeremGameTools._Game._AudioSystem
         public void SetSoundVolume(float volume)
         {
             soundVolume = Mathf.Clamp01(volume);
-
+            ApplyVolumeSettings();
             if (soundSource != null)
                 soundSource.volume = soundVolume;
-
             PlayerPrefs.SetFloat("SoundVolume", soundVolume);
             PlayerPrefs.Save();
 
@@ -123,7 +123,7 @@ namespace SerapKeremGameTools._Game._AudioSystem
         public void SetMusicVolume(float volume)
         {
             musicVolume = Mathf.Clamp01(volume);
-
+            ApplyVolumeSettings();
             if (musicSource != null)
                 musicSource.volume = musicVolume;
 
@@ -246,5 +246,55 @@ namespace SerapKeremGameTools._Game._AudioSystem
         {
             audioPlayerPool.ReturnObject(audioPlayer);
         }
+
+        /// <summary>
+        /// Plays the specified audio by its name. 
+        /// If the audio is already playing, it does nothing unless the audio has finished playing.
+        /// If the current audio is different from the requested one, it stops the previous audio and plays the new one.
+        /// </summary>
+        /// <param name="audioName">The name of the audio clip to play.</param>
+        public void PlayAudioByName(string audioName)
+        {
+            // Find the audio clip by name
+            Audio audio = audioClips.Find(a => a.Name == audioName);
+            if (audio != null)
+            {
+                // If the audio is already playing, but it's finished, we reset it
+                if (currentAudio == audioName && !soundSource.isPlaying)
+                {
+                    currentAudio = string.Empty; // Reset the current audio
+                }
+
+                // Check if the audio is already playing
+                if (currentAudio == audioName && soundSource.isPlaying)
+                {
+#if UNITY_EDITOR
+                    Debug.Log($"Audio {audioName} is already playing.");
+#endif
+                    return; // Audio is still playing, no need to play again
+                }
+
+                // If the audio is not the one already playing, reset the currentAudio
+                currentAudio = audioName;
+
+                // Get an AudioPlayer from the pool and play the audio
+                AudioPlayer audioPlayer = audioPlayerPool.GetObject();
+
+                // Reset the audioPlayer to avoid issues from previous plays
+                audioPlayer.StopAudio(audio); // Ensure the previous audio stops before playing the new one
+                audioPlayer.PlayAudio(audio);
+
+                // Set the current playing audio to this one
+                currentAudio = audioName;
+            }
+            else
+            {
+#if UNITY_EDITOR
+                Debug.LogWarning($"Audio not found: {audioName}");
+#endif
+            }
+        }
+
+
     }
 }

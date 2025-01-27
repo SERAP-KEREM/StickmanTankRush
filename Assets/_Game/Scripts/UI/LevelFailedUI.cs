@@ -90,7 +90,7 @@ public class LevelFailedUI : MonoBehaviour
             DOVirtual.DelayedCall(_buttonAnimDelay * 2, () =>
                 _mainMenuButton.transform.DOScale(1f, _fadeInDuration).SetEase(Ease.OutBack));
 
-            AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_FAIL);
+            AudioManager.Instance?.PlayAudioByName(AudioKeys.LEVEL_LOSE);
         });
     }
 
@@ -138,7 +138,6 @@ public class LevelFailedUI : MonoBehaviour
     private void OnRetryClicked()
     {
         Debug.Log("[LevelFailedUI] Retry button clicked.");
-        AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
         Hide();
         LevelManager.Instance.RestartLevel();
     }
@@ -149,7 +148,6 @@ public class LevelFailedUI : MonoBehaviour
     private void OnMainMenuClicked()
     {
         Debug.Log("[LevelFailedUI] Main Menu button clicked.");
-        AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
         Hide();
         // TODO: Implement main menu navigation.
         // SceneManager.LoadScene("MainMenu");

@@ -106,7 +106,6 @@ public class LevelCompleteUI : MonoBehaviour
 
         AnimateStars(scoreData.Stars);
 
-        AudioManager.Instance?.PlayAudio(AudioKeys.LEVEL_WIN);
     }
     #endregion
 
@@ -129,7 +128,6 @@ public class LevelCompleteUI : MonoBehaviour
                     star.color = _starActiveColor;
                     star.transform.DOScale(1f, _starAnimDuration)
                         .SetEase(Ease.OutBack);
-                    AudioManager.Instance?.PlayAudio(AudioKeys.STAR_EARNED);
                 });
             }
             else
@@ -145,8 +143,6 @@ public class LevelCompleteUI : MonoBehaviour
     /// </summary>
     private void OnNextLevelClicked()
     {
-        AudioManager.Instance?.PlayAudio(AudioKeys.UI_CLICK);
-
         _canvasGroup.DOFade(0f, _fadeInDuration)
             .OnComplete(() =>
             {
